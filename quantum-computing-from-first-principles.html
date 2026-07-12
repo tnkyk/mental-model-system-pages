@@ -178,6 +178,23 @@
       font-size: 14px;
     }
 
+    .term-list {
+      display: grid;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .term {
+      border-left: 4px solid var(--blue);
+      padding: 8px 0 8px 14px;
+      background: #f7f9fd;
+    }
+
+    .term strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
     @media (max-width: 640px) {
       main { padding: 20px 10px 48px; }
       article { padding: 20px 16px; }
@@ -208,6 +225,8 @@
     <li>干渉は、欲しい結果の確率を強め、不要な結果の確率を弱める。</li>
     <li>測定すると、読める結果は0か1のどちらか一つである。</li>
     <li>現実の量子状態はノイズで壊れやすいので、実用化には誤り訂正が必要になる。</li>
+    <li>限界突破の研究は、万能化ではなく、壊れやすい量子状態を信頼できる計算資源にする方向へ進む。</li>
+    <li>暗号では、公開鍵暗号が依存する数学構造を量子アルゴリズムが突けるため、用途が限定的でも無視できない。</li>
   </ol>
   <p>この階段を押さえると、「並列だから速い」「量子ビット数が多ければ勝ち」という雑な理解から抜け出せる。</p>
 
@@ -284,6 +303,53 @@
   <p>Microsoft Learn の解説では、40個の量子的な位置を持つ系を古典コンピュータで完全に表すには、2^40個の状態を扱う必要があると説明している。一方、量子コンピュータでは40量子ビットでその量子状態を直接表せる。</p>
   <p>代表的な候補は、分子、材料、化学反応、物性、量子系のシミュレーション、一部の暗号・探索・最適化問題である。ただし、これらは「すべてすぐ実用化されている」という意味ではない。</p>
 
+  <h2>6. 限界を突破する研究は何をしているのか</h2>
+  <p>量子コンピュータが万能高速機ではないとしても、研究が停滞しているわけではない。むしろ現在の研究の中心はかなり明確である。</p>
+  <p>突破しようとしているのは、「どんな問題でも速く解く万能性」ではない。中心にあるのは、壊れやすい量子状態を、十分長く、十分正確に使える計算資源に変えることだ。</p>
+  <p>ここで、現実の限界を理解するための言葉を整理しておく。</p>
+  <div class="term-list">
+    <div class="term"><strong>量子状態</strong>測定前の量子ビット、または複数量子ビット全体が持つ、振幅、位相、もつれを含む状態。</div>
+    <div class="term"><strong>環境</strong>量子ビット以外で、量子状態に勝手に影響する周囲の物理系。熱、電磁ノイズ、振動、材料欠陥、隣の量子ビット、制御回路、測定装置などが含まれる。</div>
+    <div class="term"><strong>量子ゲート</strong>量子状態の振幅や位相を意図的に変える操作。古典コンピュータの論理ゲートに似た計算部品だが、重ね合わせや干渉を作る点が違う。</div>
+  </div>
+  <p>現実の量子状態は、環境と少しでも絡むと位相情報を失いやすい。これがデコヒーレンスである。さらに、量子ゲートも完璧ではなく、操作するたびに小さな誤差が入る。</p>
+  <p>だから、実用化に向けた研究は次の方向へ進んでいる。</p>
+  <ul>
+    <li>量子誤り訂正: 多数の物理量子ビットをまとめて、より壊れにくい論理量子ビットを作る。</li>
+    <li>低オーバーヘッド符号: 誤り訂正に必要な物理量子ビット数や回路量を減らす。</li>
+    <li>ハードウェア方式の改良: 超伝導、イオントラップ、中性原子、光量子など、どの物理方式が拡張しやすいかを競う。</li>
+    <li>ノイズに強いエンコーディング: cat qubit、bosonic code、GKP code など、物理レベルで特定の誤りに強い表現を使う。</li>
+    <li>システム工学: 冷却、制御電子回路、読み出し、チップ間接続、リアルタイムデコーダを含めて全体を成立させる。</li>
+  </ul>
+  <p>つまり、限界突破の研究は盛んである。ただしその方向は、「量子コンピュータを万能にする」ではなく、「壊れやすい量子状態を制御可能な工学問題に変える」である。</p>
+
+  <h2>7. 用途が限定的なら、暗号リスクは無視してよいのか</h2>
+  <p>無視してよい、とは言えない。</p>
+  <p>ただし、「量子コンピュータは並列化がすごいから、どんな暗号でも一気に破る」という理解も違う。暗号で問題になるのは、主に RSA、Diffie-Hellman、楕円曲線暗号 ECC などの公開鍵暗号である。</p>
+  <p>RSA は、巨大な数 <code>N</code> を2つの素数 <code>p</code> と <code>q</code> に分解するのが難しいことに依存している。</p>
+  <pre><code>p * q = N</code></pre>
+  <p>計算するのは簡単だが、<code>N</code> から <code>p</code> と <code>q</code> を逆算するのは古典コンピュータでは非常に難しい。</p>
+  <p>ECC は次のような計算に依存する。</p>
+  <pre><code>秘密鍵 k * 基準点 G = 公開鍵 P</code></pre>
+  <p><code>k</code> から <code>P</code> を作るのは簡単だが、<code>G</code> と <code>P</code> から <code>k</code> を逆算するのは難しい。これが離散対数問題である。</p>
+  <p>Shor のアルゴリズムが強い理由は、鍵候補を総当たりするからではない。RSA や ECC の背後にある問題を、周期や隠れた構造を見つける問題に変換できるからである。</p>
+  <p>RSA では、適当な数 <code>a</code> を選び、次の関数を考える。</p>
+  <pre><code>f(x) = a^x mod N</code></pre>
+  <p>この関数には、ある周期 <code>r</code> がある。</p>
+  <pre><code>a^x mod N = a^(x+r) mod N</code></pre>
+  <p>この周期 <code>r</code> が分かると、多くの場合、最大公約数の計算から <code>N</code> の因数を取り出せる。つまり、素因数分解を周期発見の問題に変換できる。</p>
+  <p>量子コンピュータは、多数の <code>x</code> に対応する状態を重ね合わせとして作り、関数を計算し、量子フーリエ変換で周期に関係する候補の振幅を強める。周期に合わない候補は干渉で弱まる。</p>
+  <pre><code>多数の候補を重ね合わせる
+  ↓
+関数 f(x) を計算する
+  ↓
+周期に関係する位相がそろう
+  ↓
+量子フーリエ変換で周期を読み出しやすくする</code></pre>
+  <p>だから正確には、量子コンピュータは「並列総当たりで暗号を破る」のではない。公開鍵暗号が依存する数学問題が、量子フーリエ変換で構造を取り出せるタイプの問題だった、ということである。</p>
+  <p>AES のような対称鍵暗号は別に考える。こちらは Shor のアルゴリズムで同じように壊れるわけではない。Grover のアルゴリズムで探索は平方根程度速くなるが、鍵長を十分大きくすることで対処しやすい。</p>
+  <p>NIST は 2024年に耐量子暗号標準を公開し、ML-KEM、ML-DSA、SLH-DSA を示した。NSA も国家安全保障システム向けに量子耐性アルゴリズムへの移行準備を促している。これは「今日すぐ全暗号が破られる」という意味ではない。しかし、移行には時間がかかり、長期に秘密であるべきデータは将来解読されるリスクがある。だから、暗号リスクは原理的に無視してよいものではない。</p>
+
   <h2>よくある誤解</h2>
   <h3>誤解1: 量子コンピュータは全パターンを同時に試すから速い</h3>
   <p>不正確である。重ね合わせは複数の候補に対応する振幅を持てるが、測定で得られる結果は一つだけである。速さの源泉は「全部を読めること」ではなく、干渉によって正しい答えに対応する振幅を強めるアルゴリズム設計にある。</p>
@@ -291,6 +357,10 @@
   <p>不正確である。文章作成、Webアプリ、表計算、通常の業務システム、画像表示、一般的なAI推論など、多くの処理は古典コンピュータで十分に効率的である。</p>
   <h3>誤解3: 量子ビット数だけで性能が決まる</h3>
   <p>不十分である。実用性は量子ビット数だけでなく、誤り率、コヒーレンス時間、ゲート忠実度、接続性、誤り訂正を含めて判断する必要がある。</p>
+  <h3>誤解4: 用途が限定的なら暗号リスクも無視できる</h3>
+  <p>不正確である。用途は限定的だが、公開鍵暗号はその限定的用途の中でも重要な対象である。RSA/ECC が依存する数学問題は、Shor のアルゴリズムで周期や隠れた構造を取り出せる形に変換できる。</p>
+  <h3>誤解5: 暗号解読は量子並列性による総当たりである</h3>
+  <p>不正確である。Shor のアルゴリズムは、鍵候補を全部試して読むのではない。重ね合わせ、干渉、量子フーリエ変換を使い、素因数分解や離散対数の背後にある構造を取り出す。</p>
 
   <h2>現実の限界</h2>
   <h3>ノイズで状態が壊れる</h3>
@@ -325,6 +395,9 @@
     <li>Microsoft Learn, <a href="https://learn.microsoft.com/en-us/azure/quantum/overview-understanding-quantum-computing">What is quantum computing?</a>, retrieved 2026-07-12.</li>
     <li>Qiskit Aer documentation, <a href="https://qiskit.github.io/qiskit-aer/">Qiskit Aer</a>, retrieved 2026-07-12.</li>
     <li>Qiskit Aer, <a href="https://qiskit.github.io/qiskit-aer/tutorials/3_building_noise_models.html">Building Noise Models</a>, retrieved 2026-07-12.</li>
+    <li>NIST, <a href="https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards">NIST Releases First 3 Finalized Post-Quantum Encryption Standards</a>, retrieved 2026-07-13.</li>
+    <li>NSA, <a href="https://www.nsa.gov/Press-Room/News-Highlights/Article/Article/3148990/nsa-releases-future-quantum-resistant-qr-algorithm-requirements-for-national-se/">CNSA 2.0 Quantum-Resistant Algorithm Requirements</a>, retrieved 2026-07-13.</li>
+    <li>Peter W. Shor, <a href="https://arxiv.org/abs/quant-ph/9508027">Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer</a>, retrieved 2026-07-13.</li>
   </ul>
 </article>
 </main>
