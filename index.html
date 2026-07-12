@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>量子コンピュータとは何か</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f3ee;
+      --paper: #fffdfa;
+      --text: #18212b;
+      --muted: #5b6673;
+      --line: #d8d0c5;
+      --blue: #315fbd;
+      --green: #277962;
+      --amber: #a86716;
+      --code: #f0ede7;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.8;
+    }
+
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 48px 20px 72px;
+    }
+
+    article {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: clamp(22px, 4vw, 52px);
+    }
+
+    h1 {
+      font-size: clamp(30px, 5vw, 52px);
+      line-height: 1.18;
+      letter-spacing: 0;
+      margin: 0 0 22px;
+    }
+
+    h2 {
+      font-size: 26px;
+      line-height: 1.35;
+      letter-spacing: 0;
+      margin: 48px 0 14px;
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+    }
+
+    h3 {
+      font-size: 20px;
+      line-height: 1.45;
+      letter-spacing: 0;
+      margin: 28px 0 8px;
+    }
+
+    p { margin: 12px 0; }
+
+    a { color: var(--blue); }
+
+    blockquote {
+      margin: 22px 0;
+      padding: 16px 18px;
+      border-left: 4px solid var(--green);
+      background: #edf6f2;
+      font-weight: 700;
+    }
+
+    pre {
+      overflow-x: auto;
+      background: var(--code);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px 16px;
+      line-height: 1.55;
+    }
+
+    code { font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace; }
+
+    ul, ol { padding-left: 1.35rem; }
+
+    li { margin: 6px 0; }
+
+    .lead {
+      font-size: 19px;
+      color: #283441;
+    }
+
+    .figure {
+      margin: 28px 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    .figure svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .caption {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .demo {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      background: #fbfaf7;
+      margin: 22px 0;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 120px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    input[type="range"] { width: 100%; }
+
+    button {
+      appearance: none;
+      border: 1px solid #244f9a;
+      background: var(--blue);
+      color: white;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .bars {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .bar {
+      display: grid;
+      grid-template-columns: 64px 1fr 64px;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .track {
+      height: 18px;
+      background: #e7e2da;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .fill0, .fill1 {
+      height: 100%;
+      width: 0%;
+    }
+
+    .fill0 { background: var(--blue); }
+    .fill1 { background: var(--green); }
+
+    .note {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 640px) {
+      main { padding: 20px 10px 48px; }
+      article { padding: 20px 16px; }
+      .controls { grid-template-columns: 1fr; }
+      .bar { grid-template-columns: 46px 1fr 48px; }
+    }
+  </style>
+</head>
+<body>
+<main>
+<article>
+  <h1>量子コンピュータとは何か: 「0と1を同時に試す機械」という誤解から抜け出す</h1>
+
+  <p class="lead">量子コンピュータは、よく「0と1を同時に扱えるから速い」と説明される。この説明は入口としては便利だが、そのまま信じると大事なところを誤解する。</p>
+
+  <p>もし本当に「すべての答えを同時に試して、すべてを読める」なら、量子コンピュータはどんな問題でも一瞬で解ける万能機械になってしまう。現実はそうではない。</p>
+
+  <blockquote>量子コンピュータとは、量子状態を計算資源として使い、重ね合わせ・干渉・もつれを制御し、最後に測定して古典的な答えを取り出す計算機である。</blockquote>
+
+  <p>この記事では、専門用語をできるだけ後回しにしながら、「なぜ量子コンピュータはすごいのか」と「なぜ万能ではないのか」を同時に理解する。</p>
+
+  <h2>理解の階段</h2>
+  <ol>
+    <li>計算とは、状態を変換して最後に読むこと。</li>
+    <li>古典ビットは、0か1のどちらかを持つ。</li>
+    <li>量子ビットは、測定前に0と1の確率振幅を持つ。</li>
+    <li>量子ゲートは、その振幅を変える。</li>
+    <li>干渉は、欲しい結果の確率を強め、不要な結果の確率を弱める。</li>
+    <li>測定すると、読める結果は0か1のどちらか一つである。</li>
+    <li>現実の量子状態はノイズで壊れやすいので、実用化には誤り訂正が必要になる。</li>
+  </ol>
+  <p>この階段を押さえると、「並列だから速い」「量子ビット数が多ければ勝ち」という雑な理解から抜け出せる。</p>
+
+  <h2>1. そもそも計算とは何か</h2>
+  <p>計算とは、状態をルールに従って変換し、最後の状態を答えとして読む行為である。</p>
+  <p>古典コンピュータでは、状態はビットで表される。ビットは0か1であり、CPUは論理ゲートを使ってビット列を変換する。</p>
+  <pre><code>入力ビット
+  ↓
+論理ゲートによる変換
+  ↓
+出力ビット</code></pre>
+  <p>つまり古典コンピュータは、0/1という安定した状態を、決められた手順で変換する機械である。ここで重要なのは、「計算」は抽象的な魔法ではなく、物理的な状態変化だということだ。</p>
+
+  <h2>2. 量子ビットは何が違うか</h2>
+  <p>量子コンピュータでは、基本単位はビットではなく量子ビットである。</p>
+  <p>古典ビットは0か1のどちらかを持つ。一方、量子ビットは測定前に、0と1に対応する確率振幅を持つ。ここでいう振幅は、正確には複素数で表される量であり、測定結果の確率は振幅の大きさの二乗から決まる。</p>
+  <p>ただし、量子ビットは「0でもあり1でもあるから、測定すれば両方わかる」わけではない。測定すると、結果は0か1のどちらか一つになる。</p>
+
+  <figure class="figure">
+    <svg xmlns="http://www.w3.org/2000/svg" width="960" height="420" viewBox="0 0 960 420" role="img" aria-labelledby="title desc">
+      <title id="title">量子ビットの状態、ゲート、測定の流れ</title>
+      <desc id="desc">量子ビットが0と1の振幅を持ち、量子ゲートと干渉で確率が変わり、測定では0または1の一つの結果だけが出ることを示す構造図。</desc>
+      <defs>
+        <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto"><path d="M2,2 L10,6 L2,10 Z" fill="#3f4752"/></marker>
+      </defs>
+      <rect width="960" height="420" fill="#ffffff"/>
+      <text x="36" y="44" font-size="22" font-weight="700" fill="#1f2933">量子ビットは「両方読める」のではなく、測定前の確率を操作する</text>
+      <rect x="40" y="86" width="230" height="230" rx="8" fill="#f7f8fb" stroke="#c7ced8" stroke-width="2"/>
+      <text x="70" y="126" font-size="17" font-weight="700" fill="#27313d">1. 量子ビットの状態</text>
+      <text x="70" y="166" font-size="15" fill="#435060">|0&gt; の振幅</text>
+      <rect x="70" y="180" width="128" height="20" fill="#4f7fcf"/>
+      <text x="70" y="228" font-size="15" fill="#435060">|1&gt; の振幅</text>
+      <rect x="70" y="242" width="82" height="20" fill="#4f9b83"/>
+      <text x="70" y="292" font-size="14" fill="#5c6875">測定前は振幅として持つ</text>
+      <path d="M282 201 H350" stroke="#3f4752" stroke-width="2.4" fill="none" marker-end="url(#arrow)"/>
+      <rect x="360" y="86" width="230" height="230" rx="8" fill="#eef7f4" stroke="#4f9b83" stroke-width="2"/>
+      <text x="390" y="126" font-size="17" font-weight="700" fill="#27313d">2. ゲートと干渉</text>
+      <text x="390" y="166" font-size="15" fill="#435060">振幅を変える</text>
+      <rect x="390" y="180" width="78" height="20" fill="#4f7fcf"/>
+      <text x="390" y="228" font-size="15" fill="#435060">欲しい結果を強める</text>
+      <rect x="390" y="242" width="140" height="20" fill="#4f9b83"/>
+      <text x="390" y="292" font-size="14" fill="#5c6875">確率分布を設計する</text>
+      <path d="M602 201 H670" stroke="#3f4752" stroke-width="2.4" fill="none" marker-end="url(#arrow)"/>
+      <rect x="680" y="86" width="230" height="230" rx="8" fill="#fff6e8" stroke="#d49a3a" stroke-width="2"/>
+      <text x="710" y="126" font-size="17" font-weight="700" fill="#27313d">3. 測定</text>
+      <path d="M735 165 C760 130, 830 130, 855 165" stroke="#d49a3a" stroke-width="3" fill="none"/>
+      <path d="M735 165 C760 200, 830 200, 855 165" stroke="#d49a3a" stroke-width="3" fill="none"/>
+      <circle cx="795" cy="165" r="8" fill="#d49a3a"/>
+      <text x="725" y="226" font-size="15" fill="#435060">出る結果は 0 または 1</text>
+      <text x="725" y="258" font-size="15" fill="#435060">一回で両方は読めない</text>
+      <text x="725" y="292" font-size="14" fill="#5c6875">確率に従って一つだけ出る</text>
+      <text x="48" y="368" font-size="14" fill="#5c6875">図の要点: 候補を全部読むのではなく、測定前に振幅を調整して望ましい結果の確率を高める。</text>
+    </svg>
+    <figcaption class="caption">量子計算の価値は、候補を全部読むことではなく、測定前に振幅を調整して望ましい結果の確率を高めることにある。</figcaption>
+  </figure>
+
+  <h2>3. 量子計算の中核は「干渉」である</h2>
+  <p>重ね合わせによって、量子状態は複数の可能性に対応する振幅を持てる。量子ゲートは、その振幅を変える。うまく設計された量子アルゴリズムでは、間違った答えにつながる振幅を弱め、正しい答えにつながる振幅を強める。</p>
+  <pre><code>候補に対応する振幅を作る
+  ↓
+量子ゲートで振幅を変える
+  ↓
+干渉で不要な候補を弱める
+  ↓
+測定で一つの結果を取り出す</code></pre>
+  <p>これが「量子コンピュータは並列計算だから速い」という説明が不十分な理由である。測定では一つの結果しか得られない。単に候補を広げるだけでは意味がない。</p>
+
+  <h2>4. もつれは何を可能にするか</h2>
+  <p>もつれとは、複数の量子ビットが、個別の状態だけでは説明できない相関を持つことだ。片方だけを独立に見ても全体は説明できない。全体として一つの量子状態になっている。</p>
+  <p>たとえば、2つの古典ビットなら「00」「01」「10」「11」のどれか一つを持つ。量子ビットでは、それら複数の状態に対応する振幅を全体として持てる。量子ビットが増えるほど、この全体状態を古典コンピュータでそのまま記録するのは急速に難しくなる。</p>
+
+  <h2>5. なぜ量子コンピュータが必要なのか</h2>
+  <p>量子コンピュータの自然な使い道は、量子の世界そのものを扱う問題である。</p>
+  <p>Microsoft Learn の解説では、40個の量子的な位置を持つ系を古典コンピュータで完全に表すには、2^40個の状態を扱う必要があると説明している。一方、量子コンピュータでは40量子ビットでその量子状態を直接表せる。</p>
+  <p>代表的な候補は、分子、材料、化学反応、物性、量子系のシミュレーション、一部の暗号・探索・最適化問題である。ただし、これらは「すべてすぐ実用化されている」という意味ではない。</p>
+
+  <h2>よくある誤解</h2>
+  <h3>誤解1: 量子コンピュータは全パターンを同時に試すから速い</h3>
+  <p>不正確である。重ね合わせは複数の候補に対応する振幅を持てるが、測定で得られる結果は一つだけである。速さの源泉は「全部を読めること」ではなく、干渉によって正しい答えに対応する振幅を強めるアルゴリズム設計にある。</p>
+  <h3>誤解2: 量子コンピュータは万能高速機である</h3>
+  <p>不正確である。文章作成、Webアプリ、表計算、通常の業務システム、画像表示、一般的なAI推論など、多くの処理は古典コンピュータで十分に効率的である。</p>
+  <h3>誤解3: 量子ビット数だけで性能が決まる</h3>
+  <p>不十分である。実用性は量子ビット数だけでなく、誤り率、コヒーレンス時間、ゲート忠実度、接続性、誤り訂正を含めて判断する必要がある。</p>
+
+  <h2>現実の限界</h2>
+  <h3>ノイズで状態が壊れる</h3>
+  <p>量子ビットは環境の影響を受けやすい。測定にも誤差がある。量子ゲートにも誤差がある。そのため、量子コンピュータは理論上の回路を作ればすぐ正しく動く、という種類の機械ではない。</p>
+  <h3>誤り訂正が大きな壁になる</h3>
+  <p>Microsoft Learn は、良い量子コンピュータの条件として、スケール可能、初期化可能、レジリエント、ユニバーサル、信頼できる測定を挙げている。これは、量子ビット数だけでは実用性を語れないということでもある。</p>
+  <h3>用途は限定される</h3>
+  <p>量子コンピュータが自然に強いのは、量子状態そのものを扱う問題や、干渉を利用できる一部のアルゴリズムである。すべての探索、すべての最適化、すべてのAI処理が自動的に速くなるわけではない。</p>
+
+  <h2>小さな体験: 測定は確率的に結果を返す</h2>
+  <p>1量子ビットの直感をつかむには、まず「測定結果は確率的に出る」ことを見るだけでも役に立つ。下のデモは、確率サンプリングだけを扱う簡易モデルである。複素振幅、位相、干渉、もつれまでは扱わない。</p>
+  <section class="demo" aria-label="1量子ビット測定デモ">
+    <div class="controls">
+      <label for="p0">P(0): <span id="p0Label">60</span>%</label>
+      <input id="p0" type="range" min="0" max="100" value="60">
+      <button id="measure" type="button">100回測定</button>
+    </div>
+    <div class="bars">
+      <div class="bar"><strong>0</strong><div class="track"><div id="bar0" class="fill0"></div></div><span id="count0">0</span></div>
+      <div class="bar"><strong>1</strong><div class="track"><div id="bar1" class="fill1"></div></div><span id="count1">0</span></div>
+    </div>
+    <p class="note">測定回数を増やすと、結果の割合は設定した確率に近づきやすくなる。ただし、これは量子干渉そのものを再現するものではない。</p>
+  </section>
+
+  <h2>最終メンタルモデル</h2>
+  <blockquote>量子コンピュータとは、量子状態を計算資源として使い、重ね合わせでものごとの可能性を持ち、干渉で答えの確率を調整し、もつれで全体状態を扱い、測定によって古典的な答えを取り出す計算機である。</blockquote>
+  <p>もっと短く言えば、量子コンピュータは、量子状態を制御して、古典コンピュータでは扱いにくい一部の問題を解くための計算機である。</p>
+  <p>この理解を持っておくと、量子コンピュータを過大評価しすぎず、同時に過小評価もしなくなる。魔法の高速機ではない。しかし、量子の世界を扱うために、古典コンピュータとは違う物理を計算資源にする機械である。</p>
+
+  <h2>参考資料</h2>
+  <ul>
+    <li>Microsoft Learn, <a href="https://learn.microsoft.com/en-us/azure/quantum/overview-understanding-quantum-computing">What is quantum computing?</a>, retrieved 2026-07-12.</li>
+    <li>Qiskit Aer documentation, <a href="https://qiskit.github.io/qiskit-aer/">Qiskit Aer</a>, retrieved 2026-07-12.</li>
+    <li>Qiskit Aer, <a href="https://qiskit.github.io/qiskit-aer/tutorials/3_building_noise_models.html">Building Noise Models</a>, retrieved 2026-07-12.</li>
+  </ul>
+</article>
+</main>
+<script>
+  const slider = document.getElementById("p0");
+  const label = document.getElementById("p0Label");
+  const count0 = document.getElementById("count0");
+  const count1 = document.getElementById("count1");
+  const bar0 = document.getElementById("bar0");
+  const bar1 = document.getElementById("bar1");
+
+  function render(c0, c1) {
+    const total = Math.max(1, c0 + c1);
+    count0.textContent = c0;
+    count1.textContent = c1;
+    bar0.style.width = `${(c0 / total) * 100}%`;
+    bar1.style.width = `${(c1 / total) * 100}%`;
+  }
+
+  slider.addEventListener("input", () => {
+    label.textContent = slider.value;
+  });
+
+  document.getElementById("measure").addEventListener("click", () => {
+    const p0 = Number(slider.value) / 100;
+    let c0 = 0;
+    let c1 = 0;
+    for (let i = 0; i < 100; i += 1) {
+      if (Math.random() < p0) c0 += 1;
+      else c1 += 1;
+    }
+    render(c0, c1);
+  });
+
+  render(0, 0);
+</script>
+</body>
+</html>
