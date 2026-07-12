@@ -4,4 +4,4 @@ This repository contains only the public GitHub Pages artifact exported from the
 
 Published page:
 
-- `index.html`
+- `quantum-computing-from-first-principles.html`
