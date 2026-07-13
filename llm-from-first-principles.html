@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="LLMを、次トークン予測、Transformer、GPU、テスト時計算、内部解釈から理解するファーストプリンシパル記事。">
+  <title>LLM from First Principles</title>
+  <style>
+    :root { --ink:#17212b; --muted:#516170; --paper:#fbfcfd; --line:#d6dee6; --blue:#1677b8; --teal:#128576; --gold:#c07b19; --red:#b14b4c; --navy:#253b58; --wash:#eef4f7; --max:1120px; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.75 Inter, "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif; }
+    a { color:#075f9d; text-underline-offset:3px; }
+    a:hover { color:#034d7e; }
+    .wrap { width:min(var(--max), calc(100% - 40px)); margin:0 auto; }
+    .topbar { border-bottom:1px solid var(--line); background:rgba(251,252,253,.96); position:sticky; top:0; z-index:5; }
+    .topbar .wrap { min-height:54px; display:flex; justify-content:space-between; align-items:center; gap:20px; }
+    .brand { font-size:14px; font-weight:760; letter-spacing:0; color:var(--navy); text-decoration:none; }
+    .topnav { display:flex; gap:16px; font-size:13px; white-space:nowrap; overflow:auto; }
+    .topnav a { color:var(--muted); text-decoration:none; }
+    .topnav a:hover { color:var(--ink); }
+    .hero { border-bottom:1px solid var(--line); background:#f2f7f8; padding:66px 0 52px; }
+    .hero-grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr); gap:52px; align-items:end; }
+    .eyebrow { margin:0 0 12px; color:var(--teal); font-weight:750; font-size:13px; letter-spacing:0; }
+    h1,h2,h3 { line-height:1.28; letter-spacing:0; }
+    h1 { margin:0; max-width:760px; font-size:clamp(34px,5vw,58px); font-weight:780; }
+    .dek { margin:22px 0 0; max-width:720px; font-size:18px; color:#344555; }
+    .hero-meta { margin-top:24px; color:var(--muted); font-size:13px; }
+    .model-card { border:1px solid #9bb8c7; background:#fff; padding:20px; }
+    .model-card h2 { font-size:15px; margin:0 0 12px; color:var(--navy); }
+    .model-card p { margin:0; font-size:15px; }
+    main { padding:52px 0 90px; }
+    .article { max-width:860px; margin:0 auto; }
+    .article > section { padding:44px 0; border-bottom:1px solid var(--line); scroll-margin-top:68px; }
+    .article > section:first-child { padding-top:0; }
+    h2 { font-size:28px; margin:0 0 14px; }
+    h3 { font-size:18px; margin:28px 0 10px; }
+    p { margin:0 0 17px; }
+    ul,ol { margin:0 0 17px; padding-left:1.3em; }
+    li + li { margin-top:6px; }
+    code { font:13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; padding:2px 5px; background:#edf1f4; color:#263a4b; }
+    .callout { border-left:4px solid var(--teal); background:#f0f7f6; padding:18px 20px; margin:24px 0; }
+    .callout strong { color:#0e5f56; }
+    .figure { margin:28px 0; border:1px solid var(--line); background:#fff; padding:20px; }
+    .caption { margin:12px 0 0; color:var(--muted); font-size:13px; }
+    .flow { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; align-items:stretch; }
+    .flow-item { min-height:104px; padding:14px; border:1px solid var(--line); background:#f9fbfc; display:flex; flex-direction:column; justify-content:space-between; }
+    .flow-item b { font-size:15px; }
+    .flow-item span { color:var(--muted); font-size:13px; line-height:1.5; }
+    .flow-item:nth-child(1) { border-top:4px solid var(--blue); }
+    .flow-item:nth-child(2) { border-top:4px solid var(--gold); }
+    .flow-item:nth-child(3) { border-top:4px solid var(--teal); }
+    .flow-item:nth-child(4) { border-top:4px solid var(--red); }
+    .arrow-row { display:grid; grid-template-columns:repeat(3,1fr); color:#6c7b88; text-align:center; font-size:18px; height:22px; }
+    .layer-stack { display:grid; gap:8px; padding:8px 0; }
+    .layer { display:grid; grid-template-columns:135px 1fr; border:1px solid var(--line); min-height:54px; }
+    .layer-label { display:flex; align-items:center; padding:9px 12px; background:#edf4f6; font-weight:720; font-size:14px; }
+    .layer-body { padding:9px 12px; font-size:14px; color:#3c4c5b; }
+    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+    .compare { border:1px solid var(--line); padding:18px; background:#fff; }
+    .compare h3 { margin:0 0 10px; }
+    .compare ul { margin:0; font-size:14px; }
+    .hardware { overflow:auto; }
+    table { width:100%; border-collapse:collapse; font-size:14px; min-width:670px; }
+    th,td { text-align:left; vertical-align:top; padding:12px; border-bottom:1px solid var(--line); }
+    th { color:#31475c; background:#edf4f6; font-size:13px; }
+    .control-lab { border:1px solid var(--line); background:#fff; padding:22px; }
+    .lab-head { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
+    .lab-head h3 { margin:0; }
+    .lab-readout { color:var(--teal); font-size:14px; font-weight:750; }
+    .control { margin-top:20px; }
+    .control label { display:flex; justify-content:space-between; gap:12px; font-size:14px; font-weight:700; }
+    input[type="range"] { width:100%; accent-color:var(--teal); margin:8px 0 2px; }
+    .metric-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px; }
+    .metric { padding:14px; background:#f3f7f8; border-top:3px solid var(--blue); }
+    .metric:nth-child(2) { border-color:var(--gold); }
+    .metric:nth-child(3) { border-color:var(--teal); }
+    .metric span { display:block; color:var(--muted); font-size:12px; }
+    .metric b { display:block; font-size:24px; margin-top:3px; }
+    .lab-note { margin:16px 0 0; color:var(--muted); font-size:13px; }
+    .evidence { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); background:#fff; }
+    .evidence div { padding:16px; border-right:1px solid var(--line); }
+    .evidence div:last-child { border-right:0; }
+    .evidence b { display:block; font-size:14px; margin-bottom:6px; }
+    .evidence span { color:var(--muted); font-size:13px; line-height:1.5; }
+    .evidence div:nth-child(1) b { color:var(--blue); }
+    .evidence div:nth-child(2) b { color:var(--teal); }
+    .evidence div:nth-child(3) b { color:var(--gold); }
+    .evidence div:nth-child(4) b { color:var(--red); }
+    .trend-table td:first-child { font-weight:760; color:var(--navy); white-space:nowrap; }
+    .decision { display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
+    .decision div { background:#fff; padding:17px; }
+    .decision b { display:block; margin-bottom:6px; }
+    .decision span { color:var(--muted); font-size:14px; }
+    .source-list { font-size:14px; }
+    .footer { padding:28px 0 56px; color:var(--muted); font-size:13px; }
+    @media (max-width:760px) { .wrap { width:min(100% - 28px, var(--max)); } .topnav { display:none; } .hero { padding:44px 0 38px; } .hero-grid,.two-col { grid-template-columns:1fr; gap:24px; } .article > section { padding:34px 0; } h2 { font-size:25px; } .flow { grid-template-columns:1fr 1fr; } .arrow-row { display:none; } .layer { grid-template-columns:106px 1fr; } .metric-grid { grid-template-columns:1fr; } .evidence { grid-template-columns:1fr 1fr; } .evidence div:nth-child(2) { border-right:0; } .evidence div:nth-child(-n+2) { border-bottom:1px solid var(--line); } .decision { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="wrap"><a class="brand" href="./">Mental Model Studio</a><nav class="topnav" aria-label="本文の目次"><a href="#training">訓練</a><a href="#transformer">Transformer</a><a href="#hardware">ハードウェア</a><a href="#reasoning">推論</a><a href="#inside">内側</a><a href="#trends">動向</a></nav></div></header>
+  <section class="hero"><div class="wrap hero-grid"><div><p class="eyebrow">MENTAL MODEL / AI SYSTEMS</p><h1>LLMをファーストプリンシパルから理解する</h1><p class="dek">次トークン予測、Transformer、GPU、テスト時計算、内部解釈まで。流暢な応答を、万能な思考主体の証拠と混同しないための地図。</p><p class="hero-meta">公開日 2026-07-13 ・ 研究動向の取得日 2026-07-13</p></div><aside class="model-card"><h2>最終メンタルモデル</h2><p>LLMは、膨大なデータから次トークンの条件付き確率を学んだ圧縮予測器である。実用上の能力と危険は、重みだけでなく、文脈、検索、ツール、検証器、権限を含むシステムとして評価する。</p></aside></div></section>
+  <main><article class="article">
+    <section id="question"><h2>二択を外す</h2><p>LLMは「検索と翻訳だけ」なのか。それとも万能な思考主体に近いのか。この二択はどちらも粗い。Transformerは翻訳で提案されたが、現在のLLMの学習目標は一般に、前のトークン列に条件づけた次トークンの確率を高めることだ。</p><div class="callout"><strong>検索と翻訳は、限定的には有効な比喩である。</strong> attentionは現在の文脈から情報を選ぶため文脈内検索に似る。層は表現を別の表現に変換するため翻訳的でもある。しかし、外部コーパス検索や言語間翻訳が本体の必須機能という意味ではない。</div><p>正確な問いはこうなる。情報はどこにあり、いつ更新され、どの計算がそれを読むのか。そして、その出力は何によって検証されるのか。</p><figure class="figure"><div class="flow"><div class="flow-item"><b>重み</b><span>訓練から圧縮された長期の統計</span></div><div class="flow-item"><b>文脈</b><span>prompt と会話中の短期状態</span></div><div class="flow-item"><b>外部環境</b><span>検索、ツール、実行、記憶</span></div><div class="flow-item"><b>応答</b><span>次トークンを繰り返し選ぶ</span></div></div><div class="arrow-row"><span>+ </span><span>+ </span><span>→</span></div><figcaption class="caption">要点: 最新情報は重みから自動で出てこない。検索結果を文脈へ入れ、引用や実行結果を別途検証することで初めて根拠を持つ。</figcaption></figure></section>
+    <section id="training"><h2>訓練: 予測誤差を重みへ圧縮する</h2><p>まず文書をトークンID列に分ける。モデルは各位置で語彙全体への確率分布を出し、正解の次トークンの確率が低いほど損失を受ける。backpropagationが各重みへの寄与を計算し、optimizerがその重みを少し更新する。</p><div class="layer-stack"><div class="layer"><div class="layer-label">1. データ</div><div class="layer-body">文章、コード、画像などをトークン列または特徴列にする。</div></div><div class="layer"><div class="layer-label">2. Forward</div><div class="layer-body">文脈からlogitを計算し、次トークンの確率分布を作る。</div></div><div class="layer"><div class="layer-label">3. 損失</div><div class="layer-body">正解トークンの確率が低いほどcross-entropyを大きくする。</div></div><div class="layer"><div class="layer-label">4. 更新</div><div class="layer-body">勾配を使い、予測誤差が減る方向へ重みを更新する。</div></div></div><p>事前学習の後には、指示例によるSFT、比較による選好最適化、正答や形式を採点できる課題での強化学習が加わる。これらは「どの続きが報われるか」を変える。真理、善い目的、最新情報を自動的に保証するわけではない。</p></section>
+    <section id="transformer"><h2>Transformer: 文脈を混合し、表現を変換する</h2><p>トークンはベクトルに変換され、多数の層を通る。各層は大まかに、attentionで文脈内の情報を混合し、MLPで各位置の特徴を非線形に変える。残差接続と正規化が情報と最適化を安定させる。</p><figure class="figure"><div class="layer-stack"><div class="layer"><div class="layer-label">入力</div><div class="layer-body">token ID → embedding + 位置情報</div></div><div class="layer"><div class="layer-label">Attention</div><div class="layer-body"><code>softmax(QK^T / sqrt(d))V</code>。QueryとKeyの相性で、過去のValueを混ぜる。</div></div><div class="layer"><div class="layer-label">MLP</div><div class="layer-body">各位置で特徴を拡張・非線形変換・圧縮する。attentionだけが計算のすべてではない。</div></div><div class="layer"><div class="layer-label">出力</div><div class="layer-body">最終表現 → 語彙logit → temperature等を用いて次トークンを選ぶ。</div></div></div><figcaption class="caption">要点: attentionは外部検索ではなく、今与えられた文脈への内容依存アクセスである。重みと文脈を同じ「記憶」と呼ぶと誤解が生まれる。</figcaption></figure><div class="two-col"><div class="compare"><h3>重みにあるもの</h3><ul><li>学習分布から圧縮された規則・相関・知識</li><li>訓練後は通常、会話ごとに更新されない</li><li>更新には再訓練または微調整が必要</li></ul></div><div class="compare"><h3>文脈にあるもの</h3><ul><li>prompt、会話、検索結果、ツール出力</li><li>今の応答でattentionが参照できる</li><li>長さとKV cacheの容量に制約される</li></ul></div></div></section>
+    <section id="hardware"><h2>ハードウェア: 行列積、メモリ、通信</h2><p>「一語ずつ考える」と言っても、GPU内部では大量の数値計算が走る。重みと活性を高帯域メモリから読み、Tensor Core等で行列積を行う。モデルの実用性はパラメータ数だけでなく、メモリ帯域、KV cache、GPU間通信、自己回帰の直列性で決まる。</p><div class="hardware"><table><thead><tr><th>レイヤー</th><th>主な処理</th><th>主な制約</th></tr></thead><tbody><tr><td>入力・制御</td><td>tokenization、要求ルーティング、ツールI/O</td><td>CPU、ネットワーク、待ち行列</td></tr><tr><td>デバイスメモリ</td><td>重み、活性、KV cacheの読書き</td><td>HBMの容量・帯域</td></tr><tr><td>演算器</td><td>QKV、attention、MLP、logitの行列積</td><td>演算量、低精度の扱い</td></tr><tr><td>複数GPU</td><td>tensor/pipeline/expert parallel、勾配集約</td><td>NVLink、InfiniBand等の通信</td></tr><tr><td>自己回帰出力</td><td>1トークン選択、KV cache追加</td><td>前トークンへの依存による直列性</td></tr></tbody></table></div><p>学習は多数のトークンを一括で処理できるため並列化しやすい。対して生成は、前の出力を次の入力にするため時間方向の直列性が残る。量子化、continuous batching、speculative decoding、MoEは、精度・容量・帯域・待ち時間の交換を設計する手段である。</p></section>
+    <section id="reasoning"><h2>推論強化: 長い出力は何を意味するか</h2><p>近年のreasoningモデルは、基盤モデルだけで性能を得ているわけではない。RLで検証可能な解法を強め、テスト時に長い生成、複数案、自己検証、ツール呼び出しへ計算を配る。能力を評価する単位は、重み単体からシステムへ移る。</p><div class="control-lab" aria-label="テスト時計算の概念デモ"><div class="lab-head"><h3>小さな体験: テスト時計算の配分</h3><span id="budgetText" class="lab-readout">標準</span></div><div class="control"><label for="budget"><span>推論トークン予算</span><span id="budgetLabel">1,000</span></label><input id="budget" type="range" min="250" max="8000" step="250" value="1000"></div><div class="metric-grid"><div class="metric"><span>概念上の待ち時間</span><b id="latency">1.0x</b></div><div class="metric"><span>概念上のKV cache負荷</span><b id="memory">1.0x</b></div><div class="metric"><span>検証に回せる候補</span><b id="candidates">1</b></div></div><p class="lab-note">これは実測ベンチマークではない。予算を増やすと、探索・検証に使える余地と、待ち時間・メモリ負荷が同時に増えるというトレードオフだけを示す。検証器がなければ、長く出力しても正確さは保証されない。</p></div><p>DeepSeek-R1は規則ベース報酬を含むRL、Qwen3はthinking budget、OpenAIのoシリーズは大規模RLの継続を公開情報として挙げる。これらはTransformerを別原理に置き換えたというより、訓練信号とテスト時計算の配分を変える設計である。</p></section>
+    <section id="inside"><h2>最先端モデルの内側: 見えているもの、見えていないもの</h2><p>機械論的解釈は、重み・活性・特徴を測り、特定の出力へ因果的に寄与する部分回路を探す。Anthropicのcircuit tracingは特徴間の帰属グラフを作り、入力から出力までの計算の一部を追う。研究は、言語をまたぐ概念表現や、複数段の計画に関係する回路を示唆している。</p><figure class="figure"><div class="evidence"><div><b>入出力の振る舞い</b><span>何ができたかを測れる。内部機構は特定できない。</span></div><div><b>内部表現</b><span>特徴・活性の相関を観察する。意味の解釈には仮説が入る。</span></div><div><b>因果介入</b><span>特徴を変え、出力が変わるかを試す。部分回路への強い証拠になる。</span></div><div><b>意識・主体性</b><span>機能的な計画や保持からは、主観経験や道徳的地位を結論できない。</span></div></div><figcaption class="caption">要点: 「単なる文字列置換」では説明しにくい分散表現の証拠はある。同時に、全内部過程、意識、安定した長期目標が分かったという証拠ではない。</figcaption></figure></section>
+    <section id="trends"><h2>研究動向: 国籍ではなく技術レバーと公開度で見る</h2><p>中国・米国という区分だけでは、何を最適化し、どこまで再現でき、何が非公開かが見えない。公開資料を同じ軸で読む。</p><div class="hardware"><table class="trend-table"><thead><tr><th>主体</th><th>公開された方向性</th><th>このモデルでの位置づけ</th><th>注意点</th></tr></thead><tbody><tr><td>DeepSeek</td><td>MoE、MLA、低精度、規則報酬を含むRL</td><td>容量・帯域・推論コストと検証報酬の最適化</td><td>技術報告は著者の開示。全訓練の独立再現ではない。</td></tr><tr><td>Qwen</td><td>dense/MoE、thinking mode、推論予算、多言語</td><td>同じ重みでもモードと計算予算を制御</td><td>評価条件と製品実装を分けて読む。</td></tr><tr><td>OpenAI</td><td>reasoning RL、画像を含む推論、ツール使用</td><td>テスト時計算と外部環境を含むシステム化</td><td>閉鎖モデルの層・データ・回路は非公開。</td></tr><tr><td>Anthropic</td><td>回路追跡、特徴介入、内部ワークスペース仮説</td><td>能力だけでなく監査可能性を上げる研究</td><td>部分回路から全体理解へ外挿しない。</td></tr><tr><td>公開重み系</td><td>MoE、長文脈、マルチモーダル、後訓練</td><td>構造・介入・運用の検証を可能にする</td><td>公開範囲とライセンスを個別に確認する。</td></tr></tbody></table></div><p>2026-07-13時点の共通傾向は、MoE・低精度・cache最適化で計算経済性を上げること、RLと検証器で推論出力を改善すること、test-time computeとツールを能力レバーにすること、マルチモーダル化、内部解釈と監視である。これは万能な思考エンジンの完成ではなく、複数の設計レバーを組み合わせる競争である。</p></section>
+    <section id="use"><h2>実務での判断: 何を任せるか</h2><p>流暢さを信頼の根拠にしない。情報源、検証器、失敗コスト、権限を分けて設計する。</p><div class="decision"><div><b>提案・下書き</b><span>探索、翻訳、要約、反例、構造案。誤りが可逆なら、まずここから任せる。</span></div><div><b>検証つき実行</b><span>コード修正、データ処理、調査。テスト、一次資料、監査ログを必須にする。</span></div><div><b>限定自動化</b><span>失敗時に停止・ロールバックできる操作だけ。権限を最小化し、承認境界を明示する。</span></div><div><b>人間が最終決定</b><span>送金、本番削除、法的・医療的判断など不可逆または高被害の行為。LLMの出力は根拠ではなく入力の一つ。</span></div></div><div class="callout"><strong>判断ルール:</strong> 根拠は重み、文脈、検索、実行結果のどこにあるか。何が正しさを採点するか。失敗は可逆か。誰が最終権限を持つか。この四問に答えられなければ、自律化の前に設計が必要である。</div></section>
+    <section id="sources"><h2>参考資料</h2><ul class="source-list"><li>Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, 2017.</li><li>NVIDIA, <a href="https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html">Deep Learning Performance: GPU background</a> and <a href="https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/index.html">Transformer Engine User Guide</a>, retrieved 2026-07-13.</li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a>, 2024; <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a>, 2025.</li><li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a>, 2025.</li><li>OpenAI, <a href="https://openai.com/index/introducing-o3-and-o4-mini/">Introducing o3 and o4-mini</a>, 2025; <a href="https://openai.com/index/computer-using-agent/">Computer-Using Agent</a>, 2025.</li><li>Anthropic, <a href="https://www.anthropic.com/news/tracing-thoughts-language-model">Tracing the thoughts of a large language model</a>, 2025; <a href="https://www.anthropic.com/research/global-workspace">A global workspace in language models</a>, 2026.</li></ul></section>
+  </article></main>
+  <footer class="footer"><div class="wrap">Mental Model Studio ・ このページは公開済みの一次資料へのリンクを含みます。研究動向は取得日時点の公開情報です。</div></footer>
+  <script>
+    const budget = document.getElementById('budget');
+    const budgetLabel = document.getElementById('budgetLabel');
+    const budgetText = document.getElementById('budgetText');
+    const latency = document.getElementById('latency');
+    const memory = document.getElementById('memory');
+    const candidates = document.getElementById('candidates');
+    function renderBudget() {
+      const value = Number(budget.value);
+      const scale = value / 1000;
+      budgetLabel.textContent = value.toLocaleString('ja-JP');
+      latency.textContent = scale.toFixed(1) + 'x';
+      memory.textContent = (0.55 + scale * 0.45).toFixed(1) + 'x';
+      candidates.textContent = Math.max(1, Math.floor(value / 1500));
+      budgetText.textContent = value < 1000 ? '高速優先' : value < 3500 ? '標準' : '熟考優先';
+    }
+    budget.addEventListener('input', renderBudget);
+    renderBudget();
+  </script>
+</body>
+</html>
