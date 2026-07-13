@@ -360,19 +360,30 @@
           </ol>
           <p>多数GPUではData Parallel、Tensor Parallel、Pipeline Parallel、Expert Parallelを組み合わせる。AllReduceは複数デバイスの勾配を集約する通信操作である。FP8やBF16はメモリと計算を節約する低精度形式だが、数値安定性の管理が必要になる。</p>
 
-          <h3>Post-trainingの用語</h3>
-          <table class="term-table">
-            <thead><tr><th>用語</th><th>何をするか</th><th>何を保証しないか</th></tr></thead>
-            <tbody>
-              <tr><td data-label="用語">SFT</td><td data-label="何をするか">指示と望ましい応答の例を模倣する</td><td data-label="保証しないこと">例の外側にある事実性と頑健性</td></tr>
-              <tr><td data-label="用語">Reward Model</td><td data-label="何をするか">応答を人間の好みに近いスコアへ写す</td><td data-label="保証しないこと">人間の価値全体、事実性、reward hacking防止</td></tr>
-              <tr><td data-label="用語">RLHF / PPO</td><td data-label="何をするか">Reward Modelのスコアを上げつつ方針のずれを制約する</td><td data-label="保証しないこと">Reward Modelが測らない品質</td></tr>
-              <tr><td data-label="用語">DPO</td><td data-label="何をするか">好ましい応答の相対的な尤度を直接高める</td><td data-label="保証しないこと">preference data外の正しさ</td></tr>
-              <tr><td data-label="用語">Reasoning RL</td><td data-label="何をするか">検証済みの答えへ到達する生成方針を強める</td><td data-label="保証しないこと">Verifierのない自由記述タスクの真偽</td></tr>
-              <tr><td data-label="用語">Distillation</td><td data-label="何をするか">Teacherの出力や分布をStudentへ移す</td><td data-label="保証しないこと">Teacherの誤りからの独立</td></tr>
-            </tbody>
-          </table>
-          <p>Chinchilla研究は、固定された計算予算ではparameter数と学習Token数の配分が重要だと示した。InstructGPTはSFT、Reward Model、PPO-based RLHFの流れを示し、DPOはpreference pairからより単純に方針を最適化する方法を示した。</p>
+          <h3>Post-training: Base Modelを「使える相手」に変える</h3>
+          <p>Pre-trainingだけで作られたBase Modelは、文章を続ける力を持つが、ユーザーの依頼に従う、危険な依頼を断る、読みやすい形式で答える、途中でToolを使う、といった会話上の作法を安定して持つとは限らない。Post-trainingは、新しい世界知識を魔法のように注入する工程ではなく、Base Modelが持つ広い生成能力の中から、どの振る舞いを出しやすくするかを調整する工程である。</p>
+
+          <h4>SFT: 文章継続器を指示追従器へ寄せる</h4>
+          <p>Supervised Fine-Tuningは、ユーザーの指示と望ましい応答のペアを見せ、「この形式の入力には、この形式で返す」という写像を学ばせる。背景にある問題は、Pre-trainingの目的が「次のTokenを当てる」ことであって、「ユーザーの意図を汲み、必要なら手順化し、安全に返す」ことではない点にある。SFTは、モデルに会話の入口、拒否、要約、コード修正、説明の型を与える。</p>
+          <p>ただしSFTは模倣である。デモデータにない状況、矛盾した仕様、事実確認が必要な質問では、正しさを保証しない。SFTで改善するのは主に応答の形、指示への従いやすさ、基本的な安全作法であり、出典確認や因果検証は別に必要になる。</p>
+
+          <h4>Reward ModelとRLHF: 「どちらがよい応答か」を学習信号にする</h4>
+          <p>SFTだけでは、同じ質問に対して複数のもっともらしい応答があるとき、どれを選ぶべきかを細かく制御しにくい。そこで人間が複数応答を比較し、「こちらの方が役に立つ」「こちらの方が安全」「こちらの方が誠実」といった選好データを作る。Reward Modelは、その比較データから応答にスコアを付ける評価器である。</p>
+          <p>RLHFでは、このReward Modelのスコアが高くなるようにPolicyを更新する。PPOは、その更新でModelが元の分布から急に離れすぎないように制約を入れる。効く場所は、丁寧さ、拒否の仕方、説明の読みやすさ、曖昧な依頼への補足などである。一方で、Reward Modelが測っていない事実性、長期的な正しさ、実運用での副作用までは保証しない。評価器をだますような応答が高得点を取るreward hackingも残る。</p>
+
+          <h4>DPO: 強化学習を軽くし、好ましい応答を直接選びやすくする</h4>
+          <p>DPOは、Reward Modelを別に学習してPPOで最適化する複雑さを減らし、選好ペアから「好ましい応答の尤度を、好ましくない応答より高める」方向へ直接Modelを更新する。背景には、RLHFのpipelineが重く、Reward Modelの品質やPPOの安定性に左右されやすいという実務上の制約がある。</p>
+          <p>DPOは学習を単純化しやすく、既存Modelを選好データへ合わせるのに使いやすい。ただし、DPOも結局は選好データの範囲で出力分布を動かす技術である。選好データが事実確認を含まなければ、事実性は直接保証されない。つまり、DPOは「よく見える応答」を増やせるが、「現実に正しい応答」を単独で保証する仕組みではない。</p>
+
+          <h4>Reasoning RLとVerifier: 正解を機械的に測れる領域で探索を強める</h4>
+          <p>数学、競技プログラミング、コード修正のように、最終答えやTest結果を機械的に判定できる領域では、単なる人間の好みより強い学習信号を作れる。Reasoning RLは、正解やTest passなどのVerifier rewardを使い、正解に到達しやすい生成方針を強める。ここで重要なのは、「考える主体」が突然生まれるというより、正解へ近づくToken列や探索方針が報酬で選ばれやすくなるということだ。</p>
+          <p>この技術は、計算を多く使う難問、複数ステップの推論、コードの修正ループに効きやすい。一方で、Verifierがない自由記述、価値判断、現実世界の因果判断では報酬を作りにくい。Verifierが間違っていれば、Modelはその間違った物差しに適応する。</p>
+
+          <h4>Distillation: 高価な能力を小さなModelへ移す</h4>
+          <p>強いModelをそのまま使うと、コスト、遅延、配布、プライバシーの制約が大きい。Distillationは、強いTeacher Modelの応答、推論例、出力分布を使って、軽いStudent Modelに似た振る舞いを学ばせる。これは「知識の圧縮」というより、Teacherが作る入出力写像をStudentが再現しやすくする工程である。</p>
+          <p>効く場所は、低コスト化、オンデバイス化、特定タスクへの特化、推論遅延の削減である。ただしStudentはTeacherの誤りも引き継ぎうる。Teacherより広い能力や、Teacherが検証していない事実性を自動で得るわけではない。</p>
+
+          <p>Chinchilla研究は、固定された計算予算ではparameter数と学習Token数の配分が重要だと示した。InstructGPTはSFT、Reward Model、PPO-based RLHFの流れを示し、DPOはpreference pairからより単純に方針を最適化する方法を示した。これらをまとめると、Post-trainingとは「知識を入れる工程」ではなく、「どの変換を選びやすくするかを、デモ、選好、Verifier、Teacherで形づくる工程」である。</p>
           <div class="callout"><p><strong>仕様からコードを書く能力は複数段階の合成能力である。</strong> Pre-trainingでコードのパターンを学び、SFTで指示形式を学び、Preference Optimizationで読みやすい応答を選び、Reasoning RLやVerifierでテストを通す方策を強める。Application側のリポジトリ探索とTest Toolが最後の差を埋める。</p></div>
         </div>
       </section>
@@ -401,6 +412,12 @@
         </figure>
 
         <div class="reading">
+          <h3>推論は「一回の回答」ではなく、状態を組み替える流れである</h3>
+          <p>ユーザーから見ると、推論は「質問を送ると答えが返る」だけに見える。しかし実際には、まずApplicationがユーザー入力、System Instruction、会話履歴、検索結果、Tool定義を一つの文脈へ組み立てる。この段階で何を入れ、何を入れないかが、Modelが探索できる空間を決める。良いModelでも、必要な仕様やログが文脈に入っていなければ、それを根拠にした変換はできない。</p>
+          <p>次にOrchestratorが、検索、Tool実行、再試行、予算、承認を管理する。Agentらしさの多くはModel単体ではなく、この外側の制御ループから生まれる。たとえばCodexがファイルを探し、Testを走らせ、失敗ログを再び文脈へ戻すとき、Modelは世界を直接操作しているのではなく、Orchestratorが許した観測と行為を受け取って次の変換を行っている。</p>
+          <p>Model Server側では、リクエストをqueueへ入れ、複数ユーザーの異なる長さの処理をbatch化する。Prefillでは入力文脈全体を一気に処理してKV Cacheを作り、Decodeでは新しいTokenだけを追加しながら過去のKey / Valueを再利用する。つまり、長いプロンプトは最初に重く、長い出力はTokenごとに逐次的に重い。ここがlatency、cost、throughputの基本制約になる。</p>
+          <p>Tool呼び出しがある場合、ModelはJSONなどの構造化された呼び出しを出し、Orchestratorがschemaと権限を確認してから実行する。Tool結果は新しい観測として文脈へ戻り、再びPrefill / Decodeが行われる。だからTool useは「Modelが外界を知っている」ことではなく、「外界を観測するループをシステムがModelへ接続している」ことだと見るべきである。</p>
+
           <h3>Transformer Blockの内側</h3>
           <p>以下は代表的なdecoder-only構成であり、正確な順序と部品はModelごとに異なる。</p>
         </div>
@@ -418,20 +435,40 @@
         </figure>
 
         <div class="reading">
-          <h3>主流構成と配信技術</h3>
-          <table class="term-table">
-            <thead><tr><th>技術</th><th>何を節約・変更するか</th><th>Trade-off / 注意</th></tr></thead>
-            <tbody>
-              <tr><td data-label="技術">MHA</td><td data-label="作用">各Query headが独立したKey / Value headを持つ</td><td data-label="Trade-off">KV Cacheが大きい</td></tr>
-              <tr><td data-label="技術">GQA</td><td data-label="作用">複数Query headでKey / Valueを共有する</td><td data-label="Trade-off">cache削減と品質のbalance</td></tr>
-              <tr><td data-label="技術">MLA</td><td data-label="作用">Key / Value表現をlatent spaceへ圧縮する</td><td data-label="Trade-off">specialized implementationが必要</td></tr>
-              <tr><td data-label="技術">MoE</td><td data-label="作用">Tokenごとに少数Expertだけをactiveにする</td><td data-label="Trade-off">routing、load balance、通信</td></tr>
-              <tr><td data-label="技術">FlashAttention</td><td data-label="作用">HBMとSRAM間のIOを減らすexact Attention</td><td data-label="Trade-off">kernelとhardware依存</td></tr>
-              <tr><td data-label="技術">PagedAttention</td><td data-label="作用">KV Cacheをblock管理しfragmentationを減らす</td><td data-label="Trade-off">serving systemの複雑さ</td></tr>
-              <tr><td data-label="技術">Speculative Decoding</td><td data-label="作用">draft Modelの複数Tokenをtarget Modelがまとめて検証</td><td data-label="Trade-off">draft精度と検証overhead</td></tr>
-              <tr><td data-label="技術">Quantization</td><td data-label="作用">重みやactivationのbit widthを下げる</td><td data-label="Trade-off">品質、calibration、kernel support</td></tr>
-            </tbody>
-          </table>
+          <h3>Attentionは「記憶」ではなく、現在のTokenから見た読み直しである</h3>
+          <p>EmbeddingはToken IDを連続ベクトルへ変える。ここで得られるのは単語の辞書的意味ではなく、学習を通じて使いやすくなった数値表現である。RoPEなどの位置表現は、そのTokenが系列のどこにあるかをAttentionが扱えるようにする。これがないと、同じTokenが先頭にある場合と直前にある場合を区別しにくい。</p>
+          <p>Q / K / V Projectionでは、同じhidden stateから三種類の見方を作る。Queryは「今のTokenが何を探しているか」、Keyは「過去の各Tokenが何の手がかりを持つか」、Valueは「参照されたときに渡す情報」と考えるとよい。AttentionはQueryとKeyの類似度から重みを作り、その重みに従ってValueを混ぜる。これはデータベース検索ではなく、文脈内の表現をその場で重みづけして読み直す演算である。</p>
+          <p>Masked Self-Attentionは未来のTokenを見ない。左から右へ生成するModelでは、次Tokenを予測するときに未来を参照できないようmaskをかける。Prefillでは入力文脈内の各位置についてこの計算をまとめて行えるが、Decodeでは新しいTokenが前のTokenに依存するため、出力Tokenを完全に並列には作れない。</p>
+          <p>MLPは、Attentionで混ぜた情報を各位置ごとに非線形変換する。Attentionが「どの文脈を見るか」を担うなら、MLPは「見た情報をどう特徴へ変えるか」を担う。Residual Connectionは変換前の情報を足し戻し、深いlayerでも情報と勾配が流れやすいようにする。最後にLM Headがhidden stateを語彙ごとのLogitへ写し、Samplingが次Tokenを選ぶ。</p>
+          <p>この一連の処理から見えるのは、LLMが内部で記号規則を逐語的に実行しているのではなく、文脈内探索と表現変換をlayerごとに繰り返しているということだ。だから、長い文脈に情報が入っているだけでは足りない。必要な箇所がAttentionで使われ、MLPで有効な特徴へ変換され、最後のLogitに反映されなければならない。</p>
+
+          <h3>主流構成と配信技術: ボトルネックごとに読む</h3>
+          <p>推論を速く安くする研究は、単に「Modelを小さくする」だけではない。大きな制約は、AttentionのKV Cache、重みの読み込み、GPUメモリ帯域、GPU間通信、Decodeの逐次性、リクエストのばらつきである。各技術は、このどこかの制約を狙っている。</p>
+
+          <h4>MHA、GQA、MLA: KV Cacheをどう持つか</h4>
+          <p>MHAでは、複数のAttention headがそれぞれ独立したKey / Valueを持つ。表現力は高いが、Decode時には過去TokenすべてのKey / Valueを保存し続ける必要があるため、文脈が長くなるほどKV Cacheが膨らむ。長文脈や多数同時リクエストでは、計算量だけでなくメモリ容量とメモリ帯域が制約になる。</p>
+          <p>GQAは、複数のQuery headでKey / Value headを共有する。これにより、Query側の表現の多様性をある程度残しつつ、KV Cacheを減らせる。効くのは推論時のメモリ使用量と帯域であり、特に長文脈や高throughput servingで重要になる。代わりに、Key / Valueを共有するぶん、設計と品質のbalanceが必要になる。</p>
+          <p>MLAは、Key / Value表現をそのまま大きく保持する代わりに、より小さいlatent representationへ圧縮して扱う方向である。狙いは、KV Cacheの容量と読み書き帯域をさらに下げることにある。これはModel architectureとserving implementationが強く結びつくため、単なる後付け最適化ではなく、Model設計そのものの一部として読む必要がある。</p>
+
+          <h4>MoE: 全parameterを毎回使わず、必要なExpertだけ動かす</h4>
+          <p>Dense Modelでは、各Tokenがほぼ同じparameter群を通る。Modelを大きくすると能力は上がりやすいが、毎Tokenの計算も重くなる。MoEは、多数のExpertを持ちながら、各Tokenに対してRouterが少数のExpertだけを選ぶ構成である。総parameter数は大きく、active computeは相対的に小さくできる。</p>
+          <p>効くのは、Model容量と推論コストの分離である。ただしRouterが特定Expertへ偏るとload balanceが崩れる。Expertを複数GPUに分散すると通信が増える。つまりMoEは「無料で大きくする技術」ではなく、容量、routing、通信、batchingをまとめて設計する技術である。</p>
+
+          <h4>FlashAttention: Attentionを速くする鍵は計算回数だけでなくメモリIO</h4>
+          <p>Attentionは数式だけ見ると行列積とSoftmaxだが、実装上はGPUのHBMとon-chip SRAMの間で大量の読み書きが発生する。FlashAttentionは、Attentionの結果を数学的には同じまま、tilingによりSRAM上で処理できる単位へ分け、中間行列をHBMへ大量に書き出さないようにする。</p>
+          <p>効くのは、特に長いsequenceや大きなbatchでのメモリIO削減である。これはModelの能力を変える技術ではなく、同じAttentionをより効率よく計算する実装技術である。したがって「FlashAttentionだから賢い」のではなく、「同じ計算をより現実的な時間とコストで回せる」と読む。</p>
+
+          <h4>PagedAttention: servingではKV Cacheの断片化が問題になる</h4>
+          <p>実運用では、リクエストごとに入力長も出力長も違う。あるユーザーは短い回答で終わり、別のユーザーは長く生成する。KV Cacheを単純な連続領域として確保すると、メモリの空きが細かく分断され、実際には空き容量があるのに使いにくい状態が起きる。</p>
+          <p>PagedAttentionは、OSのpagingに似た発想でKV Cacheをblock単位に管理する。これにより、リクエストごとの伸び縮みに合わせてblockを割り当て、断片化や重複を減らす。効くのはModelの推論能力ではなく、同時接続、throughput、メモリ利用率である。</p>
+
+          <h4>Speculative Decoding: Decodeの逐次性を別Modelで先読みする</h4>
+          <p>autoregressiveなDecodeでは、次Tokenが決まらないと次のTokenを確定できない。この逐次性がlatencyの根本制約になる。Speculative Decodingは、小さく速いdraft Modelに数Token先まで候補を出させ、大きなtarget Modelがそれらをまとめて検証する。受け入れられたTokenは一気に進み、外れたところから通常Decodeへ戻る。</p>
+          <p>重要なのは、target Modelの分布を保ったまま高速化できる設計である。効くかどうかはdraft Modelがどれだけtarget Modelと同じ候補を出せるかに依存する。draftが外れ続けるタスクでは検証overheadが増え、速度メリットは小さくなる。</p>
+
+          <h4>Quantization: 数値を粗くして、メモリと帯域を減らす</h4>
+          <p>大きなModelでは、重みを読むだけでも膨大なメモリ帯域を使う。Quantizationは、重みやactivationをFP16やBF16より少ないbit幅で表現し、メモリ容量と読み書きを減らす技術である。うまくいけば、Modelを小さなGPUへ載せたり、同じGPUでより高いthroughputを出したりできる。</p>
+          <p>ただし数値を粗くすれば、当然情報は失われうる。どのlayerを何bitにするか、calibration dataをどう選ぶか、kernelがその形式を速く処理できるかが効く。Quantizationは品質、速度、実装対応の三者を調整する技術であり、単にbitを下げればよいわけではない。</p>
         </div>
 
         <figure class="diagram wrap">
@@ -455,6 +492,25 @@
         </figure>
 
         <div class="reading">
+          <h3>stackの各レイヤーで何が絡み合うか</h3>
+          <h4>Silicon & System: 計算は電力、熱、メモリ移動に制約される</h4>
+          <p>最下層では、Tensor Coreや行列演算器が積和演算を高速に実行する。ただしLLM推論は演算器だけで決まらない。重み、activation、KV CacheをHBMから読み、必要に応じてSRAMへ載せ、GPU間で通信する。電力と冷却が足りなければclockは上げられず、メモリ帯域が詰まれば演算器は待たされる。だから「GPUが速い」とは、演算、メモリ、通信、電力のbalanceが取れているという意味である。</p>
+
+          <h4>Accelerator Cluster: 一枚のGPUに入らないModelを分けて動かす</h4>
+          <p>大きなModelは一枚のGPUのメモリに収まらないことがある。Tensor Parallelは一つの行列演算を複数GPUへ分け、Pipeline Parallelはlayerのまとまりをstageに分け、Expert ParallelはMoEのExpertを分散する。分ければ大きなModelを動かせるが、GPU間通信が増える。NVLinkやInfiniBandの帯域とlatencyが、Modelの理論性能を実運用性能へ変える関門になる。</p>
+
+          <h4>Model Runtime: graphをkernelへ落とし、batchを実行する</h4>
+          <p>Runtimeは、Transformerの計算をGPU kernelの列へ変換し、どのtensorをどのdeviceに置くか、どの順序で実行するかを管理する。ここでFlashAttention、Quantization kernel、MoE routing、parallel strategyが実際の処理になる。Model architectureの論文だけでは速くならない。Runtimeがhardwareの形に合わせて計算を並べ替え、メモリ移動を減らして初めて速度になる。</p>
+
+          <h4>Model Server: 多数ユーザーの不揃いな生成をさばく</h4>
+          <p>Model Serverは、単一リクエストを処理するだけでなく、同時に来る多くのリクエストをqueueし、batch化し、KV Cacheを管理し、streamingで返す。Continuous Batchingでは、生成が終わったリクエストをbatchから抜き、新しいリクエストを途中から入れる。これによりGPU使用率を上げるが、長い出力や遅いTool待ちが混ざるとscheduleは難しくなる。</p>
+
+          <h4>Orchestrator: Modelの外側で仕事の状態を持つ</h4>
+          <p>Orchestratorは、Modelが何を見てよいか、どのToolを使ってよいか、何回再試行するか、いつ人間の承認を求めるかを管理する。RAGでは検索queryを作り、取得文書を整形して文脈へ入れる。Coding Agentではファイル探索、patch適用、Test実行、差分確認をloopにする。この層があるため、LLMは単なるText generatorから、状態を持つworkflowの一部になる。</p>
+
+          <h4>Application: 最終的な意味と責任を決める</h4>
+          <p>Applicationは、ユーザーに何を見せ、どの操作を許し、どの出力を保存し、どこで承認を求めるかを決める。ここで出力schema、UI、ログ、監査、rollbackが設計される。Modelが同じでも、Applicationが証拠を表示するか、差分を見せるか、危険操作を止めるかで、システムの信頼性は大きく変わる。</p>
+
           <h3>推論設定を動かして意味を確認する</h3>
           <div class="settings-lab">
             <div class="settings-head"><h3>推論設定ラボ</h3><span id="modeLabel" class="mode-label">均衡寄り</span></div>
@@ -517,27 +573,42 @@
           <h2>5. 研究動向: どの制約を攻めているのか</h2>
           <p class="lead">frontier Modelの順位ではなく、どのボトルネックを、どの証拠で改善したかを見る。</p>
         </div>
-        <div class="wrap research-grid">
-          <div class="research-item"><b>計算効率</b><span>MoE、MLA、FP8、FlashAttention、PagedAttention。active compute、メモリ、帯域を減らす。</span></div>
-          <div class="research-item"><b>推論時の追加計算</b><span>Reasoning RL、thinking budget、Verifier、探索。難しいタスクへ追加計算を配る。</span></div>
-          <div class="research-item"><b>Toolを使うAgent</b><span>Web Search、code execution、memory、GUI Tool。観測と行為を外部ループへ広げる。</span></div>
-          <div class="research-item"><b>マルチモーダル</b><span>画像、音声、動画を共通表現へ変換し、モード間の変換を行う。</span></div>
-          <div class="research-item"><b>因果学習</b><span>Structural Causal Model、Intervention data、causal benchmarkを学習と評価へ統合する。</span></div>
-          <div class="research-item"><b>解釈可能性</b><span>Sparse Autoencoder、attribution graph、causal interventionで内部特徴と回路を調べる。</span></div>
-        </div>
         <div class="reading">
+          <h3>研究は一つのAGI coreではなく、複数の制約を別々に攻めている</h3>
+          <p>LLMの進歩を「どのModelが一位か」だけで見ると、何が改善されたのかを見失う。実際の研究は、計算効率、推論時の探索、Tool利用、マルチモーダル化、因果、解釈可能性、評価と安全性という別々のボトルネックを攻めている。能力の伸びは、これらが積み重なった結果であり、一つの魔法の中核が突然現れたわけではない。</p>
+
+          <h4>計算効率: 大きくするだけでは使えない</h4>
+          <p>MoE、MLA、FP8、FlashAttention、PagedAttentionは、いずれも「大きなModelを現実のコストで動かす」ための技術である。MoEは毎Tokenで使うExpertを絞り、MLAやGQAはKV Cacheを圧縮し、FP8やQuantizationは数値表現を軽くし、FlashAttentionやPagedAttentionはメモリIOとKV管理を改善する。これらはModelを賢くする魔法というより、賢いModelを訓練・配信可能にする土台である。</p>
+
+          <h4>推論時の追加計算: 難しい問題にだけ計算を多く使う</h4>
+          <p>Reasoning RL、Verifier、search、thinking budgetは、難しい問題に対して生成前後の探索を増やす方向である。単純な質問には短く答え、数学やコードのように検証できる問題には長く探索する。ここで重要なのは、追加計算が常に正しさを生むわけではないことだ。Verifierがある領域では強いが、現実世界の曖昧な判断では、何を報酬にするか自体が難しい。</p>
+
+          <h4>Toolを使うAgent: Modelの外側に観測と行為を足す</h4>
+          <p>Web Search、code execution、file system、GUI操作、memoryは、Modelの重みにない現在情報を観測し、現実へ作用する手段を増やす。Agent研究の核心は、Modelを巨大にすることだけではなく、観測、計画、行為、検証、承認をどうloopにするかである。Toolを与えるほど価値は増えるが、prompt injection、権限過多、長期タスクでの誤差蓄積も増える。</p>
+
+          <h4>マルチモーダル: 変換対象がtextから世界の信号へ広がる</h4>
+          <p>画像、音声、動画を扱うModelでは、各モダリティをTokenやembeddingへ写し、言語Modelの文脈へ接続する。これは「目を持った人間」になるというより、画像から説明、画面から操作、音声から指示、動画から状態変化という変換の範囲が広がることを意味する。Grounding、データ品質、評価方法が新しい制約になる。</p>
+
+          <h4>因果と解釈可能性: 流暢な説明を証拠へ近づける試み</h4>
+          <p>因果学習は、観測された相関だけでなく、InterventionやCounterfactualを扱う構造をModelや評価へ入れようとする。解釈可能性研究は、Sparse Autoencoder、attribution graph、activation interventionなどで、内部特徴や回路が出力へどう効くかを調べる。どちらも「Modelが言ったから信じる」から、「どの構造や内部状態がその出力を支えたか」へ近づける試みである。ただし、部分的な回路理解をModel全体の完全理解や意識の証明へ外挿してはいけない。</p>
+
           <h3>中国と米国の公開動向</h3>
-          <table class="term-table">
-            <thead><tr><th>主体</th><th>公開された方向</th><th>読み方</th></tr></thead>
-            <tbody>
-              <tr><td data-label="主体">DeepSeek</td><td data-label="方向">MoE、MLA、FP8、rule-based rewardを含むReasoning RL</td><td data-label="読み方">active compute、推論コスト、Verifier rewardの最適化</td></tr>
-              <tr><td data-label="主体">Qwen</td><td data-label="方向">Dense / MoE、thinking mode、thinking budget、多言語</td><td data-label="読み方">タスクごとの推論計算配分</td></tr>
-              <tr><td data-label="主体">OpenAI</td><td data-label="方向">large-scale RL、test-time reasoning、image reasoning、Tool use</td><td data-label="読み方">システム化は進むが正確なarchitectureは非公開</td></tr>
-              <tr><td data-label="主体">Anthropic</td><td data-label="方向">Circuit Tracing、feature intervention、Global Workspace hypothesis</td><td data-label="読み方">部分回路を全体理解やconsciousnessへ外挿しない</td></tr>
-              <tr><td data-label="主体">Open-weight ecosystem</td><td data-label="方向">independent evaluation、fine-tuning、quantization、mechanistic intervention</td><td data-label="読み方">重み公開と完全な学習recipe公開は別</td></tr>
-            </tbody>
-          </table>
-          <p>DeepSeek-R1のlong reasoning、Qwen3のthinking budget、OpenAIのreasoning Modelは、「長く考える主体が突然生まれた」と読むより、学習報酬と推論予算を変えたシステムとして読む方が比較しやすい。</p>
+          <h4>DeepSeek: 大容量Modelを低いactive computeで動かす方向</h4>
+          <p>DeepSeek-V3はMoE、MLA、FP8などを組み合わせ、総parameter数を大きくしながら、各Tokenで使う計算とKV Cacheを抑える方向を示した。DeepSeek-R1は、rule-based rewardを含むReasoning RLにより、検証可能な推論タスクで長い探索を強める方向を示した。読むべき点は「中国Modelが強い」という国籍ラベルではなく、容量、推論コスト、Verifier rewardをどう設計したかである。</p>
+
+          <h4>Qwen: open-weightで、思考モードと多言語・MoEを組み合わせる方向</h4>
+          <p>Qwen3はDense / MoE構成、thinking / non-thinking mode、thinking budget、多言語対応を前面に出した。これは、すべてのタスクで常に長く考えるのではなく、タスクに応じて推論時の計算量を調整する設計として読める。open-weightであることは、独立評価、fine-tuning、量子化、ローカル配備をしやすくするが、学習データや完全なrecipeがすべて分かることとは別である。</p>
+
+          <h4>OpenAI: closed Modelを、Toolと推論時計算を含むシステムとして提供する方向</h4>
+          <p>OpenAIのreasoning Modelは、large-scale RL、test-time reasoning、Tool use、画像推論などを組み合わせ、Model単体よりもシステムとしての問題解決力を前面に出している。公開情報から分かるのは、学習報酬と推論時計算を強く使っているという方向であり、正確なarchitecture、学習データ、内部回路は非公開である。したがって、公開benchmarkや公式説明は証拠だが、内部実装を知っているかのようには扱えない。</p>
+
+          <h4>Anthropic: 内部特徴を観測し、部分的に介入する方向</h4>
+          <p>AnthropicのCircuit TracingやGlobal Workspace研究は、Model出力だけでなく、内部のfeatureや情報の流れを調べる方向である。これは、LLMをblack boxとして扱うだけでは安全性や信頼性を評価しきれないという問題意識から来ている。ただし、ある回路や特徴が見つかったことは、Model全体を完全に理解したことではない。部分的な観測と介入の結果として読む必要がある。</p>
+
+          <h4>Metaなどのopen-weight ecosystem: 検証と改造の余地を広げる方向</h4>
+          <p>Open-weight Modelは、第三者が評価、fine-tuning、quantization、mechanistic interventionを行いやすい。これは研究と実装の速度を上げる。一方で、weightが公開されていても、学習データ、filtering、post-training recipe、評価環境まで完全に公開されるとは限らない。公開度は「重み」「データ」「コード」「recipe」「評価」のどれが開いているかに分けて見るべきである。</p>
+
+          <p>まとめると、DeepSeek-R1のlong reasoning、Qwen3のthinking budget、OpenAIのreasoning Modelは、「長く考える主体が突然生まれた」と読むより、学習報酬、推論時の計算配分、Verifier、Tool loopを変えたシステムとして読む方が比較しやすい。</p>
         </div>
       </section>
 
@@ -557,7 +628,8 @@
       <section id="codex" class="section">
         <div class="reading">
           <h2>7. Codex等を使う人の実践ルール</h2>
-          <p class="lead">Coding Agentへ任せるのは探索と変換である。正しさを決める証拠、行為を許す権限、結果へ責任を持つ承認は外側へ残す。</p>
+          <p class="lead">これからのエンジニアリングは、AIに「考えてもらう」ことではなく、AIを探索と変換ができるシステムとして扱い、変換のルール、証拠の取り方、権限境界、ワークフローを設計することになっていく。</p>
+          <p>LLMは、仕様をコードへ、エラーログを仮説へ、仮説をpatchへ、Test結果を次の修正方針へ変換できる。価値はここにある。ただし、その変換が正しいか、実行してよいか、どこまで自動化してよいかは、Modelの流暢さでは決まらない。エンジニアが設計すべき対象は、Modelそのものだけでなく、入力の契約、探索範囲、検証方法、承認条件、失敗時の戻り方である。</p>
           <ol>
             <li><strong>範囲を狭くする:</strong> repository、directory、file、non-goalを指定する。</li>
             <li><strong>成功条件を書く:</strong> Test名、期待する振る舞い、性能しきい値、browser状態などを観測可能にする。</li>
@@ -585,6 +657,10 @@
         </figure>
 
         <div class="reading">
+          <h3>AI workflowとは、変換を検証可能にする設計である</h3>
+          <p>従来のソフトウェア設計では、関数、型、API、テスト、権限、監視を設計してきた。AIを使う場合も本質は同じで、ただ関数の中身が確率的な変換器になる。だから「良いプロンプトを書く」だけでは足りない。入力をどう構造化するか、出力をどのschemaへ落とすか、どのTool結果を証拠として戻すか、どのTestで因果を試すか、どの操作に人間の承認を要求するかを設計する必要がある。</p>
+          <p>たとえば「バグを直して」は曖昧な自然文だが、「失敗Testを再現し、関連ファイルだけを探索し、public APIを変えず、最小patchを作り、Test結果とdiffと残るリスクを返す」は変換契約である。AIが強くなるほど、エンジニアの仕事は「手で全部書く」から、「どの変換を許し、どの証拠で止めるかを設計する」へ移る。</p>
+
           <h3>同じ出力でも、証拠の強さは変わる</h3>
           <div class="sequence">
             <div class="sequence-step"><b>未検証の出力</b><span>「この関数が原因です」と自然に説明しても、それはまだ重みと文脈から作られた仮説である。</span></div>
