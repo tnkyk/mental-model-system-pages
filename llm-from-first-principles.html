@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LLMをSearch、Translation、Verificationとして理解し、Training、Inference、Hardware、causality、研究動向、Codex利用までを一次資料から説明する。">
-  <title>LLM from First Principles | Search, Translation, Verification</title>
+  <meta name="description" content="LLMを探索、変換、検証、権限の分離として理解し、学習、推論、因果、研究動向、Codex利用までを一次資料から説明する。">
+  <title>LLM from First Principles | 探索・変換・検証のメンタルモデル</title>
   <style>
     :root {
       --ink:#17212b; --muted:#536271; --paper:#fbfcfd; --white:#fff; --line:#d8e0e6;
@@ -244,12 +244,12 @@
     <div class="wrap topbar-inner">
       <a class="brand" href="./">Mental Model Studio</a>
       <nav class="desktop-nav" aria-label="本文目次">
-        <a href="#conclusion">結論</a><a href="#training">Training</a><a href="#inference">Inference</a><a href="#causality">Causality</a><a href="#research">Research</a><a href="#codex">Codex利用</a>
+        <a href="#conclusion">結論</a><a href="#training">学習</a><a href="#inference">推論</a><a href="#causality">因果</a><a href="#research">研究</a><a href="#codex">Codex利用</a>
       </nav>
       <details class="mobile-nav">
         <summary>目次</summary>
         <nav class="mobile-menu" aria-label="mobile本文目次">
-          <a href="#conclusion">結論</a><a href="#training">Training</a><a href="#inference">Inference</a><a href="#causality">Causality</a><a href="#research">Research</a><a href="#codex">Codex利用</a><a href="#model">Mental Model</a>
+          <a href="#conclusion">結論</a><a href="#training">学習</a><a href="#inference">推論</a><a href="#causality">因果</a><a href="#research">研究</a><a href="#codex">Codex利用</a><a href="#model">最終モデル</a>
         </nav>
       </details>
     </div>
@@ -257,17 +257,17 @@
 
   <header class="article-head">
     <div class="wrap">
-      <p class="kicker">MENTAL MODEL / AI SYSTEMS</p>
-      <h1>LLM from First Principles</h1>
-      <p class="dek">Search、Translation、Verificationとして捉え直し、TrainingからInference、Hardware、causality、研究動向、Codex利用までを一つの流れで理解する。</p>
+      <p class="kicker">メンタルモデル / AIシステム</p>
+      <h1>LLMをファーストプリンシプルで理解する</h1>
+      <p class="dek">LLMを「答えを知る主体」ではなく、探索、変換、検証、権限の分離として捉え直す。学習から推論、計算資源、因果、研究動向、Codex利用までを一つの流れで理解する。</p>
       <p class="meta">公開情報の基準日: 2026-07-13 ・ 一次論文と公式資料に基づく</p>
     </div>
   </header>
 
-  <section class="thesis-band" aria-label="最終Mental Model">
+  <section class="thesis-band" aria-label="最終メンタルモデル">
     <div class="reading">
       <p class="thesis-label">主張する結論</p>
-      <p class="thesis">LLMは、weights、context、external sourceからpatternを検索し、prompt、specification、code、image、Tool resultを別の表現へ翻訳するsystemである。truth、causality、responsibilityは自動では付かないため、Verifier、Permission、Human Approvalを外側に置く。</p>
+      <p class="thesis">LLMは、重み、文脈、外部情報から役に立つパターンを探し、質問、仕様、コード、画像、Tool結果を別の表現へ変換する仕組みである。真偽、因果、責任は自動では付かない。だから実用では、LLMに探索と変換を任せ、検証、権限、人間の承認を外側に残す。</p>
     </div>
   </section>
 
@@ -275,204 +275,215 @@
     <article>
       <section id="conclusion" class="section">
         <div class="reading">
-          <h2>1. 結論を先に置く</h2>
-          <p class="lead">SearchはWeb Searchだけではない。Translationもlanguage-to-languageだけではない。この二つを広く、しかし曖昧にならないよう定義する。</p>
+          <h2>1. なぜ探索・変換・検証へ分けるのか</h2>
+          <p class="lead">LLMが賢く見える理由と、LLMだけでは任せきれない理由は同じ場所から来る。大量の観測文から次にありそうな表現を作る仕組みは、候補を出す力を持つが、その候補が事実か、原因か、実行してよい行為かまでは保証しない。</p>
+          <p>ここから四つの分離が必要になる。第一に、答えはどこから来たのかを分ける。第二に、表現をどう変換したのかを見る。第三に、候補を証拠で検証する。第四に、現実へ作用する権限を人間とシステム側で制御する。</p>
+
+          <h3>制約から生まれる四つの役割</h3>
+          <div class="sequence">
+            <div class="sequence-step"><b>観測だけでは世界を保証しない</b><span>学習データは観測された文章の集まりであり、世界そのものでも実験結果の全体でもない。だから出力はまず候補として扱う。</span></div>
+            <div class="sequence-step"><b>候補を作るには探索が要る</b><span>重みに圧縮されたパターン、現在の文脈、Toolで見に行く外部情報から、次の出力に使えそうな材料を集める。</span></div>
+            <div class="sequence-step"><b>仕事にするには変換が要る</b><span>質問を回答へ、仕様をコードへ、エラーログを修正案へ、計画をTool呼び出しへ変換することで価値が出る。</span></div>
+            <div class="sequence-step"><b>現実に出すには検証と権限が要る</b><span>テスト、出典、制約、レビューで確かめ、削除、公開、支払い、本番変更のような行為は別の承認を通す。</span></div>
+          </div>
+
+          <h3>このページで使う用語</h3>
           <dl>
-            <div class="definition"><dt>Parametric Search</dt><dd>weightsに圧縮されたpatternから、current contextに合うcontinuationを活性化する。</dd></div>
-            <div class="definition"><dt>Context Search</dt><dd>Attentionがprompt、conversation、retrieved document、Tool resultの関連位置を選ぶ。</dd></div>
-            <div class="definition"><dt>External Search</dt><dd>Web、repository、database、file system、runtimeをToolで観測する。</dd></div>
-            <div class="definition"><dt>Translation</dt><dd>ある表現を別の表現へ写す。question-to-answer、spec-to-code、code-to-test、error-to-patch、plan-to-Tool callを含む。</dd></div>
+            <div class="definition"><dt>重み内探索</dt><dd>重みに圧縮されたパターンから、現在の文脈に合う続きを活性化する。英語では Parametric Search と呼ぶ。</dd></div>
+            <div class="definition"><dt>文脈内探索</dt><dd>Attentionがプロンプト、会話履歴、取得文書、Tool結果の関連位置を選ぶ。英語では Context Search と呼ぶ。</dd></div>
+            <div class="definition"><dt>外部探索</dt><dd>Web、リポジトリ、データベース、ファイルシステム、実行環境をToolで観測する。</dd></div>
+            <div class="definition"><dt>変換</dt><dd>ある表現を別の表現へ写すこと。質問から回答、仕様からコード、コードからテスト、エラーログから修正案、計画からTool呼び出しへの変換を含む。</dd></div>
           </dl>
-          <div class="callout"><p><strong>重要な限定:</strong> これはLLMが内部で候補を総当たりするというliteral claimではない。Transformer内部にはdistributed representationと大量のmatrix computationがある。このMental Modelは、何を得意とし、何を別途保証しなければならないかを示す。</p></div>
+          <div class="callout"><p><strong>重要な限定:</strong> これはLLMが内部で候補を総当たりしているという文字どおりの主張ではない。Transformer内部には分散表現と大量の行列計算がある。このメンタルモデルは、何を得意とし、何を別途保証しなければならないかを見抜くための道具である。</p></div>
         </div>
 
         <figure class="diagram wrap">
-          <p class="diagram-title">Search → Translation → Verification → Authorized Result</p>
+          <p class="diagram-title">探索 → 変換 → 検証 → 承認済みの結果</p>
           <div class="legend">
-            <span class="legend-item"><i class="swatch blue"></i>Data / Search</span>
-            <span class="legend-item"><i class="swatch gold"></i>Transformation</span>
-            <span class="legend-item"><i class="swatch green"></i>Verification</span>
-            <span class="legend-item"><i class="swatch red"></i>Risk / Permission</span>
-            <span class="legend-item"><i class="line-key"></i>Data flow</span>
-            <span class="legend-item"><i class="line-key dotted"></i>Feedback</span>
-            <span class="legend-item"><i class="line-key dashed"></i>Not guaranteed</span>
+            <span class="legend-item"><i class="swatch blue"></i>観測 / 探索</span>
+            <span class="legend-item"><i class="swatch gold"></i>変換</span>
+            <span class="legend-item"><i class="swatch green"></i>検証</span>
+            <span class="legend-item"><i class="swatch red"></i>リスク / 権限</span>
+            <span class="legend-item"><i class="line-key"></i>流れ</span>
+            <span class="legend-item"><i class="line-key dotted"></i>戻り</span>
+            <span class="legend-item"><i class="line-key dashed"></i>保証なし</span>
           </div>
           <div class="thesis-flow">
-            <div class="node blue"><b>Three Searches</b><span>weights、context、external worldからcandidate evidenceを集める</span></div><div class="arrow"></div>
-            <div class="node gold"><b>Translation Core</b><span>representationをTransformer Blockで変換しTokenやTool callへ写す</span></div><div class="arrow"></div>
-            <div class="node green"><b>Verification</b><span>Source、Test、constraint、experimentでcandidateを確かめる</span></div><div class="arrow"></div>
-            <div class="node red"><b>Permission Gate</b><span>Human Approvalとleast privilegeを通ったactionだけを許す</span></div>
+            <div class="node blue"><b>三種類の探索</b><span>重み、文脈、外部世界から候補になる材料を集める</span></div><div class="arrow"></div>
+            <div class="node gold"><b>変換の中核</b><span>表現をTransformer Blockで変え、TokenやTool呼び出しへ写す</span></div><div class="arrow"></div>
+            <div class="node green"><b>検証</b><span>出典、テスト、制約、実験で候補を確かめる</span></div><div class="arrow"></div>
+            <div class="node red"><b>権限のゲート</b><span>人間の承認と最小権限を通った行為だけを許す</span></div>
           </div>
-          <figcaption class="caption">色は装飾ではない。Blueは観測、Goldは変換、Greenは検証、Redはauthority boundaryを表す。流れは左から右、mobileでは上から下へ変わる。</figcaption>
+          <figcaption class="caption">色は装飾ではない。青は観測、黄は変換、緑は検証、赤は権限境界を表す。流れは左から右、モバイルでは上から下へ変わる。</figcaption>
         </figure>
 
         <div class="reading">
           <h3>この結論の根拠</h3>
           <ol>
-            <li>Pre-trainingは主にnext-Token conditional probabilityを最適化し、truthやcausal effect自体をlossにしていない。</li>
-            <li>Attentionはcontextから情報を選び、MLPは表現を変換する。</li>
-            <li>Toolは外部観測とactionを増やすが、Modelへ自動でresponsibilityを与えない。</li>
-            <li>formal causal benchmarkでは改善例と同時に、temporal orderをcausationと誤認するfallacyも確認されている。</li>
+            <li>Pre-trainingは主に次のTokenの条件付き確率を最適化し、真実や因果効果そのものを損失関数にしていない。</li>
+            <li>Attentionは文脈から情報を選び、MLPは表現を変換する。</li>
+            <li>Toolは外部観測と行為を増やすが、Modelへ自動で責任を与えない。</li>
+            <li>因果ベンチマークでは改善例と同時に、時間順序を因果と誤認する失敗も確認されている。</li>
           </ol>
         </div>
       </section>
 
       <section id="training" class="section">
         <div class="reading">
-          <h2>2. Training: 能力が作られるphase</h2>
-          <p class="lead">「LLMをTrainingする」は単一工程ではない。何を学習可能にするか、広いpatternをどう圧縮するか、どのbehaviorを選びやすくするかは別phaseで決まる。</p>
+          <h2>2. 学習: 能力が作られる段階</h2>
+          <p class="lead">「LLMを学習する」は単一工程ではない。何を学習可能にするか、広いパターンをどう圧縮するか、どの振る舞いを選びやすくするかは別の段階で決まる。</p>
         </div>
 
         <figure class="diagram wrap">
-          <p class="diagram-title">Training lifecycle</p>
+          <p class="diagram-title">学習の流れ</p>
           <div class="timeline">
-            <div class="phase data" data-step="0"><h3>Objective & Data Design</h3><p>collection、quality filtering、deduplication、mixture、license、privacy。Training distributionを決める。</p></div>
-            <div class="phase data" data-step="1"><h3>Tokenization</h3><p>raw dataをsubword等のToken IDへ変換する。Token数はcontextとcompute costへ影響する。</p></div>
-            <div class="phase" data-step="2"><h3>Pre-training</h3><p>next-Token Cross-Entropyを下げ、general patternをweightsへ圧縮する。</p></div>
-            <div class="phase" data-step="3"><h3>Mid-training</h3><p>long context、domain、multilingual、multimodal等を延長する場合がある。全Model共通ではない。</p></div>
-            <div class="phase behavior" data-step="4"><h3>Supervised Fine-Tuning</h3><p>instruction-response demonstrationを模倣し、Base ModelをAssistant behaviorへ向ける。</p></div>
-            <div class="phase behavior" data-step="5"><h3>Preference Optimization</h3><p>RLHF、PPO、DPO等でpreferred responseを相対的に選びやすくする。</p></div>
-            <div class="phase behavior" data-step="6"><h3>Reasoning RL & Distillation</h3><p>Verifier rewardでproblem-solving policyを強め、TeacherからStudentへ能力を移す。</p></div>
-            <div class="phase gate" data-step="7"><h3>Evaluation & Release</h3><p>benchmark、red teaming、domain test、latency、cost、failure analysisでreleaseを判断する。</p></div>
+            <div class="phase data" data-step="0"><h3>目的関数とデータ設計</h3><p>収集、品質フィルタ、重複除去、混合比、ライセンス、プライバシー処理により、学習分布を決める。</p></div>
+            <div class="phase data" data-step="1"><h3>Tokenization</h3><p>元データをsubwordなどのToken IDへ変換する。Token数は文脈長と計算コストへ影響する。</p></div>
+            <div class="phase" data-step="2"><h3>Pre-training</h3><p>次TokenのCross-Entropyを下げ、一般的なパターンを重みへ圧縮する。</p></div>
+            <div class="phase" data-step="3"><h3>Mid-training</h3><p>長文脈、専門領域、多言語、マルチモーダル能力などを延長する場合がある。全Model共通ではない。</p></div>
+            <div class="phase behavior" data-step="4"><h3>Supervised Fine-Tuning</h3><p>指示と望ましい応答の例を模倣し、Base ModelをAssistantらしい振る舞いへ向ける。</p></div>
+            <div class="phase behavior" data-step="5"><h3>Preference Optimization</h3><p>RLHF、PPO、DPOなどで、好ましい応答を相対的に選びやすくする。</p></div>
+            <div class="phase behavior" data-step="6"><h3>Reasoning RLとDistillation</h3><p>Verifierの報酬で問題解決方針を強め、TeacherからStudentへ能力を移す。</p></div>
+            <div class="phase gate" data-step="7"><h3>評価と公開判断</h3><p>benchmark、red teaming、領域テスト、遅延、コスト、失敗分析で公開可否を判断する。</p></div>
           </div>
-          <figcaption class="caption">上から下がtime progression。BlueはData、Goldはweight formation、Greenはbehavior shaping、Redはrelease gateである。</figcaption>
+          <figcaption class="caption">上から下が時間の流れ。青はデータ、黄は重み形成、緑は振る舞いの調整、赤は公開ゲートである。</figcaption>
         </figure>
 
         <div class="reading">
-          <h3>Pre-trainingの一回のweight update</h3>
+          <h3>Pre-trainingの一回の重み更新</h3>
           <ol>
-            <li><strong>Forward Pass</strong>: Modelが各positionでvocabulary全体のLogitを計算する。</li>
-            <li><strong>Softmax</strong>: Logitを合計1のprobability distributionへ変換する。</li>
-            <li><strong>Cross-Entropy</strong>: 正解Tokenへ割り当てたprobabilityが低いほど大きなlossにする。</li>
-            <li><strong>Backpropagation</strong>: lossへの寄与を各weightへ伝える。</li>
-            <li><strong>Optimizer</strong>: lossが下がる方向へweightを少し更新する。</li>
+            <li><strong>Forward Pass</strong>: Modelが各位置で語彙全体のLogitを計算する。</li>
+            <li><strong>Softmax</strong>: Logitを合計1の確率分布へ変換する。</li>
+            <li><strong>Cross-Entropy</strong>: 正解Tokenへ割り当てた確率が低いほど大きな損失にする。</li>
+            <li><strong>Backpropagation</strong>: 損失への寄与を各重みへ伝える。</li>
+            <li><strong>Optimizer</strong>: 損失が下がる方向へ重みを少し更新する。</li>
           </ol>
-          <p>多数GPUではData Parallel、Tensor Parallel、Pipeline Parallel、Expert Parallelを組み合わせる。AllReduceは複数deviceのgradientを集約するcommunication operationである。FP8やBF16はmemoryとcomputeを節約するlower-precision formatだが、numerical stabilityの管理が必要になる。</p>
+          <p>多数GPUではData Parallel、Tensor Parallel、Pipeline Parallel、Expert Parallelを組み合わせる。AllReduceは複数デバイスの勾配を集約する通信操作である。FP8やBF16はメモリと計算を節約する低精度形式だが、数値安定性の管理が必要になる。</p>
 
           <h3>Post-trainingの用語</h3>
           <table class="term-table">
-            <thead><tr><th>Term</th><th>何をするか</th><th>何を保証しないか</th></tr></thead>
+            <thead><tr><th>用語</th><th>何をするか</th><th>何を保証しないか</th></tr></thead>
             <tbody>
-              <tr><td data-label="Term">SFT</td><td data-label="何をするか">instructionとdesired responseのdemonstrationを模倣する</td><td data-label="保証しないこと">demonstration外のtruthとrobustness</td></tr>
-              <tr><td data-label="Term">Reward Model</td><td data-label="何をするか">responseをhuman preferenceに近いscalar scoreへ写す</td><td data-label="保証しないこと">human value全体、事実性、reward hacking防止</td></tr>
-              <tr><td data-label="Term">RLHF / PPO</td><td data-label="何をするか">Reward Modelのscoreを上げつつpolicy driftを制約する</td><td data-label="保証しないこと">Reward Modelが測らないquality</td></tr>
-              <tr><td data-label="Term">DPO</td><td data-label="何をするか">preferred responseのrelative likelihoodを直接高める</td><td data-label="保証しないこと">preference data外のcorrectness</td></tr>
-              <tr><td data-label="Term">Reasoning RL</td><td data-label="何をするか">verified answerへ到達するgeneration policyを強める</td><td data-label="保証しないこと">Verifierのないopen-ended taskのtruth</td></tr>
-              <tr><td data-label="Term">Distillation</td><td data-label="何をするか">TeacherのoutputやdistributionをStudentへ移す</td><td data-label="保証しないこと">Teacher errorからの独立</td></tr>
+              <tr><td data-label="用語">SFT</td><td data-label="何をするか">指示と望ましい応答の例を模倣する</td><td data-label="保証しないこと">例の外側にある事実性と頑健性</td></tr>
+              <tr><td data-label="用語">Reward Model</td><td data-label="何をするか">応答を人間の好みに近いスコアへ写す</td><td data-label="保証しないこと">人間の価値全体、事実性、reward hacking防止</td></tr>
+              <tr><td data-label="用語">RLHF / PPO</td><td data-label="何をするか">Reward Modelのスコアを上げつつ方針のずれを制約する</td><td data-label="保証しないこと">Reward Modelが測らない品質</td></tr>
+              <tr><td data-label="用語">DPO</td><td data-label="何をするか">好ましい応答の相対的な尤度を直接高める</td><td data-label="保証しないこと">preference data外の正しさ</td></tr>
+              <tr><td data-label="用語">Reasoning RL</td><td data-label="何をするか">検証済みの答えへ到達する生成方針を強める</td><td data-label="保証しないこと">Verifierのない自由記述タスクの真偽</td></tr>
+              <tr><td data-label="用語">Distillation</td><td data-label="何をするか">Teacherの出力や分布をStudentへ移す</td><td data-label="保証しないこと">Teacherの誤りからの独立</td></tr>
             </tbody>
           </table>
-          <p>Chinchilla研究はfixed compute budgetでparameter countとtraining Token数の配分が重要だと示した。InstructGPTはSFT、Reward Model、PPO-based RLHFのpipelineを示し、DPOはpreference pairからより単純にpolicyを最適化する方法を示した。</p>
-          <div class="callout"><p><strong>spec-to-codeは複数phaseの合成能力である。</strong> Pre-trainingでcode patternを学び、SFTでinstruction formatを学び、Preference Optimizationでreadable responseを選び、Reasoning RLやVerifierでTestを通す方策を強める。Application側のrepository SearchとTest Toolが最後のgapを埋める。</p></div>
+          <p>Chinchilla研究は、固定された計算予算ではparameter数と学習Token数の配分が重要だと示した。InstructGPTはSFT、Reward Model、PPO-based RLHFの流れを示し、DPOはpreference pairからより単純に方針を最適化する方法を示した。</p>
+          <div class="callout"><p><strong>仕様からコードを書く能力は複数段階の合成能力である。</strong> Pre-trainingでコードのパターンを学び、SFTで指示形式を学び、Preference Optimizationで読みやすい応答を選び、Reasoning RLやVerifierでテストを通す方策を強める。Application側のリポジトリ探索とTest Toolが最後の差を埋める。</p></div>
         </div>
       </section>
 
       <section id="inference" class="section">
         <div class="reading">
-          <h2>3. Inference: Requestからresponseまで</h2>
-          <p class="lead">Inferenceは一回のModel callではない。Application、Orchestrator、Model Server、Runtime、Acceleratorが連なり、Tool callがあると外部loopへ出て再びModelへ戻る。</p>
+          <h2>3. 推論: リクエストから応答まで</h2>
+          <p class="lead">推論は一回のModel呼び出しではない。Application、Orchestrator、Model Server、Runtime、Acceleratorが連なり、Tool呼び出しがあると外部ループへ出て再びModelへ戻る。</p>
         </div>
 
         <figure class="diagram wrap">
-          <p class="diagram-title">End-to-end Inference sequence</p>
+          <p class="diagram-title">推論の実行順序</p>
           <div class="sequence">
-            <div class="sequence-step"><b>Application</b><span>User input、System Instruction、history、retrieved context、Tool schemaをpromptへ構成する。</span></div>
-            <div class="sequence-step"><b>Orchestrator</b><span>Retrieval、memory、Tool、retry、budget、approval、stop conditionを管理する。</span></div>
-            <div class="sequence-step"><b>Scheduler</b><span>Authentication、rate limit、queueing後、requestをContinuous Batchへ配置する。</span></div>
-            <div class="sequence-step"><b>Tokenizer</b><span>textとschemaをToken IDへ変換する。</span></div>
-            <div class="sequence-step"><b>Prefill</b><span>prompt全体を並列処理し、各layerのKey / ValueをKV Cacheへ保存する。</span></div>
+            <div class="sequence-step"><b>Application</b><span>ユーザー入力、System Instruction、履歴、取得文脈、Tool schemaをプロンプトへ構成する。</span></div>
+            <div class="sequence-step"><b>Orchestrator</b><span>Retrieval、memory、Tool、再試行、予算、承認、停止条件を管理する。</span></div>
+            <div class="sequence-step"><b>Scheduler</b><span>認証、rate limit、queueing後、リクエストをContinuous Batchへ配置する。</span></div>
+            <div class="sequence-step"><b>Tokenizer</b><span>テキストとschemaをToken IDへ変換する。</span></div>
+            <div class="sequence-step"><b>Prefill</b><span>プロンプト全体を並列処理し、各layerのKey / ValueをKV Cacheへ保存する。</span></div>
             <div class="sequence-step"><b>Transformer</b><span>Normalization、Attention、MLPまたはMoE、Residual Connectionで表現を更新する。</span></div>
-            <div class="sequence-step"><b>Sampling</b><span>LM HeadがLogitを作り、Temperature、Top-p等に従って次Tokenを選ぶ。</span></div>
+            <div class="sequence-step"><b>Sampling</b><span>LM HeadがLogitを作り、Temperature、Top-pなどに従って次Tokenを選ぶ。</span></div>
             <div class="sequence-step"><b>Decode Loop</b><span>KV Cacheを再利用しながらTokenを一つずつ追加する。</span></div>
-            <div class="sequence-step"><b>Tool Loop</b><span>schema validationとpermission check後にToolを実行し、resultをcontextへ戻す。</span></div>
-            <div class="sequence-step"><b>Streaming</b><span>Token、Tool state、usage、errorをApplicationへ返し、logとmonitoringへ記録する。</span></div>
+            <div class="sequence-step"><b>Tool Loop</b><span>schema検証と権限確認の後にToolを実行し、結果を文脈へ戻す。</span></div>
+            <div class="sequence-step"><b>Streaming</b><span>Token、Tool状態、使用量、エラーをApplicationへ返し、ログと監視へ記録する。</span></div>
           </div>
-          <figcaption class="caption">番号は実行順序。Tool callがない場合はStep 9をskipする。Tool resultが戻ると新しいModel passが始まる。</figcaption>
+          <figcaption class="caption">番号は実行順序。Tool呼び出しがない場合はStep 9を飛ばす。Tool結果が戻ると新しいModel passが始まる。</figcaption>
         </figure>
 
         <div class="reading">
           <h3>Transformer Blockの内側</h3>
-          <p>以下は代表的なdecoder-only architectureであり、exact orderとcomponentはModelごとに異なる。</p>
+          <p>以下は代表的なdecoder-only構成であり、正確な順序と部品はModelごとに異なる。</p>
         </div>
         <figure class="diagram reading">
           <div class="block-stack">
-            <div class="block-layer"><b>Embedding + RoPE</b><span>Token IDをvectorへ変え、position関係をencodeする</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>RMSNorm / LayerNorm</b><span>activation scaleを整える</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>Embedding + RoPE</b><span>Token IDをベクトルへ変え、位置関係を符号化する</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>RMSNorm / LayerNorm</b><span>活性値のscaleを整える</span></div><div class="block-arrow"></div>
             <div class="block-layer"><b>Q / K / V Projection</b><span>hidden stateからAttention用のQuery、Key、Valueを作る</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>Masked Self-Attention</b><span>past contextのValueをrelevanceに応じて混合する</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>Residual Connection</b><span>Block inputをtransformed outputへ足す</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>MLP / MoE</b><span>featureをnonlinear transform。MoEではRouterがExpertを選ぶ</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>LM Head</b><span>final hidden stateをvocabulary Logitへprojectする</span></div>
+            <div class="block-layer"><b>Masked Self-Attention</b><span>過去文脈のValueを関連度に応じて混合する</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>Residual Connection</b><span>Block入力を変換後の出力へ足す</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>MLP / MoE</b><span>特徴を非線形に変換する。MoEではRouterがExpertを選ぶ</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>LM Head</b><span>最後のhidden stateを語彙ごとのLogitへ写す</span></div>
           </div>
-          <figcaption class="caption">上から下が一つのToken表現の更新方向。Goldはrepresentation transformationを表す。</figcaption>
+          <figcaption class="caption">上から下が一つのToken表現の更新方向。黄は表現変換を表す。</figcaption>
         </figure>
 
         <div class="reading">
-          <h3>主流architectureとserving技術</h3>
+          <h3>主流構成と配信技術</h3>
           <table class="term-table">
-            <thead><tr><th>Technology</th><th>何を節約・変更するか</th><th>Trade-off / 注意</th></tr></thead>
+            <thead><tr><th>技術</th><th>何を節約・変更するか</th><th>Trade-off / 注意</th></tr></thead>
             <tbody>
-              <tr><td data-label="Technology">MHA</td><td data-label="作用">各Query headが独立したKey / Value headを持つ</td><td data-label="Trade-off">KV Cacheが大きい</td></tr>
-              <tr><td data-label="Technology">GQA</td><td data-label="作用">複数Query headでKey / Valueを共有する</td><td data-label="Trade-off">cache削減とqualityのbalance</td></tr>
-              <tr><td data-label="Technology">MLA</td><td data-label="作用">Key / Value representationをlatent spaceへ圧縮する</td><td data-label="Trade-off">specialized implementationが必要</td></tr>
-              <tr><td data-label="Technology">MoE</td><td data-label="作用">Tokenごとに少数Expertだけをactiveにする</td><td data-label="Trade-off">routing、load balance、communication</td></tr>
-              <tr><td data-label="Technology">FlashAttention</td><td data-label="作用">HBMとSRAM間のIOを減らすexact Attention</td><td data-label="Trade-off">kernelとhardware依存</td></tr>
-              <tr><td data-label="Technology">PagedAttention</td><td data-label="作用">KV Cacheをblock管理しfragmentationを減らす</td><td data-label="Trade-off">serving system complexity</td></tr>
-              <tr><td data-label="Technology">Speculative Decoding</td><td data-label="作用">draft Modelの複数Tokenをtarget Modelがまとめて検証</td><td data-label="Trade-off">draft accuracyと検証overhead</td></tr>
-              <tr><td data-label="Technology">Quantization</td><td data-label="作用">weight / activationのbit widthを下げる</td><td data-label="Trade-off">quality、calibration、kernel support</td></tr>
+              <tr><td data-label="技術">MHA</td><td data-label="作用">各Query headが独立したKey / Value headを持つ</td><td data-label="Trade-off">KV Cacheが大きい</td></tr>
+              <tr><td data-label="技術">GQA</td><td data-label="作用">複数Query headでKey / Valueを共有する</td><td data-label="Trade-off">cache削減と品質のbalance</td></tr>
+              <tr><td data-label="技術">MLA</td><td data-label="作用">Key / Value表現をlatent spaceへ圧縮する</td><td data-label="Trade-off">specialized implementationが必要</td></tr>
+              <tr><td data-label="技術">MoE</td><td data-label="作用">Tokenごとに少数Expertだけをactiveにする</td><td data-label="Trade-off">routing、load balance、通信</td></tr>
+              <tr><td data-label="技術">FlashAttention</td><td data-label="作用">HBMとSRAM間のIOを減らすexact Attention</td><td data-label="Trade-off">kernelとhardware依存</td></tr>
+              <tr><td data-label="技術">PagedAttention</td><td data-label="作用">KV Cacheをblock管理しfragmentationを減らす</td><td data-label="Trade-off">serving systemの複雑さ</td></tr>
+              <tr><td data-label="技術">Speculative Decoding</td><td data-label="作用">draft Modelの複数Tokenをtarget Modelがまとめて検証</td><td data-label="Trade-off">draft精度と検証overhead</td></tr>
+              <tr><td data-label="技術">Quantization</td><td data-label="作用">重みやactivationのbit widthを下げる</td><td data-label="Trade-off">品質、calibration、kernel support</td></tr>
             </tbody>
           </table>
         </div>
 
         <figure class="diagram wrap">
-          <p class="diagram-title">HardwareからApplicationまでのInference stack</p>
+          <p class="diagram-title">計算資源からApplicationまでの推論stack</p>
           <div class="stack-wrap">
             <div class="system-stack">
-              <div class="stack-layer application"><b>Application</b><span>UI、System Instruction、output rendering、user approval</span></div>
-              <div class="stack-layer application"><b>Orchestrator</b><span>Retrieval、Tool、memory、retry、budget、permission</span></div>
-              <div class="stack-layer"><b>API / Model Server</b><span>authentication、queue、Continuous Batching、KV Cache、streaming</span></div>
+              <div class="stack-layer application"><b>Application</b><span>UI、System Instruction、出力表示、ユーザー承認</span></div>
+              <div class="stack-layer application"><b>Orchestrator</b><span>Retrieval、Tool、memory、再試行、予算、権限</span></div>
+              <div class="stack-layer"><b>API / Model Server</b><span>認証、queue、Continuous Batching、KV Cache、streaming</span></div>
               <div class="stack-layer model"><b>Model Runtime</b><span>Tensor Parallel、Pipeline Parallel、Expert Parallel、kernel dispatch</span></div>
               <div class="stack-layer model"><b>Transformer Weights</b><span>Embedding、Attention、MLP / MoE、LM Head</span></div>
               <div class="stack-layer hardware"><b>Accelerator Cluster</b><span>GPU / TPU、HBM、NVLink / InfiniBand、collective communication</span></div>
-              <div class="stack-layer hardware"><b>Silicon & System</b><span>Tensor Core、SRAM、memory controller、network、power、cooling</span></div>
+              <div class="stack-layer hardware"><b>Silicon & System</b><span>Tensor Core、SRAM、memory controller、network、電力、冷却</span></div>
             </div>
             <div class="bi-flow" aria-label="requestは下向き、Tokenは上向きに流れる">
-              <div class="flow-down"><span class="flow-label">request / command</span></div>
-              <div class="flow-up"><span class="flow-label">Token / result</span></div>
+              <div class="flow-down"><span class="flow-label">リクエスト / 命令</span></div>
+              <div class="flow-up"><span class="flow-label">Token / 結果</span></div>
             </div>
           </div>
-          <figcaption class="caption">Bottom-to-topがabstraction。Greenのrequestは下へ、BlueのToken / Tool resultは上へ流れる。mobileではstackだけを表示し、本文の順序でflowを補う。</figcaption>
+          <figcaption class="caption">下から上ほど抽象度が高い。緑のリクエストは下へ、青のToken / Tool結果は上へ流れる。モバイルではstackだけを表示し、本文の順序で流れを補う。</figcaption>
         </figure>
 
         <div class="reading">
-          <h3>Inference設定を動かして意味を確認する</h3>
+          <h3>推論設定を動かして意味を確認する</h3>
           <div class="settings-lab">
-            <div class="settings-head"><h3>Inference Settings Lab</h3><span id="modeLabel" class="mode-label">balanced generation</span></div>
+            <div class="settings-head"><h3>推論設定ラボ</h3><span id="modeLabel" class="mode-label">均衡寄り</span></div>
             <div class="settings-body">
               <div class="controls">
                 <div class="control"><label for="temperature"><span>Temperature</span><output id="temperatureValue">0.7</output></label><input id="temperature" type="range" min="0" max="1.5" step="0.1" value="0.7"></div>
                 <div class="control"><label for="topP"><span>Top-p</span><output id="topPValue">0.9</output></label><input id="topP" type="range" min="0.1" max="1" step="0.05" value="0.9"></div>
-                <div class="control"><label for="maxTokens"><span>Max Output Tokens</span><output id="maxTokensValue">2048</output></label><input id="maxTokens" type="range" min="256" max="8192" step="256" value="2048"></div>
+                <div class="control"><label for="maxTokens"><span>最大出力Token</span><output id="maxTokensValue">2048</output></label><input id="maxTokens" type="range" min="256" max="8192" step="256" value="2048"></div>
                 <fieldset><legend>Attention / Cache strategy</legend><div class="segments"><label><input type="radio" name="attention" value="MHA">MHA</label><label><input type="radio" name="attention" value="GQA" checked>GQA</label><label><input type="radio" name="attention" value="MLA">MLA</label></div></fieldset>
               </div>
               <div class="settings-output" aria-live="polite">
                 <h4>変わるもの / 変わらないもの</h4>
                 <div class="effect"><b>Sampling</b><span id="samplingEffect">多様性と安定性の中間。candidate setは高確率領域へ絞る。</span></div>
-                <div class="effect"><b>Resource limit</b><span id="tokenEffect">最大2,048 Token。長いoutputはlatencyとKV Cacheを増やす。</span></div>
+                <div class="effect"><b>資源上限</b><span id="tokenEffect">最大2,048 Token。長い出力はlatencyとKV Cacheを増やす。</span></div>
                 <div class="effect"><b>KV Cache</b><span id="attentionEffect">GQAはKey / Value headを共有し、MHAよりcacheを抑える。</span></div>
-                <div class="effect"><b>Guarantee</b><span>どの設定もtruth、causality、safetyを保証しない。設定はdistributionとresourceを変える。</span></div>
+                <div class="effect"><b>保証</b><span>どの設定も真偽、因果、安全性を保証しない。設定は分布と資源使用を変える。</span></div>
               </div>
             </div>
           </div>
-          <p class="caption">このLabは実測benchmarkではない。設定が変える対象を概念的に示す。</p>
+          <p class="caption">このラボは実測benchmarkではない。設定が変える対象を概念的に示す。</p>
         </div>
       </section>
 
       <section id="causality" class="section">
         <div class="reading">
-          <h2>4. Causality: 構造上の弱さを正確に言う</h2>
-          <p class="lead">LLMがcausal languageを生成できることと、causal relationをdataから同定できることは別である。</p>
-          <p>通常のnext-Token Pre-trainingが直接最適化するのはobserved sequenceのlikelihoodである。Training textに「Aの後にB」「AとBが一緒に語られる」というcorrelationがあっても、confounder、reverse causation、selection biasを除くexperimentがあるとは限らない。</p>
-          <div class="callout warning"><p><strong>限定された主張:</strong> Transformerがcausal representationを絶対に持てないのではない。observational next-Token objectiveだけでは、causal graph、Intervention、Counterfactualを一意に正しく学ぶことが強制されない。</p></div>
+          <h2>4. 因果: 構造上の弱さを正確に言う</h2>
+          <p class="lead">LLMが因果らしい文章を生成できることと、データから因果関係を同定できることは別である。</p>
+          <p>通常のnext-Token Pre-trainingが直接最適化するのは、観測されたToken列の尤度である。学習テキストに「Aの後にB」「AとBが一緒に語られる」という相関があっても、交絡、逆因果、選択バイアスを取り除く実験が含まれるとは限らない。</p>
+          <div class="callout warning"><p><strong>限定された主張:</strong> Transformerが因果表現を絶対に持てないという意味ではない。観測データだけに基づくnext-Token目的関数では、causal graph、Intervention、Counterfactualを一意に正しく学ぶことが強制されない、という意味である。</p></div>
         </div>
 
         <figure class="diagram reading">
@@ -480,121 +491,128 @@
           <div class="causal-ladder">
             <div class="rung counterfactual"><b>Counterfactual</b><span>同じ事例で、もしX'だったらYはどうなったか</span></div>
             <div class="uncertain">LLM単体では保証されない</div>
-            <div class="bridge">SCM、domain constraint、identified model</div>
+            <div class="bridge">SCM、領域制約、同定されたModel</div>
             <div class="rung intervention"><b>Intervention</b><span>外からXを変えたらYはどう変わるか: P(Y | do(X))</span></div>
-            <div class="bridge">Experiment、A/B Test、controlled change</div>
+            <div class="bridge">実験、A/B Test、制御された変更</div>
             <div class="rung association"><b>Association</b><span>Xを観測したときYが起こりやすいか: P(Y | X)</span></div>
           </div>
-          <figcaption class="caption">下から上ほど必要なassumptionが増える。Training textは主にobserved Associationを与える。Greenのbridgeが上段への追加evidenceで、Redのdashed relationはnative guaranteeがないことを表す。</figcaption>
+          <figcaption class="caption">下から上ほど必要な仮定が増える。学習テキストは主に観測されたAssociationを与える。緑のbridgeが上段へ進む追加証拠で、赤の関係はnative guaranteeがないことを表す。</figcaption>
         </figure>
 
         <div class="reading">
           <h3>論文から分かること</h3>
           <ul>
-            <li><strong>Causal Parrots</strong>は、causal factを語る成功がTraining text内のcausal fact同士のcorrelationで説明できる可能性を論じた。著者のconjectureを含む。</li>
-            <li><strong>CLadder</strong>はAssociation、Intervention、Counterfactualを含むformal causal questionがLLMに難しい一方、CausalCoTで改善することを示した。</li>
-            <li><strong>Joshi et al. (EMNLP 2024)</strong>はmention orderやtemporal orderからcausationを誤推定するpost hoc fallacyを報告した。</li>
-            <li><strong>Kasetty et al.</strong>はcontrolled Intervention benchmarkでGPT系Modelに有望なperformanceも報告した。</li>
+            <li><strong>Causal Parrots</strong>は、因果事実を語る成功が学習テキスト内の因果事実同士の相関で説明できる可能性を論じた。著者のconjectureを含む。</li>
+            <li><strong>CLadder</strong>はAssociation、Intervention、Counterfactualを含む形式的な因果問題がLLMに難しい一方、CausalCoTで改善することを示した。</li>
+            <li><strong>Joshi et al. (EMNLP 2024)</strong>は、言及順序や時間順序から因果を誤推定するpost hoc fallacyを報告した。</li>
+            <li><strong>Kasetty et al.</strong>は、制御されたIntervention benchmarkでGPT系Modelに有望なperformanceも報告した。</li>
           </ul>
-          <p>結論は「LLMはcausal reasoning不可能」ではない。explicit causal structure、experiment、Tool、Verifierを与えれば改善できるが、native guaranteeはない。</p>
-          <div class="callout"><p><strong>Codexでの読み替え:</strong> 「このchangeでbugが直る」はhypothesisである。failing Testを再現し、single changeをInterventionとして実行し、failureが消えるか再測定することでcausal evidenceへ近づく。</p></div>
+          <p>結論は「LLMはcausal reasoning不可能」ではない。明示的な因果構造、実験、Tool、Verifierを与えれば改善できるが、native guaranteeはない。</p>
+          <div class="callout"><p><strong>Codexでの読み替え:</strong> 「この変更でバグが直る」は仮説である。失敗するTestを再現し、単一の変更をInterventionとして実行し、失敗が消えるか再測定することで因果証拠へ近づく。</p></div>
         </div>
       </section>
 
       <section id="research" class="section">
         <div class="reading">
-          <h2>5. Research Direction</h2>
-          <p class="lead">frontier Modelのrankingではなく、どのbottleneckを、どのevidenceで改善したかを見る。</p>
+          <h2>5. 研究動向: どの制約を攻めているのか</h2>
+          <p class="lead">frontier Modelの順位ではなく、どのボトルネックを、どの証拠で改善したかを見る。</p>
         </div>
         <div class="wrap research-grid">
-          <div class="research-item"><b>Compute Efficiency</b><span>MoE、MLA、FP8、FlashAttention、PagedAttention。active compute、memory、bandwidthを減らす。</span></div>
-          <div class="research-item"><b>Test-time Compute</b><span>Reasoning RL、thinking budget、Verifier、search。difficult taskへ追加computeを配る。</span></div>
-          <div class="research-item"><b>Tool-using Agent</b><span>Web Search、code execution、memory、GUI Tool。observationとactionを外部loopへ広げる。</span></div>
-          <div class="research-item"><b>Multimodality</b><span>image、audio、videoをcommon representationへ変換し、cross-modal Translationを行う。</span></div>
-          <div class="research-item"><b>Causal Learning</b><span>Structural Causal Model、Intervention data、causal benchmarkをTrainingとEvaluationへ統合する。</span></div>
-          <div class="research-item"><b>Interpretability</b><span>Sparse Autoencoder、attribution graph、causal interventionでinternal featureとcircuitを調べる。</span></div>
+          <div class="research-item"><b>計算効率</b><span>MoE、MLA、FP8、FlashAttention、PagedAttention。active compute、メモリ、帯域を減らす。</span></div>
+          <div class="research-item"><b>推論時の追加計算</b><span>Reasoning RL、thinking budget、Verifier、探索。難しいタスクへ追加計算を配る。</span></div>
+          <div class="research-item"><b>Toolを使うAgent</b><span>Web Search、code execution、memory、GUI Tool。観測と行為を外部ループへ広げる。</span></div>
+          <div class="research-item"><b>マルチモーダル</b><span>画像、音声、動画を共通表現へ変換し、モード間の変換を行う。</span></div>
+          <div class="research-item"><b>因果学習</b><span>Structural Causal Model、Intervention data、causal benchmarkを学習と評価へ統合する。</span></div>
+          <div class="research-item"><b>解釈可能性</b><span>Sparse Autoencoder、attribution graph、causal interventionで内部特徴と回路を調べる。</span></div>
         </div>
         <div class="reading">
           <h3>中国と米国の公開動向</h3>
           <table class="term-table">
             <thead><tr><th>主体</th><th>公開された方向</th><th>読み方</th></tr></thead>
             <tbody>
-              <tr><td data-label="主体">DeepSeek</td><td data-label="方向">MoE、MLA、FP8、rule-based rewardを含むReasoning RL</td><td data-label="読み方">active compute、Inference cost、Verifier rewardの最適化</td></tr>
-              <tr><td data-label="主体">Qwen</td><td data-label="方向">Dense / MoE、thinking mode、thinking budget、多言語</td><td data-label="読み方">taskごとのInference compute配分</td></tr>
-              <tr><td data-label="主体">OpenAI</td><td data-label="方向">large-scale RL、test-time reasoning、image reasoning、Tool use</td><td data-label="読み方">System化は進むがexact architectureは非公開</td></tr>
-              <tr><td data-label="主体">Anthropic</td><td data-label="方向">Circuit Tracing、feature intervention、Global Workspace hypothesis</td><td data-label="読み方">partial circuitを全体理解やconsciousnessへ外挿しない</td></tr>
-              <tr><td data-label="主体">Open-weight ecosystem</td><td data-label="方向">independent evaluation、fine-tuning、quantization、mechanistic intervention</td><td data-label="読み方">weight公開とfull Training recipe公開は別</td></tr>
+              <tr><td data-label="主体">DeepSeek</td><td data-label="方向">MoE、MLA、FP8、rule-based rewardを含むReasoning RL</td><td data-label="読み方">active compute、推論コスト、Verifier rewardの最適化</td></tr>
+              <tr><td data-label="主体">Qwen</td><td data-label="方向">Dense / MoE、thinking mode、thinking budget、多言語</td><td data-label="読み方">タスクごとの推論計算配分</td></tr>
+              <tr><td data-label="主体">OpenAI</td><td data-label="方向">large-scale RL、test-time reasoning、image reasoning、Tool use</td><td data-label="読み方">システム化は進むが正確なarchitectureは非公開</td></tr>
+              <tr><td data-label="主体">Anthropic</td><td data-label="方向">Circuit Tracing、feature intervention、Global Workspace hypothesis</td><td data-label="読み方">部分回路を全体理解やconsciousnessへ外挿しない</td></tr>
+              <tr><td data-label="主体">Open-weight ecosystem</td><td data-label="方向">independent evaluation、fine-tuning、quantization、mechanistic intervention</td><td data-label="読み方">重み公開と完全な学習recipe公開は別</td></tr>
             </tbody>
           </table>
-          <p>DeepSeek-R1のlong reasoning、Qwen3のthinking budget、OpenAIのreasoning Modelは、「長く考える主体が突然生まれた」と読むより、Training rewardとInference budgetを変えたsystemとして読む方が比較しやすい。</p>
+          <p>DeepSeek-R1のlong reasoning、Qwen3のthinking budget、OpenAIのreasoning Modelは、「長く考える主体が突然生まれた」と読むより、学習報酬と推論予算を変えたシステムとして読む方が比較しやすい。</p>
         </div>
       </section>
 
       <section id="misconceptions" class="section">
         <div class="reading">
           <h2>6. LLMに対する誤解</h2>
-          <div class="misconception"><h3>「次Token予測だけだから単純」</h3><p>objectiveが短く書けても、内部に抽象feature、algorithm-like circuit、planning behaviorが生じうる。mechanismの短さはfunctionの単純さを意味しない。</p></div>
-          <div class="misconception"><h3>「SearchとTranslationだけなら新しいものを作れない」</h3><p>learned representationをconstraintの下で再構成すれば、新しいprogramやdesignが生じうる。Noveltyとcorrectnessは別である。</p></div>
-          <div class="misconception"><h3>「Chain of Thoughtは内部思考の完全な記録」</h3><p>visible reasoningはoutput channelであり、読みやすくTrainingされうる。internal activationの完全なtranscriptではない。</p></div>
-          <div class="misconception"><h3>「Toolを使えばhallucinationは消える」</h3><p>wrong query、bad source、prompt injection、misread result、Tool side effectが残る。RetrievalとVerificationは別工程である。</p></div>
-          <div class="misconception"><h3>「low Temperatureなら正しい」</h3><p>同じhigh-probability outputを選びやすくするだけで、weightsやcontextにある誤りは直らない。</p></div>
-          <div class="misconception"><h3>「long contextなら全て覚えて使える」</h3><p>Context Windowへ入ることと、必要箇所を正しく利用することは違う。distractor、position、retrieval quality、KV Cache costが影響する。</p></div>
-          <div class="misconception"><h3>「causal explanationが自然ならcauseを理解している」</h3><p>causal languageのretrievalかもしれない。Intervention、Counterfactual、alternative hypothesisのTestが必要である。</p></div>
+          <div class="misconception"><h3>「次Token予測だけだから単純」</h3><p>目的関数が短く書けても、内部に抽象特徴、algorithm-like circuit、planning behaviorが生じうる。仕組みの説明が短いことは、機能が単純であることを意味しない。</p></div>
+          <div class="misconception"><h3>「探索と変換だけなら新しいものを作れない」</h3><p>学習済み表現を制約の下で再構成すれば、新しいprogramやdesignが生じうる。新規性と正しさは別である。</p></div>
+          <div class="misconception"><h3>「Chain of Thoughtは内部思考の完全な記録」</h3><p>見えている推論文は出力チャンネルであり、読みやすく学習されうる。内部activationの完全な記録ではない。</p></div>
+          <div class="misconception"><h3>「Toolを使えばhallucinationは消える」</h3><p>間違ったquery、悪いsource、prompt injection、読み間違い、Toolの副作用が残る。RetrievalとVerificationは別工程である。</p></div>
+          <div class="misconception"><h3>「低いTemperatureなら正しい」</h3><p>同じ高確率出力を選びやすくするだけで、重みや文脈にある誤りは直らない。</p></div>
+          <div class="misconception"><h3>「長い文脈なら全て覚えて使える」</h3><p>Context Windowへ入ることと、必要箇所を正しく利用することは違う。distractor、位置、retrieval品質、KV Cache costが影響する。</p></div>
+          <div class="misconception"><h3>「因果説明が自然なら原因を理解している」</h3><p>因果らしい文章のretrievalかもしれない。Intervention、Counterfactual、alternative hypothesisのTestが必要である。</p></div>
         </div>
       </section>
 
       <section id="codex" class="section">
         <div class="reading">
           <h2>7. Codex等を使う人の実践ルール</h2>
-          <p class="lead">Coding Agentへ任せるのはSearchとTranslationである。正しさを決めるevidence、actionを許すpermission、結果へ責任を持つapprovalは外側へ残す。</p>
+          <p class="lead">Coding Agentへ任せるのは探索と変換である。正しさを決める証拠、行為を許す権限、結果へ責任を持つ承認は外側へ残す。</p>
           <ol>
-            <li><strong>Scopeを狭くする:</strong> repository、directory、file、non-goalを指定する。</li>
-            <li><strong>Success Criteriaを書く:</strong> Test名、expected behavior、performance threshold、browser state等を観測可能にする。</li>
-            <li><strong>Source of Truthを指定する:</strong> spec、issue、schema、official documentation、existing Testの優先順位を決める。</li>
-            <li><strong>Search結果をuntrusted inputとして扱う:</strong> Web pageやrepository textには古いinstructionやprompt injectionがありうる。</li>
-            <li><strong>Translationをdiffで確認する:</strong> explanationではなくfile diff、command、dependency、artifactを見る。</li>
-            <li><strong>Causal claimをTestする:</strong> 再現、single change、再測定でhypothesisを検証する。</li>
-            <li><strong>Permissionを分離する:</strong> network、secret、production、delete、payment、publishは必要時だけapproveする。</li>
+            <li><strong>範囲を狭くする:</strong> repository、directory、file、non-goalを指定する。</li>
+            <li><strong>成功条件を書く:</strong> Test名、期待する振る舞い、性能しきい値、browser状態などを観測可能にする。</li>
+            <li><strong>正本を指定する:</strong> spec、issue、schema、official documentation、既存Testの優先順位を決める。</li>
+            <li><strong>探索結果を信頼しすぎない:</strong> Web pageやrepository textには古いinstructionやprompt injectionがありうる。</li>
+            <li><strong>変換結果をdiffで確認する:</strong> 説明ではなくfile diff、command、dependency、artifactを見る。</li>
+            <li><strong>因果主張をTestする:</strong> 再現、単一変更、再測定で仮説を検証する。</li>
+            <li><strong>権限を分離する:</strong> network、secret、production、delete、payment、publishは必要時だけapproveする。</li>
           </ol>
         </div>
 
         <figure class="diagram wrap">
-          <p class="diagram-title">Codex Verification Loop</p>
+          <p class="diagram-title">Codexの検証ループ</p>
           <div class="verify-loop">
-            <div class="verify-step"><b>1. Goal</b><span>scope、non-goal、success criteriaを定義</span></div>
-            <div class="verify-step"><b>2. Search</b><span>spec、code、Test、docs、historyを観測</span></div>
-            <div class="verify-step"><b>3. Hypothesis</b><span>failure causeとchange planを明示</span></div>
-            <div class="verify-step"><b>4. Patch</b><span>spec-to-code / error-to-patchを実行</span></div>
+            <div class="verify-step"><b>1. 目的</b><span>範囲、非目標、成功条件を定義</span></div>
+            <div class="verify-step"><b>2. 探索</b><span>spec、code、Test、docs、historyを観測</span></div>
+            <div class="verify-step"><b>3. 仮説</b><span>失敗原因と変更方針を明示</span></div>
+            <div class="verify-step"><b>4. 修正</b><span>仕様からコード、エラーから修正案へ変換</span></div>
             <div class="verify-step"><b>5. Test</b><span>Interventionとして実行し結果を測定</span></div>
-            <div class="verify-step"><b>6. Diff Review</b><span>scope、side effect、dependencyを確認</span></div>
-            <div class="verify-step"><b>7. Approval</b><span>authority boundaryをhumanが通す</span></div>
-            <div class="verify-step"><b>8. Monitor</b><span>production distributionのfailureを観測</span></div>
+            <div class="verify-step"><b>6. Diff Review</b><span>範囲、副作用、dependencyを確認</span></div>
+            <div class="verify-step"><b>7. 承認</b><span>権限境界を人間が通す</span></div>
+            <div class="verify-step"><b>8. 監視</b><span>production distributionの失敗を観測</span></div>
           </div>
-          <figcaption class="caption">BlueはSearch、GoldはTranslation、GreenはVerification、RedはPermission / responsibility。Test failureはHypothesisへ戻し、別のexplanationを試す。</figcaption>
+          <figcaption class="caption">青は探索、黄は変換、緑は検証、赤は権限と責任。Test failureは仮説へ戻し、別の説明を試す。</figcaption>
         </figure>
 
         <div class="reading">
-          <div class="callout"><p><strong>Prompt例:</strong> 「login bugを直して」ではなく、「<code>auth</code> moduleで再現するfailing Testを先に追加し、public APIを変えず最小patchを作り、関連Testとfull suiteの結果、diff、残るriskを報告する。production credentialとnetworkは使用しない」と依頼する。</p></div>
-          <p>OpenAIのCodex sandbox資料はnetworkをdefaultで制限し、workspace外writeを制限し、unsandboxed actionへapprovalを要求する設計を説明している。Sandboxはcorrectness guaranteeではない。誤ったactionのreachを狭めるboundaryである。</p>
+          <h3>同じ出力でも、証拠の強さは変わる</h3>
+          <div class="sequence">
+            <div class="sequence-step"><b>未検証の出力</b><span>「この関数が原因です」と自然に説明しても、それはまだ重みと文脈から作られた仮説である。</span></div>
+            <div class="sequence-step"><b>出典つきの仮説</b><span>該当コード、仕様、履歴、エラーログを示せると、探索の根拠は強くなる。ただし因果はまだ確定しない。</span></div>
+            <div class="sequence-step"><b>Testで試した変更</b><span>失敗を再現し、単一変更を入れ、同じTestが通るなら、仮説は因果証拠へ近づく。</span></div>
+            <div class="sequence-step"><b>承認された行為</b><span>diff、Test結果、残るリスクを確認し、人間が権限境界を通したときだけ現実の変更として扱う。</span></div>
+          </div>
+          <div class="callout"><p><strong>依頼例:</strong> 「login bugを直して」ではなく、「<code>auth</code> moduleで再現するfailing Testを先に追加し、public APIを変えず最小patchを作り、関連Testとfull suiteの結果、diff、残るリスクを報告する。production credentialとnetworkは使用しない」と依頼する。</p></div>
+          <p>OpenAIのCodex sandbox資料はnetworkをdefaultで制限し、workspace外writeを制限し、unsandboxed actionへapprovalを要求する設計を説明している。Sandboxは正しさの保証ではない。誤った行為の届く範囲を狭める境界である。</p>
         </div>
       </section>
 
       <section id="model" class="section">
         <div class="reading">
-          <h2>8. 最終Mental Model</h2>
-          <div class="final-model"><p>LLMは、三種類のSearchと多段のTranslationを行うprobabilistic engineである。Parametric Searchはweightsからpatternを取り出し、Context SearchはAttentionでcurrent inputの関連箇所を選び、External SearchはToolでworldを観測する。TransformerはそれらをTokenやTool callへ翻訳し続ける。しかしobservational Trainingはcausality、truth、responsibilityを直接保証しない。Toolを持つLLMを使うときは、Verifierで結果を確かめ、Permissionでactionを制限し、Humanが最終責任を持つ。</p></div>
-          <div class="formula">Useful AI System = Search + Translation + Verification + Permission + Human Responsibility</div>
-          <p>SearchとTranslationはLLMの強みである。VerificationとPermissionを省くと、その強さがそのままriskになる。</p>
+          <h2>8. 最終メンタルモデル</h2>
+          <div class="final-model"><p>LLMは、三種類の探索と多段の変換を行う確率的なエンジンである。重み内探索は重みからパターンを取り出し、文脈内探索はAttentionで現在の入力の関連箇所を選び、外部探索はToolで世界を観測する。TransformerはそれらをTokenやTool呼び出しへ変換し続ける。しかし観測データに基づく学習は、因果、真偽、責任を直接保証しない。Toolを持つLLMを使うときは、Verifierで結果を確かめ、権限で行為を制限し、人間が最終責任を持つ。</p></div>
+          <div class="formula">有用なAIシステム = 探索 + 変換 + 検証 + 権限 + 人間の責任</div>
+          <p>LLMを理解するとは、答えを信じる方法を得ることではない。どこまでを機械に任せ、どこからを証拠、権限、責任として外側に残すかを見抜くことである。</p>
 
-          <h3>このMental Modelの限界</h3>
+          <h3>このメンタルモデルの限界</h3>
           <ul>
-            <li>LLM内部の全algorithmをliteralに記述するものではない。</li>
-            <li>LLMがcausal taskを一切解けないとは主張しない。explicit structure、fine-tuning、experimentで改善できる。</li>
-            <li>consciousnessやmoral statusは扱わない。functional capabilityとは別の問いである。</li>
-            <li>closed frontier ModelのTraining data、exact architecture、internal circuitには非公開部分がある。</li>
+            <li>LLM内部の全algorithmを文字どおりに記述するものではない。</li>
+            <li>LLMがcausal taskを一切解けないとは主張しない。明示的な構造、fine-tuning、実験で改善できる。</li>
+            <li>consciousnessやmoral statusは扱わない。機能的能力とは別の問いである。</li>
+            <li>closed frontier Modelの学習データ、正確なarchitecture、内部回路には非公開部分がある。</li>
           </ul>
 
-          <h3>Primary Sources</h3>
+          <h3>主要な出典</h3>
           <ol class="source-list">
             <li>Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, 2017.</li>
             <li>Kudo and Richardson, <a href="https://arxiv.org/abs/1808.06226">SentencePiece</a>, 2018.</li>
@@ -620,7 +638,7 @@
     </article>
   </main>
 
-  <footer><div class="wrap">Mental Model Studio ・ Research claims are bounded by the cited public evidence and retrieval date.</div></footer>
+  <footer><div class="wrap">Mental Model Studio ・ 研究上の主張は、引用した公開証拠と取得日の範囲に限定される。</div></footer>
 
   <script>
     const temperature = document.getElementById('temperature');
@@ -644,22 +662,22 @@
       maxTokensValue.textContent = tokens.toLocaleString('ja-JP');
 
       if (temp <= 0.2) {
-        samplingEffect.textContent = 'high-probability Tokenへ強く集中。再現性は上がるが、誤ったmodeへ固定されることもある。';
-        modeLabel.textContent = 'deterministic leaning';
+        samplingEffect.textContent = '高確率Tokenへ強く集中。再現性は上がるが、誤った方向へ固定されることもある。';
+        modeLabel.textContent = '安定寄り';
       } else if (temp >= 1.1) {
-        samplingEffect.textContent = 'low-probability Tokenも選びやすい。多様性と同時にvarianceも増える。';
-        modeLabel.textContent = 'exploratory generation';
+        samplingEffect.textContent = '低確率Tokenも選びやすい。多様性と同時にばらつきも増える。';
+        modeLabel.textContent = '探索寄り';
       } else {
-        samplingEffect.textContent = `多様性と安定性の中間。Top-p ${p.toFixed(2)} でcandidate setを制限する。`;
-        modeLabel.textContent = 'balanced generation';
+        samplingEffect.textContent = `多様性と安定性の中間。Top-p ${p.toFixed(2)} で候補集合を制限する。`;
+        modeLabel.textContent = '均衡寄り';
       }
 
-      tokenEffect.textContent = `最大${tokens.toLocaleString('ja-JP')} Token。上限を増やすとlong responseを許すが、latency、cost、KV Cache使用量も増えうる。`;
+      tokenEffect.textContent = `最大${tokens.toLocaleString('ja-JP')} Token。上限を増やすと長い応答を許すが、latency、cost、KV Cache使用量も増えうる。`;
 
       const attentionText = {
         MHA: 'MHAは各Query headが独立したKey / Valueを持ち、KV Cacheが最も大きくなりやすい。',
         GQA: 'GQAは複数Query headでKey / Valueを共有し、MHAよりKV Cacheを抑える。',
-        MLA: 'MLAはKey / Value representationをlatent spaceへ圧縮し、Inference時のcacheとbandwidthを抑える。'
+        MLA: 'MLAはKey / Value表現をlatent spaceへ圧縮し、推論時のcacheとbandwidthを抑える。'
       };
       attentionEffect.textContent = attentionText[attention];
     }
