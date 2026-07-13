@@ -3,133 +3,670 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LLMを、次トークン予測、Transformer、GPU、テスト時計算、内部解釈から理解するファーストプリンシパル記事。">
-  <title>LLM from First Principles</title>
+  <meta name="description" content="LLMをSearch、Translation、Verificationとして理解し、Training、Inference、Hardware、causality、研究動向、Codex利用までを一次資料から説明する。">
+  <title>LLM from First Principles | Search, Translation, Verification</title>
   <style>
-    :root { --ink:#17212b; --muted:#516170; --paper:#fbfcfd; --line:#d6dee6; --blue:#1677b8; --teal:#128576; --gold:#c07b19; --red:#b14b4c; --navy:#253b58; --wash:#eef4f7; --max:1120px; }
-    * { box-sizing:border-box; }
+    :root {
+      --ink:#17212b; --muted:#536271; --paper:#fbfcfd; --white:#fff; --line:#d8e0e6;
+      --blue:#1677b8; --blue-soft:#eaf4fb; --gold:#b77912; --gold-soft:#fff5df;
+      --green:#16836f; --green-soft:#e9f7f3; --red:#b54749; --red-soft:#fceeee;
+      --gray:#677786; --gray-soft:#eff3f5; --navy:#263d59; --max:1080px;
+    }
+    * { box-sizing:border-box; min-width:0; }
     html { scroll-behavior:smooth; }
-    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.75 Inter, "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif; }
-    a { color:#075f9d; text-underline-offset:3px; }
+    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.82 Inter, "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif; overflow-x:hidden; }
+    a { color:#075f9d; text-underline-offset:3px; overflow-wrap:anywhere; }
     a:hover { color:#034d7e; }
-    .wrap { width:min(var(--max), calc(100% - 40px)); margin:0 auto; }
-    .topbar { border-bottom:1px solid var(--line); background:rgba(251,252,253,.96); position:sticky; top:0; z-index:5; }
-    .topbar .wrap { min-height:54px; display:flex; justify-content:space-between; align-items:center; gap:20px; }
-    .brand { font-size:14px; font-weight:760; letter-spacing:0; color:var(--navy); text-decoration:none; }
-    .topnav { display:flex; gap:16px; font-size:13px; white-space:nowrap; overflow:auto; }
-    .topnav a { color:var(--muted); text-decoration:none; }
-    .topnav a:hover { color:var(--ink); }
-    .hero { border-bottom:1px solid var(--line); background:#f2f7f8; padding:66px 0 52px; }
-    .hero-grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr); gap:52px; align-items:end; }
-    .eyebrow { margin:0 0 12px; color:var(--teal); font-weight:750; font-size:13px; letter-spacing:0; }
-    h1,h2,h3 { line-height:1.28; letter-spacing:0; }
-    h1 { margin:0; max-width:760px; font-size:clamp(34px,5vw,58px); font-weight:780; }
-    .dek { margin:22px 0 0; max-width:720px; font-size:18px; color:#344555; }
-    .hero-meta { margin-top:24px; color:var(--muted); font-size:13px; }
-    .model-card { border:1px solid #9bb8c7; background:#fff; padding:20px; }
-    .model-card h2 { font-size:15px; margin:0 0 12px; color:var(--navy); }
-    .model-card p { margin:0; font-size:15px; }
-    main { padding:52px 0 90px; }
-    .article { max-width:860px; margin:0 auto; }
-    .article > section { padding:44px 0; border-bottom:1px solid var(--line); scroll-margin-top:68px; }
-    .article > section:first-child { padding-top:0; }
-    h2 { font-size:28px; margin:0 0 14px; }
-    h3 { font-size:18px; margin:28px 0 10px; }
-    p { margin:0 0 17px; }
-    ul,ol { margin:0 0 17px; padding-left:1.3em; }
-    li + li { margin-top:6px; }
-    code { font:13px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace; padding:2px 5px; background:#edf1f4; color:#263a4b; }
-    .callout { border-left:4px solid var(--teal); background:#f0f7f6; padding:18px 20px; margin:24px 0; }
-    .callout strong { color:#0e5f56; }
-    .figure { margin:28px 0; border:1px solid var(--line); background:#fff; padding:20px; }
-    .caption { margin:12px 0 0; color:var(--muted); font-size:13px; }
-    .flow { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; align-items:stretch; }
-    .flow-item { min-height:104px; padding:14px; border:1px solid var(--line); background:#f9fbfc; display:flex; flex-direction:column; justify-content:space-between; }
-    .flow-item b { font-size:15px; }
-    .flow-item span { color:var(--muted); font-size:13px; line-height:1.5; }
-    .flow-item:nth-child(1) { border-top:4px solid var(--blue); }
-    .flow-item:nth-child(2) { border-top:4px solid var(--gold); }
-    .flow-item:nth-child(3) { border-top:4px solid var(--teal); }
-    .flow-item:nth-child(4) { border-top:4px solid var(--red); }
-    .arrow-row { display:grid; grid-template-columns:repeat(3,1fr); color:#6c7b88; text-align:center; font-size:18px; height:22px; }
-    .layer-stack { display:grid; gap:8px; padding:8px 0; }
-    .layer { display:grid; grid-template-columns:135px 1fr; border:1px solid var(--line); min-height:54px; }
-    .layer-label { display:flex; align-items:center; padding:9px 12px; background:#edf4f6; font-weight:720; font-size:14px; }
-    .layer-body { padding:9px 12px; font-size:14px; color:#3c4c5b; }
-    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
-    .compare { border:1px solid var(--line); padding:18px; background:#fff; }
-    .compare h3 { margin:0 0 10px; }
-    .compare ul { margin:0; font-size:14px; }
-    .hardware { overflow:auto; }
-    table { width:100%; border-collapse:collapse; font-size:14px; min-width:670px; }
-    th,td { text-align:left; vertical-align:top; padding:12px; border-bottom:1px solid var(--line); }
-    th { color:#31475c; background:#edf4f6; font-size:13px; }
-    .control-lab { border:1px solid var(--line); background:#fff; padding:22px; }
-    .lab-head { display:flex; justify-content:space-between; gap:12px; align-items:baseline; }
-    .lab-head h3 { margin:0; }
-    .lab-readout { color:var(--teal); font-size:14px; font-weight:750; }
-    .control { margin-top:20px; }
-    .control label { display:flex; justify-content:space-between; gap:12px; font-size:14px; font-weight:700; }
-    input[type="range"] { width:100%; accent-color:var(--teal); margin:8px 0 2px; }
-    .metric-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:20px; }
-    .metric { padding:14px; background:#f3f7f8; border-top:3px solid var(--blue); }
-    .metric:nth-child(2) { border-color:var(--gold); }
-    .metric:nth-child(3) { border-color:var(--teal); }
-    .metric span { display:block; color:var(--muted); font-size:12px; }
-    .metric b { display:block; font-size:24px; margin-top:3px; }
-    .lab-note { margin:16px 0 0; color:var(--muted); font-size:13px; }
-    .evidence { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); background:#fff; }
-    .evidence div { padding:16px; border-right:1px solid var(--line); }
-    .evidence div:last-child { border-right:0; }
-    .evidence b { display:block; font-size:14px; margin-bottom:6px; }
-    .evidence span { color:var(--muted); font-size:13px; line-height:1.5; }
-    .evidence div:nth-child(1) b { color:var(--blue); }
-    .evidence div:nth-child(2) b { color:var(--teal); }
-    .evidence div:nth-child(3) b { color:var(--gold); }
-    .evidence div:nth-child(4) b { color:var(--red); }
-    .trend-table td:first-child { font-weight:760; color:var(--navy); white-space:nowrap; }
-    .decision { display:grid; grid-template-columns:repeat(2,1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
-    .decision div { background:#fff; padding:17px; }
-    .decision b { display:block; margin-bottom:6px; }
-    .decision span { color:var(--muted); font-size:14px; }
+    button,input { font:inherit; }
+    code { font:13px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; background:#edf2f5; padding:2px 5px; overflow-wrap:anywhere; white-space:normal; }
+    .wrap { width:min(var(--max), calc(100% - 48px)); margin:0 auto; }
+    .reading { width:min(820px, calc(100% - 48px)); margin:0 auto; }
+    .topbar { position:sticky; top:0; z-index:20; border-bottom:1px solid var(--line); background:rgba(251,252,253,.97); }
+    .topbar-inner { min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
+    .brand { color:var(--navy); text-decoration:none; font-size:14px; font-weight:800; white-space:nowrap; }
+    .desktop-nav { display:flex; gap:18px; align-items:center; font-size:13px; white-space:nowrap; }
+    .desktop-nav a { color:var(--muted); text-decoration:none; }
+    .desktop-nav a:hover { color:var(--ink); }
+    .mobile-nav { display:none; position:relative; }
+    .mobile-nav summary { cursor:pointer; font-size:14px; font-weight:700; list-style:none; }
+    .mobile-nav summary::-webkit-details-marker { display:none; }
+    .mobile-nav[open] .mobile-menu { position:absolute; right:0; top:34px; width:220px; border:1px solid var(--line); background:var(--white); box-shadow:0 10px 30px rgba(23,33,43,.12); padding:10px; }
+    .mobile-menu a { display:block; padding:8px 9px; color:var(--ink); text-decoration:none; font-size:14px; }
+    .article-head { padding:62px 0 46px; border-bottom:1px solid var(--line); background:#f1f6f7; }
+    .kicker { margin:0 0 12px; color:var(--green); font-size:13px; font-weight:800; }
+    h1,h2,h3,h4 { letter-spacing:0; line-height:1.3; }
+    h1 { margin:0; max-width:900px; font-size:54px; font-weight:820; }
+    .dek { max-width:790px; margin:20px 0 0; color:#334656; font-size:19px; }
+    .meta { margin:20px 0 0; color:var(--muted); font-size:13px; }
+    .thesis-band { padding:30px 0; border-bottom:1px solid #aac7c1; background:var(--green-soft); }
+    .thesis-label { margin:0 0 8px; color:#0e6557; font-size:13px; font-weight:800; }
+    .thesis { margin:0; color:#183d38; font-size:20px; line-height:1.7; font-weight:650; }
+    main { padding:18px 0 84px; }
+    .section { padding:54px 0; border-bottom:1px solid var(--line); scroll-margin-top:72px; }
+    .section:last-child { border-bottom:0; }
+    h2 { margin:0 0 18px; font-size:32px; }
+    h3 { margin:34px 0 12px; font-size:21px; }
+    h4 { margin:24px 0 8px; font-size:16px; }
+    p { margin:0 0 18px; }
+    ul,ol { margin:0 0 18px; padding-left:1.35em; }
+    li + li { margin-top:8px; }
+    .lead { color:#344555; font-size:18px; }
+    .callout { margin:26px 0; padding:19px 21px; border-left:4px solid var(--green); background:var(--green-soft); }
+    .callout p:last-child { margin-bottom:0; }
+    .warning { border-left-color:var(--red); background:var(--red-soft); }
+    .definition { display:grid; grid-template-columns:170px 1fr; gap:18px; padding:16px 0; border-top:1px solid var(--line); }
+    .definition:last-child { border-bottom:1px solid var(--line); }
+    .definition dt { font-weight:800; color:var(--navy); }
+    .definition dd { margin:0; color:#3e4d5a; }
+    .diagram { margin:30px 0; border:1px solid var(--line); background:var(--white); padding:24px; }
+    .diagram-title { margin:0 0 18px; font-size:15px; color:var(--navy); font-weight:800; }
+    .caption { margin:16px 0 0; color:var(--muted); font-size:13px; }
+    .legend { display:flex; flex-wrap:wrap; gap:14px 20px; margin:0 0 20px; padding:12px 14px; background:var(--gray-soft); font-size:12px; color:#40505e; }
+    .legend-item { display:flex; align-items:center; gap:7px; }
+    .swatch { width:14px; height:14px; border:2px solid currentColor; background:var(--white); }
+    .swatch.blue { color:var(--blue); background:var(--blue-soft); }
+    .swatch.gold { color:var(--gold); background:var(--gold-soft); }
+    .swatch.green { color:var(--green); background:var(--green-soft); }
+    .swatch.red { color:var(--red); background:var(--red-soft); }
+    .line-key { width:24px; border-top:2px solid var(--gray); }
+    .line-key.dotted { border-top-style:dotted; }
+    .line-key.dashed { border-top-style:dashed; }
+    .thesis-flow { display:grid; grid-template-columns:1fr 54px 1.1fr 54px 1fr 54px 1fr; align-items:stretch; }
+    .node { border:1px solid var(--line); padding:16px; background:var(--white); }
+    .node b { display:block; margin-bottom:6px; font-size:15px; }
+    .node span { display:block; color:var(--muted); font-size:13px; line-height:1.55; }
+    .node.blue { border-top:4px solid var(--blue); background:var(--blue-soft); }
+    .node.gold { border-top:4px solid var(--gold); background:var(--gold-soft); }
+    .node.green { border-top:4px solid var(--green); background:var(--green-soft); }
+    .node.red { border-top:4px solid var(--red); background:var(--red-soft); }
+    .arrow { display:flex; align-items:center; justify-content:center; color:var(--gray); font-size:24px; font-weight:800; }
+    .arrow::before { content:"→"; }
+    .search-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .search-item { border:1px solid #9dc5de; background:var(--blue-soft); padding:17px; }
+    .search-item b { display:block; color:#0e5d90; margin-bottom:6px; }
+    .search-item p { margin:0; font-size:14px; color:#3c5261; }
+    .timeline { position:relative; margin:8px 0 0; padding-left:42px; }
+    .timeline::before { content:""; position:absolute; left:15px; top:18px; bottom:18px; width:3px; background:var(--line); }
+    .phase { position:relative; margin:0 0 14px; border:1px solid var(--line); background:var(--white); padding:17px 18px; }
+    .phase::before { content:attr(data-step); position:absolute; left:-42px; top:17px; width:31px; height:31px; display:grid; place-items:center; border:2px solid var(--gold); background:var(--gold-soft); color:#76500d; font-size:12px; font-weight:800; }
+    .phase.data::before { border-color:var(--blue); background:var(--blue-soft); color:#0b5f94; }
+    .phase.behavior::before { border-color:var(--green); background:var(--green-soft); color:#0c6557; }
+    .phase.gate::before { border-color:var(--red); background:var(--red-soft); color:#883638; }
+    .phase h3 { margin:0 0 6px; font-size:17px; }
+    .phase p { margin:0; color:#435260; font-size:14px; }
+    .term-table { width:100%; border-collapse:collapse; table-layout:fixed; margin:20px 0; font-size:14px; }
+    .term-table th,.term-table td { border-bottom:1px solid var(--line); padding:12px; vertical-align:top; text-align:left; overflow-wrap:anywhere; }
+    .term-table th { background:var(--gray-soft); color:#34495c; font-size:13px; }
+    .term-table th:first-child { width:24%; }
+    .term-table th:nth-child(2) { width:38%; }
+    .sequence { counter-reset:seq; display:grid; gap:10px; }
+    .sequence-step { counter-increment:seq; display:grid; grid-template-columns:44px 165px 1fr; border:1px solid var(--line); background:var(--white); }
+    .sequence-step::before { content:counter(seq); display:grid; place-items:center; background:var(--blue-soft); color:#0d6398; font-weight:850; }
+    .sequence-step b { padding:13px 12px; border-right:1px solid var(--line); font-size:14px; }
+    .sequence-step span { padding:13px 14px; color:#435260; font-size:14px; }
+    .block-stack { display:grid; gap:8px; width:min(560px,100%); margin:0 auto; }
+    .block-layer { display:grid; grid-template-columns:160px 1fr; border:1px solid var(--line); }
+    .block-layer b { padding:11px 13px; background:var(--gold-soft); color:#75500d; font-size:13px; }
+    .block-layer span { padding:11px 13px; color:#465561; font-size:13px; }
+    .block-arrow { text-align:center; color:var(--gray); line-height:1; }
+    .block-arrow::before { content:"↓"; }
+    .stack-wrap { display:grid; grid-template-columns:1fr 90px; gap:18px; align-items:center; }
+    .system-stack { display:flex; flex-direction:column; gap:8px; }
+    .stack-layer { display:grid; grid-template-columns:170px 1fr; border:1px solid var(--line); min-height:62px; background:var(--white); }
+    .stack-layer b { display:flex; align-items:center; padding:12px 14px; border-right:1px solid var(--line); background:var(--gray-soft); font-size:14px; }
+    .stack-layer span { display:flex; align-items:center; padding:12px 14px; color:#445461; font-size:13px; }
+    .stack-layer.application b { background:var(--green-soft); color:#0e6558; }
+    .stack-layer.model b { background:var(--gold-soft); color:#79510d; }
+    .stack-layer.hardware b { background:var(--blue-soft); color:#0c6298; }
+    .bi-flow { position:relative; height:100%; min-height:330px; display:flex; justify-content:space-around; }
+    .flow-down,.flow-up { position:relative; width:3px; height:100%; min-height:330px; }
+    .flow-down { background:var(--green); }
+    .flow-up { background:var(--blue); }
+    .flow-down::after { content:"▼"; position:absolute; bottom:-10px; left:-7px; color:var(--green); }
+    .flow-up::after { content:"▲"; position:absolute; top:-12px; left:-7px; color:var(--blue); }
+    .flow-label { position:absolute; writing-mode:vertical-rl; font-size:11px; color:var(--muted); }
+    .flow-down .flow-label { top:50px; left:8px; }
+    .flow-up .flow-label { bottom:50px; left:8px; }
+    .settings-lab { margin:30px 0; border:1px solid var(--line); background:var(--white); }
+    .settings-head { padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:16px; align-items:center; }
+    .settings-head h3 { margin:0; font-size:18px; }
+    .mode-label { color:var(--green); font-size:13px; font-weight:800; }
+    .settings-body { display:grid; grid-template-columns:1fr 1fr; gap:0; }
+    .controls { padding:20px; border-right:1px solid var(--line); }
+    .control + .control { margin-top:20px; }
+    .control label { display:flex; justify-content:space-between; gap:12px; font-size:14px; font-weight:750; }
+    input[type="range"] { width:100%; margin:9px 0 2px; accent-color:var(--blue); }
+    fieldset { border:0; margin:20px 0 0; padding:0; }
+    legend { padding:0; margin-bottom:8px; font-size:14px; font-weight:750; }
+    .segments { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--line); }
+    .segments label { position:relative; padding:8px 6px; text-align:center; font-size:12px; cursor:pointer; border-right:1px solid var(--line); }
+    .segments label:last-child { border-right:0; }
+    .segments input { position:absolute; opacity:0; pointer-events:none; }
+    .segments label:has(input:checked) { background:var(--blue-soft); color:#0a6096; font-weight:800; }
+    .settings-output { padding:20px; background:#f7f9fa; }
+    .settings-output h4 { margin:0 0 12px; }
+    .effect { padding:12px 0; border-top:1px solid var(--line); }
+    .effect b { display:block; font-size:13px; }
+    .effect span { display:block; color:var(--muted); font-size:13px; }
+    .causal-ladder { display:grid; gap:8px; width:min(700px,100%); margin:0 auto; }
+    .rung { margin:0 auto; padding:16px 18px; text-align:center; border:1px solid var(--line); }
+    .rung b { display:block; margin-bottom:4px; }
+    .rung span { display:block; font-size:13px; color:#465563; }
+    .rung.counterfactual { width:58%; border-color:#d99b9d; background:var(--red-soft); }
+    .rung.intervention { width:78%; border-color:#82beae; background:var(--green-soft); }
+    .rung.association { width:100%; border-color:#8fc0df; background:var(--blue-soft); }
+    .bridge { text-align:center; color:var(--green); font-size:13px; font-weight:800; }
+    .bridge::before { content:"↑ "; }
+    .uncertain { text-align:center; color:var(--red); font-size:12px; }
+    .uncertain::before { content:"⇢ "; }
+    .research-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    .research-item { border:1px solid var(--line); background:var(--white); padding:17px; }
+    .research-item b { display:block; margin-bottom:5px; color:var(--navy); }
+    .research-item span { display:block; color:var(--muted); font-size:13px; }
+    .misconception { padding:18px 0; border-top:1px solid var(--line); }
+    .misconception:last-child { border-bottom:1px solid var(--line); }
+    .misconception h3 { margin:0 0 7px; font-size:17px; }
+    .misconception p { margin:0; color:#40505e; }
+    .verify-loop { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .verify-step { position:relative; border:1px solid var(--line); padding:15px; background:var(--white); min-height:108px; }
+    .verify-step:nth-child(1),.verify-step:nth-child(2) { border-top:4px solid var(--blue); }
+    .verify-step:nth-child(3),.verify-step:nth-child(4) { border-top:4px solid var(--gold); }
+    .verify-step:nth-child(5),.verify-step:nth-child(6) { border-top:4px solid var(--green); }
+    .verify-step:nth-child(7),.verify-step:nth-child(8) { border-top:4px solid var(--red); }
+    .verify-step b { display:block; margin-bottom:5px; font-size:14px; }
+    .verify-step span { display:block; color:var(--muted); font-size:12px; line-height:1.5; }
+    .verify-step:not(:nth-child(4)):not(:nth-child(8))::after { content:"→"; position:absolute; right:-10px; top:42px; z-index:2; color:var(--gray); font-weight:800; }
+    .final-model { margin:28px 0; padding:26px; border:2px solid var(--green); background:var(--green-soft); }
+    .final-model p { margin:0; color:#193f39; font-size:19px; font-weight:650; }
+    .formula { margin:20px 0; padding:16px; border:1px solid #d4a957; background:var(--gold-soft); text-align:center; font:700 16px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap:anywhere; }
     .source-list { font-size:14px; }
-    .footer { padding:28px 0 56px; color:var(--muted); font-size:13px; }
-    @media (max-width:760px) { .wrap { width:min(100% - 28px, var(--max)); } .topnav { display:none; } .hero { padding:44px 0 38px; } .hero-grid,.two-col { grid-template-columns:1fr; gap:24px; } .article > section { padding:34px 0; } h2 { font-size:25px; } .flow { grid-template-columns:1fr 1fr; } .arrow-row { display:none; } .layer { grid-template-columns:106px 1fr; } .metric-grid { grid-template-columns:1fr; } .evidence { grid-template-columns:1fr 1fr; } .evidence div:nth-child(2) { border-right:0; } .evidence div:nth-child(-n+2) { border-bottom:1px solid var(--line); } .decision { grid-template-columns:1fr; } }
+    .source-list li + li { margin-top:9px; }
+    footer { border-top:1px solid var(--line); padding:28px 0 54px; color:var(--muted); font-size:13px; }
+    @media (max-width:820px) {
+      .wrap,.reading { width:min(100% - 32px, var(--max)); }
+      .desktop-nav { display:none; }
+      .mobile-nav { display:block; }
+      .article-head { padding:42px 0 34px; }
+      h1 { font-size:38px; overflow-wrap:anywhere; }
+      .dek { font-size:17px; }
+      .thesis { font-size:17px; }
+      .section { padding:40px 0; }
+      h2 { font-size:27px; }
+      .definition { grid-template-columns:1fr; gap:4px; }
+      .diagram { padding:16px; margin-left:0; margin-right:0; }
+      .thesis-flow { grid-template-columns:1fr; gap:0; }
+      .arrow { min-height:32px; }
+      .arrow::before { content:"↓"; }
+      .search-grid,.research-grid { grid-template-columns:1fr; }
+      .sequence-step { grid-template-columns:38px 1fr; }
+      .sequence-step b { border-right:0; }
+      .sequence-step span { grid-column:2; padding-top:0; }
+      .block-layer,.stack-layer { grid-template-columns:1fr; }
+      .block-layer b,.stack-layer b { border-right:0; border-bottom:1px solid var(--line); }
+      .stack-wrap { grid-template-columns:1fr; }
+      .bi-flow { display:none; }
+      .settings-body { grid-template-columns:1fr; }
+      .controls { border-right:0; border-bottom:1px solid var(--line); }
+      .verify-loop { grid-template-columns:1fr; }
+      .verify-step { min-height:auto; }
+      .verify-step::after { content:"↓" !important; right:auto !important; left:50%; top:auto !important; bottom:-21px; }
+      .verify-step:last-child::after { display:none; }
+      .term-table,.term-table tbody,.term-table tr,.term-table td { display:block; width:100%; }
+      .term-table thead { display:none; }
+      .term-table tr { border:1px solid var(--line); margin-bottom:12px; background:var(--white); }
+      .term-table td { border:0; border-bottom:1px solid var(--line); padding:10px 12px 10px 42%; position:relative; }
+      .term-table td:last-child { border-bottom:0; }
+      .term-table td::before { content:attr(data-label); position:absolute; left:12px; top:10px; width:36%; color:var(--navy); font-size:12px; font-weight:800; }
+      .rung.counterfactual { width:76%; }
+      .rung.intervention { width:88%; }
+    }
+    @media (max-width:420px) {
+      .wrap,.reading { width:min(100% - 24px, var(--max)); }
+      h1 { font-size:33px; }
+      .section { padding:34px 0; }
+      h2 { font-size:24px; }
+      .diagram { padding:12px; }
+      .legend { gap:9px 12px; padding:10px; }
+      .timeline { padding-left:35px; }
+      .phase::before { left:-35px; width:26px; height:26px; }
+      .segments { grid-template-columns:1fr; }
+      .segments label { border-right:0; border-bottom:1px solid var(--line); }
+      .segments label:last-child { border-bottom:0; }
+      .term-table td { padding-left:12px; padding-top:31px; }
+      .term-table td::before { width:auto; top:7px; }
+      .final-model { padding:19px; }
+      .final-model p { font-size:17px; }
+    }
   </style>
 </head>
 <body>
-  <header class="topbar"><div class="wrap"><a class="brand" href="./">Mental Model Studio</a><nav class="topnav" aria-label="本文の目次"><a href="#training">訓練</a><a href="#transformer">Transformer</a><a href="#hardware">ハードウェア</a><a href="#reasoning">推論</a><a href="#inside">内側</a><a href="#trends">動向</a></nav></div></header>
-  <section class="hero"><div class="wrap hero-grid"><div><p class="eyebrow">MENTAL MODEL / AI SYSTEMS</p><h1>LLMをファーストプリンシパルから理解する</h1><p class="dek">次トークン予測、Transformer、GPU、テスト時計算、内部解釈まで。流暢な応答を、万能な思考主体の証拠と混同しないための地図。</p><p class="hero-meta">公開日 2026-07-13 ・ 研究動向の取得日 2026-07-13</p></div><aside class="model-card"><h2>最終メンタルモデル</h2><p>LLMは、膨大なデータから次トークンの条件付き確率を学んだ圧縮予測器である。実用上の能力と危険は、重みだけでなく、文脈、検索、ツール、検証器、権限を含むシステムとして評価する。</p></aside></div></section>
-  <main><article class="article">
-    <section id="question"><h2>二択を外す</h2><p>LLMは「検索と翻訳だけ」なのか。それとも万能な思考主体に近いのか。この二択はどちらも粗い。Transformerは翻訳で提案されたが、現在のLLMの学習目標は一般に、前のトークン列に条件づけた次トークンの確率を高めることだ。</p><div class="callout"><strong>検索と翻訳は、限定的には有効な比喩である。</strong> attentionは現在の文脈から情報を選ぶため文脈内検索に似る。層は表現を別の表現に変換するため翻訳的でもある。しかし、外部コーパス検索や言語間翻訳が本体の必須機能という意味ではない。</div><p>正確な問いはこうなる。情報はどこにあり、いつ更新され、どの計算がそれを読むのか。そして、その出力は何によって検証されるのか。</p><figure class="figure"><div class="flow"><div class="flow-item"><b>重み</b><span>訓練から圧縮された長期の統計</span></div><div class="flow-item"><b>文脈</b><span>prompt と会話中の短期状態</span></div><div class="flow-item"><b>外部環境</b><span>検索、ツール、実行、記憶</span></div><div class="flow-item"><b>応答</b><span>次トークンを繰り返し選ぶ</span></div></div><div class="arrow-row"><span>+ </span><span>+ </span><span>→</span></div><figcaption class="caption">要点: 最新情報は重みから自動で出てこない。検索結果を文脈へ入れ、引用や実行結果を別途検証することで初めて根拠を持つ。</figcaption></figure></section>
-    <section id="training"><h2>訓練: 予測誤差を重みへ圧縮する</h2><p>まず文書をトークンID列に分ける。モデルは各位置で語彙全体への確率分布を出し、正解の次トークンの確率が低いほど損失を受ける。backpropagationが各重みへの寄与を計算し、optimizerがその重みを少し更新する。</p><div class="layer-stack"><div class="layer"><div class="layer-label">1. データ</div><div class="layer-body">文章、コード、画像などをトークン列または特徴列にする。</div></div><div class="layer"><div class="layer-label">2. Forward</div><div class="layer-body">文脈からlogitを計算し、次トークンの確率分布を作る。</div></div><div class="layer"><div class="layer-label">3. 損失</div><div class="layer-body">正解トークンの確率が低いほどcross-entropyを大きくする。</div></div><div class="layer"><div class="layer-label">4. 更新</div><div class="layer-body">勾配を使い、予測誤差が減る方向へ重みを更新する。</div></div></div><p>事前学習の後には、指示例によるSFT、比較による選好最適化、正答や形式を採点できる課題での強化学習が加わる。これらは「どの続きが報われるか」を変える。真理、善い目的、最新情報を自動的に保証するわけではない。</p></section>
-    <section id="transformer"><h2>Transformer: 文脈を混合し、表現を変換する</h2><p>トークンはベクトルに変換され、多数の層を通る。各層は大まかに、attentionで文脈内の情報を混合し、MLPで各位置の特徴を非線形に変える。残差接続と正規化が情報と最適化を安定させる。</p><figure class="figure"><div class="layer-stack"><div class="layer"><div class="layer-label">入力</div><div class="layer-body">token ID → embedding + 位置情報</div></div><div class="layer"><div class="layer-label">Attention</div><div class="layer-body"><code>softmax(QK^T / sqrt(d))V</code>。QueryとKeyの相性で、過去のValueを混ぜる。</div></div><div class="layer"><div class="layer-label">MLP</div><div class="layer-body">各位置で特徴を拡張・非線形変換・圧縮する。attentionだけが計算のすべてではない。</div></div><div class="layer"><div class="layer-label">出力</div><div class="layer-body">最終表現 → 語彙logit → temperature等を用いて次トークンを選ぶ。</div></div></div><figcaption class="caption">要点: attentionは外部検索ではなく、今与えられた文脈への内容依存アクセスである。重みと文脈を同じ「記憶」と呼ぶと誤解が生まれる。</figcaption></figure><div class="two-col"><div class="compare"><h3>重みにあるもの</h3><ul><li>学習分布から圧縮された規則・相関・知識</li><li>訓練後は通常、会話ごとに更新されない</li><li>更新には再訓練または微調整が必要</li></ul></div><div class="compare"><h3>文脈にあるもの</h3><ul><li>prompt、会話、検索結果、ツール出力</li><li>今の応答でattentionが参照できる</li><li>長さとKV cacheの容量に制約される</li></ul></div></div></section>
-    <section id="hardware"><h2>ハードウェア: 行列積、メモリ、通信</h2><p>「一語ずつ考える」と言っても、GPU内部では大量の数値計算が走る。重みと活性を高帯域メモリから読み、Tensor Core等で行列積を行う。モデルの実用性はパラメータ数だけでなく、メモリ帯域、KV cache、GPU間通信、自己回帰の直列性で決まる。</p><div class="hardware"><table><thead><tr><th>レイヤー</th><th>主な処理</th><th>主な制約</th></tr></thead><tbody><tr><td>入力・制御</td><td>tokenization、要求ルーティング、ツールI/O</td><td>CPU、ネットワーク、待ち行列</td></tr><tr><td>デバイスメモリ</td><td>重み、活性、KV cacheの読書き</td><td>HBMの容量・帯域</td></tr><tr><td>演算器</td><td>QKV、attention、MLP、logitの行列積</td><td>演算量、低精度の扱い</td></tr><tr><td>複数GPU</td><td>tensor/pipeline/expert parallel、勾配集約</td><td>NVLink、InfiniBand等の通信</td></tr><tr><td>自己回帰出力</td><td>1トークン選択、KV cache追加</td><td>前トークンへの依存による直列性</td></tr></tbody></table></div><p>学習は多数のトークンを一括で処理できるため並列化しやすい。対して生成は、前の出力を次の入力にするため時間方向の直列性が残る。量子化、continuous batching、speculative decoding、MoEは、精度・容量・帯域・待ち時間の交換を設計する手段である。</p></section>
-    <section id="reasoning"><h2>推論強化: 長い出力は何を意味するか</h2><p>近年のreasoningモデルは、基盤モデルだけで性能を得ているわけではない。RLで検証可能な解法を強め、テスト時に長い生成、複数案、自己検証、ツール呼び出しへ計算を配る。能力を評価する単位は、重み単体からシステムへ移る。</p><div class="control-lab" aria-label="テスト時計算の概念デモ"><div class="lab-head"><h3>小さな体験: テスト時計算の配分</h3><span id="budgetText" class="lab-readout">標準</span></div><div class="control"><label for="budget"><span>推論トークン予算</span><span id="budgetLabel">1,000</span></label><input id="budget" type="range" min="250" max="8000" step="250" value="1000"></div><div class="metric-grid"><div class="metric"><span>概念上の待ち時間</span><b id="latency">1.0x</b></div><div class="metric"><span>概念上のKV cache負荷</span><b id="memory">1.0x</b></div><div class="metric"><span>検証に回せる候補</span><b id="candidates">1</b></div></div><p class="lab-note">これは実測ベンチマークではない。予算を増やすと、探索・検証に使える余地と、待ち時間・メモリ負荷が同時に増えるというトレードオフだけを示す。検証器がなければ、長く出力しても正確さは保証されない。</p></div><p>DeepSeek-R1は規則ベース報酬を含むRL、Qwen3はthinking budget、OpenAIのoシリーズは大規模RLの継続を公開情報として挙げる。これらはTransformerを別原理に置き換えたというより、訓練信号とテスト時計算の配分を変える設計である。</p></section>
-    <section id="inside"><h2>最先端モデルの内側: 見えているもの、見えていないもの</h2><p>機械論的解釈は、重み・活性・特徴を測り、特定の出力へ因果的に寄与する部分回路を探す。Anthropicのcircuit tracingは特徴間の帰属グラフを作り、入力から出力までの計算の一部を追う。研究は、言語をまたぐ概念表現や、複数段の計画に関係する回路を示唆している。</p><figure class="figure"><div class="evidence"><div><b>入出力の振る舞い</b><span>何ができたかを測れる。内部機構は特定できない。</span></div><div><b>内部表現</b><span>特徴・活性の相関を観察する。意味の解釈には仮説が入る。</span></div><div><b>因果介入</b><span>特徴を変え、出力が変わるかを試す。部分回路への強い証拠になる。</span></div><div><b>意識・主体性</b><span>機能的な計画や保持からは、主観経験や道徳的地位を結論できない。</span></div></div><figcaption class="caption">要点: 「単なる文字列置換」では説明しにくい分散表現の証拠はある。同時に、全内部過程、意識、安定した長期目標が分かったという証拠ではない。</figcaption></figure></section>
-    <section id="trends"><h2>研究動向: 国籍ではなく技術レバーと公開度で見る</h2><p>中国・米国という区分だけでは、何を最適化し、どこまで再現でき、何が非公開かが見えない。公開資料を同じ軸で読む。</p><div class="hardware"><table class="trend-table"><thead><tr><th>主体</th><th>公開された方向性</th><th>このモデルでの位置づけ</th><th>注意点</th></tr></thead><tbody><tr><td>DeepSeek</td><td>MoE、MLA、低精度、規則報酬を含むRL</td><td>容量・帯域・推論コストと検証報酬の最適化</td><td>技術報告は著者の開示。全訓練の独立再現ではない。</td></tr><tr><td>Qwen</td><td>dense/MoE、thinking mode、推論予算、多言語</td><td>同じ重みでもモードと計算予算を制御</td><td>評価条件と製品実装を分けて読む。</td></tr><tr><td>OpenAI</td><td>reasoning RL、画像を含む推論、ツール使用</td><td>テスト時計算と外部環境を含むシステム化</td><td>閉鎖モデルの層・データ・回路は非公開。</td></tr><tr><td>Anthropic</td><td>回路追跡、特徴介入、内部ワークスペース仮説</td><td>能力だけでなく監査可能性を上げる研究</td><td>部分回路から全体理解へ外挿しない。</td></tr><tr><td>公開重み系</td><td>MoE、長文脈、マルチモーダル、後訓練</td><td>構造・介入・運用の検証を可能にする</td><td>公開範囲とライセンスを個別に確認する。</td></tr></tbody></table></div><p>2026-07-13時点の共通傾向は、MoE・低精度・cache最適化で計算経済性を上げること、RLと検証器で推論出力を改善すること、test-time computeとツールを能力レバーにすること、マルチモーダル化、内部解釈と監視である。これは万能な思考エンジンの完成ではなく、複数の設計レバーを組み合わせる競争である。</p></section>
-    <section id="use"><h2>実務での判断: 何を任せるか</h2><p>流暢さを信頼の根拠にしない。情報源、検証器、失敗コスト、権限を分けて設計する。</p><div class="decision"><div><b>提案・下書き</b><span>探索、翻訳、要約、反例、構造案。誤りが可逆なら、まずここから任せる。</span></div><div><b>検証つき実行</b><span>コード修正、データ処理、調査。テスト、一次資料、監査ログを必須にする。</span></div><div><b>限定自動化</b><span>失敗時に停止・ロールバックできる操作だけ。権限を最小化し、承認境界を明示する。</span></div><div><b>人間が最終決定</b><span>送金、本番削除、法的・医療的判断など不可逆または高被害の行為。LLMの出力は根拠ではなく入力の一つ。</span></div></div><div class="callout"><strong>判断ルール:</strong> 根拠は重み、文脈、検索、実行結果のどこにあるか。何が正しさを採点するか。失敗は可逆か。誰が最終権限を持つか。この四問に答えられなければ、自律化の前に設計が必要である。</div></section>
-    <section id="sources"><h2>参考資料</h2><ul class="source-list"><li>Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, 2017.</li><li>NVIDIA, <a href="https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html">Deep Learning Performance: GPU background</a> and <a href="https://docs.nvidia.com/deeplearning/transformer-engine/user-guide/index.html">Transformer Engine User Guide</a>, retrieved 2026-07-13.</li><li>DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a>, 2024; <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a>, 2025.</li><li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a>, 2025.</li><li>OpenAI, <a href="https://openai.com/index/introducing-o3-and-o4-mini/">Introducing o3 and o4-mini</a>, 2025; <a href="https://openai.com/index/computer-using-agent/">Computer-Using Agent</a>, 2025.</li><li>Anthropic, <a href="https://www.anthropic.com/news/tracing-thoughts-language-model">Tracing the thoughts of a large language model</a>, 2025; <a href="https://www.anthropic.com/research/global-workspace">A global workspace in language models</a>, 2026.</li></ul></section>
-  </article></main>
-  <footer class="footer"><div class="wrap">Mental Model Studio ・ このページは公開済みの一次資料へのリンクを含みます。研究動向は取得日時点の公開情報です。</div></footer>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="./">Mental Model Studio</a>
+      <nav class="desktop-nav" aria-label="本文目次">
+        <a href="#conclusion">結論</a><a href="#training">Training</a><a href="#inference">Inference</a><a href="#causality">Causality</a><a href="#research">Research</a><a href="#codex">Codex利用</a>
+      </nav>
+      <details class="mobile-nav">
+        <summary>目次</summary>
+        <nav class="mobile-menu" aria-label="mobile本文目次">
+          <a href="#conclusion">結論</a><a href="#training">Training</a><a href="#inference">Inference</a><a href="#causality">Causality</a><a href="#research">Research</a><a href="#codex">Codex利用</a><a href="#model">Mental Model</a>
+        </nav>
+      </details>
+    </div>
+  </header>
+
+  <header class="article-head">
+    <div class="wrap">
+      <p class="kicker">MENTAL MODEL / AI SYSTEMS</p>
+      <h1>LLM from First Principles</h1>
+      <p class="dek">Search、Translation、Verificationとして捉え直し、TrainingからInference、Hardware、causality、研究動向、Codex利用までを一つの流れで理解する。</p>
+      <p class="meta">公開情報の基準日: 2026-07-13 ・ 一次論文と公式資料に基づく</p>
+    </div>
+  </header>
+
+  <section class="thesis-band" aria-label="最終Mental Model">
+    <div class="reading">
+      <p class="thesis-label">主張する結論</p>
+      <p class="thesis">LLMは、weights、context、external sourceからpatternを検索し、prompt、specification、code、image、Tool resultを別の表現へ翻訳するsystemである。truth、causality、responsibilityは自動では付かないため、Verifier、Permission、Human Approvalを外側に置く。</p>
+    </div>
+  </section>
+
+  <main>
+    <article>
+      <section id="conclusion" class="section">
+        <div class="reading">
+          <h2>1. 結論を先に置く</h2>
+          <p class="lead">SearchはWeb Searchだけではない。Translationもlanguage-to-languageだけではない。この二つを広く、しかし曖昧にならないよう定義する。</p>
+          <dl>
+            <div class="definition"><dt>Parametric Search</dt><dd>weightsに圧縮されたpatternから、current contextに合うcontinuationを活性化する。</dd></div>
+            <div class="definition"><dt>Context Search</dt><dd>Attentionがprompt、conversation、retrieved document、Tool resultの関連位置を選ぶ。</dd></div>
+            <div class="definition"><dt>External Search</dt><dd>Web、repository、database、file system、runtimeをToolで観測する。</dd></div>
+            <div class="definition"><dt>Translation</dt><dd>ある表現を別の表現へ写す。question-to-answer、spec-to-code、code-to-test、error-to-patch、plan-to-Tool callを含む。</dd></div>
+          </dl>
+          <div class="callout"><p><strong>重要な限定:</strong> これはLLMが内部で候補を総当たりするというliteral claimではない。Transformer内部にはdistributed representationと大量のmatrix computationがある。このMental Modelは、何を得意とし、何を別途保証しなければならないかを示す。</p></div>
+        </div>
+
+        <figure class="diagram wrap">
+          <p class="diagram-title">Search → Translation → Verification → Authorized Result</p>
+          <div class="legend">
+            <span class="legend-item"><i class="swatch blue"></i>Data / Search</span>
+            <span class="legend-item"><i class="swatch gold"></i>Transformation</span>
+            <span class="legend-item"><i class="swatch green"></i>Verification</span>
+            <span class="legend-item"><i class="swatch red"></i>Risk / Permission</span>
+            <span class="legend-item"><i class="line-key"></i>Data flow</span>
+            <span class="legend-item"><i class="line-key dotted"></i>Feedback</span>
+            <span class="legend-item"><i class="line-key dashed"></i>Not guaranteed</span>
+          </div>
+          <div class="thesis-flow">
+            <div class="node blue"><b>Three Searches</b><span>weights、context、external worldからcandidate evidenceを集める</span></div><div class="arrow"></div>
+            <div class="node gold"><b>Translation Core</b><span>representationをTransformer Blockで変換しTokenやTool callへ写す</span></div><div class="arrow"></div>
+            <div class="node green"><b>Verification</b><span>Source、Test、constraint、experimentでcandidateを確かめる</span></div><div class="arrow"></div>
+            <div class="node red"><b>Permission Gate</b><span>Human Approvalとleast privilegeを通ったactionだけを許す</span></div>
+          </div>
+          <figcaption class="caption">色は装飾ではない。Blueは観測、Goldは変換、Greenは検証、Redはauthority boundaryを表す。流れは左から右、mobileでは上から下へ変わる。</figcaption>
+        </figure>
+
+        <div class="reading">
+          <h3>この結論の根拠</h3>
+          <ol>
+            <li>Pre-trainingは主にnext-Token conditional probabilityを最適化し、truthやcausal effect自体をlossにしていない。</li>
+            <li>Attentionはcontextから情報を選び、MLPは表現を変換する。</li>
+            <li>Toolは外部観測とactionを増やすが、Modelへ自動でresponsibilityを与えない。</li>
+            <li>formal causal benchmarkでは改善例と同時に、temporal orderをcausationと誤認するfallacyも確認されている。</li>
+          </ol>
+        </div>
+      </section>
+
+      <section id="training" class="section">
+        <div class="reading">
+          <h2>2. Training: 能力が作られるphase</h2>
+          <p class="lead">「LLMをTrainingする」は単一工程ではない。何を学習可能にするか、広いpatternをどう圧縮するか、どのbehaviorを選びやすくするかは別phaseで決まる。</p>
+        </div>
+
+        <figure class="diagram wrap">
+          <p class="diagram-title">Training lifecycle</p>
+          <div class="timeline">
+            <div class="phase data" data-step="0"><h3>Objective & Data Design</h3><p>collection、quality filtering、deduplication、mixture、license、privacy。Training distributionを決める。</p></div>
+            <div class="phase data" data-step="1"><h3>Tokenization</h3><p>raw dataをsubword等のToken IDへ変換する。Token数はcontextとcompute costへ影響する。</p></div>
+            <div class="phase" data-step="2"><h3>Pre-training</h3><p>next-Token Cross-Entropyを下げ、general patternをweightsへ圧縮する。</p></div>
+            <div class="phase" data-step="3"><h3>Mid-training</h3><p>long context、domain、multilingual、multimodal等を延長する場合がある。全Model共通ではない。</p></div>
+            <div class="phase behavior" data-step="4"><h3>Supervised Fine-Tuning</h3><p>instruction-response demonstrationを模倣し、Base ModelをAssistant behaviorへ向ける。</p></div>
+            <div class="phase behavior" data-step="5"><h3>Preference Optimization</h3><p>RLHF、PPO、DPO等でpreferred responseを相対的に選びやすくする。</p></div>
+            <div class="phase behavior" data-step="6"><h3>Reasoning RL & Distillation</h3><p>Verifier rewardでproblem-solving policyを強め、TeacherからStudentへ能力を移す。</p></div>
+            <div class="phase gate" data-step="7"><h3>Evaluation & Release</h3><p>benchmark、red teaming、domain test、latency、cost、failure analysisでreleaseを判断する。</p></div>
+          </div>
+          <figcaption class="caption">上から下がtime progression。BlueはData、Goldはweight formation、Greenはbehavior shaping、Redはrelease gateである。</figcaption>
+        </figure>
+
+        <div class="reading">
+          <h3>Pre-trainingの一回のweight update</h3>
+          <ol>
+            <li><strong>Forward Pass</strong>: Modelが各positionでvocabulary全体のLogitを計算する。</li>
+            <li><strong>Softmax</strong>: Logitを合計1のprobability distributionへ変換する。</li>
+            <li><strong>Cross-Entropy</strong>: 正解Tokenへ割り当てたprobabilityが低いほど大きなlossにする。</li>
+            <li><strong>Backpropagation</strong>: lossへの寄与を各weightへ伝える。</li>
+            <li><strong>Optimizer</strong>: lossが下がる方向へweightを少し更新する。</li>
+          </ol>
+          <p>多数GPUではData Parallel、Tensor Parallel、Pipeline Parallel、Expert Parallelを組み合わせる。AllReduceは複数deviceのgradientを集約するcommunication operationである。FP8やBF16はmemoryとcomputeを節約するlower-precision formatだが、numerical stabilityの管理が必要になる。</p>
+
+          <h3>Post-trainingの用語</h3>
+          <table class="term-table">
+            <thead><tr><th>Term</th><th>何をするか</th><th>何を保証しないか</th></tr></thead>
+            <tbody>
+              <tr><td data-label="Term">SFT</td><td data-label="何をするか">instructionとdesired responseのdemonstrationを模倣する</td><td data-label="保証しないこと">demonstration外のtruthとrobustness</td></tr>
+              <tr><td data-label="Term">Reward Model</td><td data-label="何をするか">responseをhuman preferenceに近いscalar scoreへ写す</td><td data-label="保証しないこと">human value全体、事実性、reward hacking防止</td></tr>
+              <tr><td data-label="Term">RLHF / PPO</td><td data-label="何をするか">Reward Modelのscoreを上げつつpolicy driftを制約する</td><td data-label="保証しないこと">Reward Modelが測らないquality</td></tr>
+              <tr><td data-label="Term">DPO</td><td data-label="何をするか">preferred responseのrelative likelihoodを直接高める</td><td data-label="保証しないこと">preference data外のcorrectness</td></tr>
+              <tr><td data-label="Term">Reasoning RL</td><td data-label="何をするか">verified answerへ到達するgeneration policyを強める</td><td data-label="保証しないこと">Verifierのないopen-ended taskのtruth</td></tr>
+              <tr><td data-label="Term">Distillation</td><td data-label="何をするか">TeacherのoutputやdistributionをStudentへ移す</td><td data-label="保証しないこと">Teacher errorからの独立</td></tr>
+            </tbody>
+          </table>
+          <p>Chinchilla研究はfixed compute budgetでparameter countとtraining Token数の配分が重要だと示した。InstructGPTはSFT、Reward Model、PPO-based RLHFのpipelineを示し、DPOはpreference pairからより単純にpolicyを最適化する方法を示した。</p>
+          <div class="callout"><p><strong>spec-to-codeは複数phaseの合成能力である。</strong> Pre-trainingでcode patternを学び、SFTでinstruction formatを学び、Preference Optimizationでreadable responseを選び、Reasoning RLやVerifierでTestを通す方策を強める。Application側のrepository SearchとTest Toolが最後のgapを埋める。</p></div>
+        </div>
+      </section>
+
+      <section id="inference" class="section">
+        <div class="reading">
+          <h2>3. Inference: Requestからresponseまで</h2>
+          <p class="lead">Inferenceは一回のModel callではない。Application、Orchestrator、Model Server、Runtime、Acceleratorが連なり、Tool callがあると外部loopへ出て再びModelへ戻る。</p>
+        </div>
+
+        <figure class="diagram wrap">
+          <p class="diagram-title">End-to-end Inference sequence</p>
+          <div class="sequence">
+            <div class="sequence-step"><b>Application</b><span>User input、System Instruction、history、retrieved context、Tool schemaをpromptへ構成する。</span></div>
+            <div class="sequence-step"><b>Orchestrator</b><span>Retrieval、memory、Tool、retry、budget、approval、stop conditionを管理する。</span></div>
+            <div class="sequence-step"><b>Scheduler</b><span>Authentication、rate limit、queueing後、requestをContinuous Batchへ配置する。</span></div>
+            <div class="sequence-step"><b>Tokenizer</b><span>textとschemaをToken IDへ変換する。</span></div>
+            <div class="sequence-step"><b>Prefill</b><span>prompt全体を並列処理し、各layerのKey / ValueをKV Cacheへ保存する。</span></div>
+            <div class="sequence-step"><b>Transformer</b><span>Normalization、Attention、MLPまたはMoE、Residual Connectionで表現を更新する。</span></div>
+            <div class="sequence-step"><b>Sampling</b><span>LM HeadがLogitを作り、Temperature、Top-p等に従って次Tokenを選ぶ。</span></div>
+            <div class="sequence-step"><b>Decode Loop</b><span>KV Cacheを再利用しながらTokenを一つずつ追加する。</span></div>
+            <div class="sequence-step"><b>Tool Loop</b><span>schema validationとpermission check後にToolを実行し、resultをcontextへ戻す。</span></div>
+            <div class="sequence-step"><b>Streaming</b><span>Token、Tool state、usage、errorをApplicationへ返し、logとmonitoringへ記録する。</span></div>
+          </div>
+          <figcaption class="caption">番号は実行順序。Tool callがない場合はStep 9をskipする。Tool resultが戻ると新しいModel passが始まる。</figcaption>
+        </figure>
+
+        <div class="reading">
+          <h3>Transformer Blockの内側</h3>
+          <p>以下は代表的なdecoder-only architectureであり、exact orderとcomponentはModelごとに異なる。</p>
+        </div>
+        <figure class="diagram reading">
+          <div class="block-stack">
+            <div class="block-layer"><b>Embedding + RoPE</b><span>Token IDをvectorへ変え、position関係をencodeする</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>RMSNorm / LayerNorm</b><span>activation scaleを整える</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>Q / K / V Projection</b><span>hidden stateからAttention用のQuery、Key、Valueを作る</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>Masked Self-Attention</b><span>past contextのValueをrelevanceに応じて混合する</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>Residual Connection</b><span>Block inputをtransformed outputへ足す</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>MLP / MoE</b><span>featureをnonlinear transform。MoEではRouterがExpertを選ぶ</span></div><div class="block-arrow"></div>
+            <div class="block-layer"><b>LM Head</b><span>final hidden stateをvocabulary Logitへprojectする</span></div>
+          </div>
+          <figcaption class="caption">上から下が一つのToken表現の更新方向。Goldはrepresentation transformationを表す。</figcaption>
+        </figure>
+
+        <div class="reading">
+          <h3>主流architectureとserving技術</h3>
+          <table class="term-table">
+            <thead><tr><th>Technology</th><th>何を節約・変更するか</th><th>Trade-off / 注意</th></tr></thead>
+            <tbody>
+              <tr><td data-label="Technology">MHA</td><td data-label="作用">各Query headが独立したKey / Value headを持つ</td><td data-label="Trade-off">KV Cacheが大きい</td></tr>
+              <tr><td data-label="Technology">GQA</td><td data-label="作用">複数Query headでKey / Valueを共有する</td><td data-label="Trade-off">cache削減とqualityのbalance</td></tr>
+              <tr><td data-label="Technology">MLA</td><td data-label="作用">Key / Value representationをlatent spaceへ圧縮する</td><td data-label="Trade-off">specialized implementationが必要</td></tr>
+              <tr><td data-label="Technology">MoE</td><td data-label="作用">Tokenごとに少数Expertだけをactiveにする</td><td data-label="Trade-off">routing、load balance、communication</td></tr>
+              <tr><td data-label="Technology">FlashAttention</td><td data-label="作用">HBMとSRAM間のIOを減らすexact Attention</td><td data-label="Trade-off">kernelとhardware依存</td></tr>
+              <tr><td data-label="Technology">PagedAttention</td><td data-label="作用">KV Cacheをblock管理しfragmentationを減らす</td><td data-label="Trade-off">serving system complexity</td></tr>
+              <tr><td data-label="Technology">Speculative Decoding</td><td data-label="作用">draft Modelの複数Tokenをtarget Modelがまとめて検証</td><td data-label="Trade-off">draft accuracyと検証overhead</td></tr>
+              <tr><td data-label="Technology">Quantization</td><td data-label="作用">weight / activationのbit widthを下げる</td><td data-label="Trade-off">quality、calibration、kernel support</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <figure class="diagram wrap">
+          <p class="diagram-title">HardwareからApplicationまでのInference stack</p>
+          <div class="stack-wrap">
+            <div class="system-stack">
+              <div class="stack-layer application"><b>Application</b><span>UI、System Instruction、output rendering、user approval</span></div>
+              <div class="stack-layer application"><b>Orchestrator</b><span>Retrieval、Tool、memory、retry、budget、permission</span></div>
+              <div class="stack-layer"><b>API / Model Server</b><span>authentication、queue、Continuous Batching、KV Cache、streaming</span></div>
+              <div class="stack-layer model"><b>Model Runtime</b><span>Tensor Parallel、Pipeline Parallel、Expert Parallel、kernel dispatch</span></div>
+              <div class="stack-layer model"><b>Transformer Weights</b><span>Embedding、Attention、MLP / MoE、LM Head</span></div>
+              <div class="stack-layer hardware"><b>Accelerator Cluster</b><span>GPU / TPU、HBM、NVLink / InfiniBand、collective communication</span></div>
+              <div class="stack-layer hardware"><b>Silicon & System</b><span>Tensor Core、SRAM、memory controller、network、power、cooling</span></div>
+            </div>
+            <div class="bi-flow" aria-label="requestは下向き、Tokenは上向きに流れる">
+              <div class="flow-down"><span class="flow-label">request / command</span></div>
+              <div class="flow-up"><span class="flow-label">Token / result</span></div>
+            </div>
+          </div>
+          <figcaption class="caption">Bottom-to-topがabstraction。Greenのrequestは下へ、BlueのToken / Tool resultは上へ流れる。mobileではstackだけを表示し、本文の順序でflowを補う。</figcaption>
+        </figure>
+
+        <div class="reading">
+          <h3>Inference設定を動かして意味を確認する</h3>
+          <div class="settings-lab">
+            <div class="settings-head"><h3>Inference Settings Lab</h3><span id="modeLabel" class="mode-label">balanced generation</span></div>
+            <div class="settings-body">
+              <div class="controls">
+                <div class="control"><label for="temperature"><span>Temperature</span><output id="temperatureValue">0.7</output></label><input id="temperature" type="range" min="0" max="1.5" step="0.1" value="0.7"></div>
+                <div class="control"><label for="topP"><span>Top-p</span><output id="topPValue">0.9</output></label><input id="topP" type="range" min="0.1" max="1" step="0.05" value="0.9"></div>
+                <div class="control"><label for="maxTokens"><span>Max Output Tokens</span><output id="maxTokensValue">2048</output></label><input id="maxTokens" type="range" min="256" max="8192" step="256" value="2048"></div>
+                <fieldset><legend>Attention / Cache strategy</legend><div class="segments"><label><input type="radio" name="attention" value="MHA">MHA</label><label><input type="radio" name="attention" value="GQA" checked>GQA</label><label><input type="radio" name="attention" value="MLA">MLA</label></div></fieldset>
+              </div>
+              <div class="settings-output" aria-live="polite">
+                <h4>変わるもの / 変わらないもの</h4>
+                <div class="effect"><b>Sampling</b><span id="samplingEffect">多様性と安定性の中間。candidate setは高確率領域へ絞る。</span></div>
+                <div class="effect"><b>Resource limit</b><span id="tokenEffect">最大2,048 Token。長いoutputはlatencyとKV Cacheを増やす。</span></div>
+                <div class="effect"><b>KV Cache</b><span id="attentionEffect">GQAはKey / Value headを共有し、MHAよりcacheを抑える。</span></div>
+                <div class="effect"><b>Guarantee</b><span>どの設定もtruth、causality、safetyを保証しない。設定はdistributionとresourceを変える。</span></div>
+              </div>
+            </div>
+          </div>
+          <p class="caption">このLabは実測benchmarkではない。設定が変える対象を概念的に示す。</p>
+        </div>
+      </section>
+
+      <section id="causality" class="section">
+        <div class="reading">
+          <h2>4. Causality: 構造上の弱さを正確に言う</h2>
+          <p class="lead">LLMがcausal languageを生成できることと、causal relationをdataから同定できることは別である。</p>
+          <p>通常のnext-Token Pre-trainingが直接最適化するのはobserved sequenceのlikelihoodである。Training textに「Aの後にB」「AとBが一緒に語られる」というcorrelationがあっても、confounder、reverse causation、selection biasを除くexperimentがあるとは限らない。</p>
+          <div class="callout warning"><p><strong>限定された主張:</strong> Transformerがcausal representationを絶対に持てないのではない。observational next-Token objectiveだけでは、causal graph、Intervention、Counterfactualを一意に正しく学ぶことが強制されない。</p></div>
+        </div>
+
+        <figure class="diagram reading">
+          <p class="diagram-title">Causal Ladder</p>
+          <div class="causal-ladder">
+            <div class="rung counterfactual"><b>Counterfactual</b><span>同じ事例で、もしX'だったらYはどうなったか</span></div>
+            <div class="uncertain">LLM単体では保証されない</div>
+            <div class="bridge">SCM、domain constraint、identified model</div>
+            <div class="rung intervention"><b>Intervention</b><span>外からXを変えたらYはどう変わるか: P(Y | do(X))</span></div>
+            <div class="bridge">Experiment、A/B Test、controlled change</div>
+            <div class="rung association"><b>Association</b><span>Xを観測したときYが起こりやすいか: P(Y | X)</span></div>
+          </div>
+          <figcaption class="caption">下から上ほど必要なassumptionが増える。Training textは主にobserved Associationを与える。Greenのbridgeが上段への追加evidenceで、Redのdashed relationはnative guaranteeがないことを表す。</figcaption>
+        </figure>
+
+        <div class="reading">
+          <h3>論文から分かること</h3>
+          <ul>
+            <li><strong>Causal Parrots</strong>は、causal factを語る成功がTraining text内のcausal fact同士のcorrelationで説明できる可能性を論じた。著者のconjectureを含む。</li>
+            <li><strong>CLadder</strong>はAssociation、Intervention、Counterfactualを含むformal causal questionがLLMに難しい一方、CausalCoTで改善することを示した。</li>
+            <li><strong>Joshi et al. (EMNLP 2024)</strong>はmention orderやtemporal orderからcausationを誤推定するpost hoc fallacyを報告した。</li>
+            <li><strong>Kasetty et al.</strong>はcontrolled Intervention benchmarkでGPT系Modelに有望なperformanceも報告した。</li>
+          </ul>
+          <p>結論は「LLMはcausal reasoning不可能」ではない。explicit causal structure、experiment、Tool、Verifierを与えれば改善できるが、native guaranteeはない。</p>
+          <div class="callout"><p><strong>Codexでの読み替え:</strong> 「このchangeでbugが直る」はhypothesisである。failing Testを再現し、single changeをInterventionとして実行し、failureが消えるか再測定することでcausal evidenceへ近づく。</p></div>
+        </div>
+      </section>
+
+      <section id="research" class="section">
+        <div class="reading">
+          <h2>5. Research Direction</h2>
+          <p class="lead">frontier Modelのrankingではなく、どのbottleneckを、どのevidenceで改善したかを見る。</p>
+        </div>
+        <div class="wrap research-grid">
+          <div class="research-item"><b>Compute Efficiency</b><span>MoE、MLA、FP8、FlashAttention、PagedAttention。active compute、memory、bandwidthを減らす。</span></div>
+          <div class="research-item"><b>Test-time Compute</b><span>Reasoning RL、thinking budget、Verifier、search。difficult taskへ追加computeを配る。</span></div>
+          <div class="research-item"><b>Tool-using Agent</b><span>Web Search、code execution、memory、GUI Tool。observationとactionを外部loopへ広げる。</span></div>
+          <div class="research-item"><b>Multimodality</b><span>image、audio、videoをcommon representationへ変換し、cross-modal Translationを行う。</span></div>
+          <div class="research-item"><b>Causal Learning</b><span>Structural Causal Model、Intervention data、causal benchmarkをTrainingとEvaluationへ統合する。</span></div>
+          <div class="research-item"><b>Interpretability</b><span>Sparse Autoencoder、attribution graph、causal interventionでinternal featureとcircuitを調べる。</span></div>
+        </div>
+        <div class="reading">
+          <h3>中国と米国の公開動向</h3>
+          <table class="term-table">
+            <thead><tr><th>主体</th><th>公開された方向</th><th>読み方</th></tr></thead>
+            <tbody>
+              <tr><td data-label="主体">DeepSeek</td><td data-label="方向">MoE、MLA、FP8、rule-based rewardを含むReasoning RL</td><td data-label="読み方">active compute、Inference cost、Verifier rewardの最適化</td></tr>
+              <tr><td data-label="主体">Qwen</td><td data-label="方向">Dense / MoE、thinking mode、thinking budget、多言語</td><td data-label="読み方">taskごとのInference compute配分</td></tr>
+              <tr><td data-label="主体">OpenAI</td><td data-label="方向">large-scale RL、test-time reasoning、image reasoning、Tool use</td><td data-label="読み方">System化は進むがexact architectureは非公開</td></tr>
+              <tr><td data-label="主体">Anthropic</td><td data-label="方向">Circuit Tracing、feature intervention、Global Workspace hypothesis</td><td data-label="読み方">partial circuitを全体理解やconsciousnessへ外挿しない</td></tr>
+              <tr><td data-label="主体">Open-weight ecosystem</td><td data-label="方向">independent evaluation、fine-tuning、quantization、mechanistic intervention</td><td data-label="読み方">weight公開とfull Training recipe公開は別</td></tr>
+            </tbody>
+          </table>
+          <p>DeepSeek-R1のlong reasoning、Qwen3のthinking budget、OpenAIのreasoning Modelは、「長く考える主体が突然生まれた」と読むより、Training rewardとInference budgetを変えたsystemとして読む方が比較しやすい。</p>
+        </div>
+      </section>
+
+      <section id="misconceptions" class="section">
+        <div class="reading">
+          <h2>6. LLMに対する誤解</h2>
+          <div class="misconception"><h3>「次Token予測だけだから単純」</h3><p>objectiveが短く書けても、内部に抽象feature、algorithm-like circuit、planning behaviorが生じうる。mechanismの短さはfunctionの単純さを意味しない。</p></div>
+          <div class="misconception"><h3>「SearchとTranslationだけなら新しいものを作れない」</h3><p>learned representationをconstraintの下で再構成すれば、新しいprogramやdesignが生じうる。Noveltyとcorrectnessは別である。</p></div>
+          <div class="misconception"><h3>「Chain of Thoughtは内部思考の完全な記録」</h3><p>visible reasoningはoutput channelであり、読みやすくTrainingされうる。internal activationの完全なtranscriptではない。</p></div>
+          <div class="misconception"><h3>「Toolを使えばhallucinationは消える」</h3><p>wrong query、bad source、prompt injection、misread result、Tool side effectが残る。RetrievalとVerificationは別工程である。</p></div>
+          <div class="misconception"><h3>「low Temperatureなら正しい」</h3><p>同じhigh-probability outputを選びやすくするだけで、weightsやcontextにある誤りは直らない。</p></div>
+          <div class="misconception"><h3>「long contextなら全て覚えて使える」</h3><p>Context Windowへ入ることと、必要箇所を正しく利用することは違う。distractor、position、retrieval quality、KV Cache costが影響する。</p></div>
+          <div class="misconception"><h3>「causal explanationが自然ならcauseを理解している」</h3><p>causal languageのretrievalかもしれない。Intervention、Counterfactual、alternative hypothesisのTestが必要である。</p></div>
+        </div>
+      </section>
+
+      <section id="codex" class="section">
+        <div class="reading">
+          <h2>7. Codex等を使う人の実践ルール</h2>
+          <p class="lead">Coding Agentへ任せるのはSearchとTranslationである。正しさを決めるevidence、actionを許すpermission、結果へ責任を持つapprovalは外側へ残す。</p>
+          <ol>
+            <li><strong>Scopeを狭くする:</strong> repository、directory、file、non-goalを指定する。</li>
+            <li><strong>Success Criteriaを書く:</strong> Test名、expected behavior、performance threshold、browser state等を観測可能にする。</li>
+            <li><strong>Source of Truthを指定する:</strong> spec、issue、schema、official documentation、existing Testの優先順位を決める。</li>
+            <li><strong>Search結果をuntrusted inputとして扱う:</strong> Web pageやrepository textには古いinstructionやprompt injectionがありうる。</li>
+            <li><strong>Translationをdiffで確認する:</strong> explanationではなくfile diff、command、dependency、artifactを見る。</li>
+            <li><strong>Causal claimをTestする:</strong> 再現、single change、再測定でhypothesisを検証する。</li>
+            <li><strong>Permissionを分離する:</strong> network、secret、production、delete、payment、publishは必要時だけapproveする。</li>
+          </ol>
+        </div>
+
+        <figure class="diagram wrap">
+          <p class="diagram-title">Codex Verification Loop</p>
+          <div class="verify-loop">
+            <div class="verify-step"><b>1. Goal</b><span>scope、non-goal、success criteriaを定義</span></div>
+            <div class="verify-step"><b>2. Search</b><span>spec、code、Test、docs、historyを観測</span></div>
+            <div class="verify-step"><b>3. Hypothesis</b><span>failure causeとchange planを明示</span></div>
+            <div class="verify-step"><b>4. Patch</b><span>spec-to-code / error-to-patchを実行</span></div>
+            <div class="verify-step"><b>5. Test</b><span>Interventionとして実行し結果を測定</span></div>
+            <div class="verify-step"><b>6. Diff Review</b><span>scope、side effect、dependencyを確認</span></div>
+            <div class="verify-step"><b>7. Approval</b><span>authority boundaryをhumanが通す</span></div>
+            <div class="verify-step"><b>8. Monitor</b><span>production distributionのfailureを観測</span></div>
+          </div>
+          <figcaption class="caption">BlueはSearch、GoldはTranslation、GreenはVerification、RedはPermission / responsibility。Test failureはHypothesisへ戻し、別のexplanationを試す。</figcaption>
+        </figure>
+
+        <div class="reading">
+          <div class="callout"><p><strong>Prompt例:</strong> 「login bugを直して」ではなく、「<code>auth</code> moduleで再現するfailing Testを先に追加し、public APIを変えず最小patchを作り、関連Testとfull suiteの結果、diff、残るriskを報告する。production credentialとnetworkは使用しない」と依頼する。</p></div>
+          <p>OpenAIのCodex sandbox資料はnetworkをdefaultで制限し、workspace外writeを制限し、unsandboxed actionへapprovalを要求する設計を説明している。Sandboxはcorrectness guaranteeではない。誤ったactionのreachを狭めるboundaryである。</p>
+        </div>
+      </section>
+
+      <section id="model" class="section">
+        <div class="reading">
+          <h2>8. 最終Mental Model</h2>
+          <div class="final-model"><p>LLMは、三種類のSearchと多段のTranslationを行うprobabilistic engineである。Parametric Searchはweightsからpatternを取り出し、Context SearchはAttentionでcurrent inputの関連箇所を選び、External SearchはToolでworldを観測する。TransformerはそれらをTokenやTool callへ翻訳し続ける。しかしobservational Trainingはcausality、truth、responsibilityを直接保証しない。Toolを持つLLMを使うときは、Verifierで結果を確かめ、Permissionでactionを制限し、Humanが最終責任を持つ。</p></div>
+          <div class="formula">Useful AI System = Search + Translation + Verification + Permission + Human Responsibility</div>
+          <p>SearchとTranslationはLLMの強みである。VerificationとPermissionを省くと、その強さがそのままriskになる。</p>
+
+          <h3>このMental Modelの限界</h3>
+          <ul>
+            <li>LLM内部の全algorithmをliteralに記述するものではない。</li>
+            <li>LLMがcausal taskを一切解けないとは主張しない。explicit structure、fine-tuning、experimentで改善できる。</li>
+            <li>consciousnessやmoral statusは扱わない。functional capabilityとは別の問いである。</li>
+            <li>closed frontier ModelのTraining data、exact architecture、internal circuitには非公開部分がある。</li>
+          </ul>
+
+          <h3>Primary Sources</h3>
+          <ol class="source-list">
+            <li>Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, 2017.</li>
+            <li>Kudo and Richardson, <a href="https://arxiv.org/abs/1808.06226">SentencePiece</a>, 2018.</li>
+            <li>Hoffmann et al., <a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal Large Language Models</a>, 2022.</li>
+            <li>Ouyang et al., <a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a>, 2022.</li>
+            <li>Rafailov et al., <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a>, 2023.</li>
+            <li>Dao et al., <a href="https://arxiv.org/abs/2205.14135">FlashAttention</a>, 2022.</li>
+            <li>Kwon et al., <a href="https://arxiv.org/abs/2309.06180">PagedAttention / vLLM</a>, 2023.</li>
+            <li>Leviathan et al., <a href="https://arxiv.org/abs/2211.17192">Speculative Decoding</a>, 2022.</li>
+            <li>Fedus et al., <a href="https://arxiv.org/abs/2101.03961">Switch Transformers</a>, 2021.</li>
+            <li>Zečević et al., <a href="https://arxiv.org/abs/2308.13067">Causal Parrots</a>, 2023.</li>
+            <li>Jin et al., <a href="https://arxiv.org/abs/2312.04350">CLadder</a>, 2023.</li>
+            <li>Joshi et al., <a href="https://aclanthology.org/2024.emnlp-main.590/">LLMs Are Prone to Fallacies in Causal Inference</a>, 2024.</li>
+            <li>Kasetty et al., <a href="https://arxiv.org/abs/2404.05545">Evaluating Interventional Reasoning Capabilities of LLMs</a>, 2024.</li>
+            <li>DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3</a>, 2024; <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a>, 2025.</li>
+            <li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a>, 2025.</li>
+            <li>Anthropic, <a href="https://www.anthropic.com/news/tracing-thoughts-language-model">Tracing the thoughts of a large language model</a>, 2025; <a href="https://www.anthropic.com/research/global-workspace">A global workspace in language models</a>, 2026.</li>
+            <li>NIST, <a href="https://doi.org/10.6028/NIST.AI.600-1">AI Risk Management Framework: Generative AI Profile</a>, 2024.</li>
+            <li>OpenAI, <a href="https://openai.com/index/building-codex-windows-sandbox/">Building a safe, effective sandbox to enable Codex on Windows</a>, 2026.</li>
+          </ol>
+        </div>
+      </section>
+    </article>
+  </main>
+
+  <footer><div class="wrap">Mental Model Studio ・ Research claims are bounded by the cited public evidence and retrieval date.</div></footer>
+
   <script>
-    const budget = document.getElementById('budget');
-    const budgetLabel = document.getElementById('budgetLabel');
-    const budgetText = document.getElementById('budgetText');
-    const latency = document.getElementById('latency');
-    const memory = document.getElementById('memory');
-    const candidates = document.getElementById('candidates');
-    function renderBudget() {
-      const value = Number(budget.value);
-      const scale = value / 1000;
-      budgetLabel.textContent = value.toLocaleString('ja-JP');
-      latency.textContent = scale.toFixed(1) + 'x';
-      memory.textContent = (0.55 + scale * 0.45).toFixed(1) + 'x';
-      candidates.textContent = Math.max(1, Math.floor(value / 1500));
-      budgetText.textContent = value < 1000 ? '高速優先' : value < 3500 ? '標準' : '熟考優先';
+    const temperature = document.getElementById('temperature');
+    const topP = document.getElementById('topP');
+    const maxTokens = document.getElementById('maxTokens');
+    const temperatureValue = document.getElementById('temperatureValue');
+    const topPValue = document.getElementById('topPValue');
+    const maxTokensValue = document.getElementById('maxTokensValue');
+    const samplingEffect = document.getElementById('samplingEffect');
+    const tokenEffect = document.getElementById('tokenEffect');
+    const attentionEffect = document.getElementById('attentionEffect');
+    const modeLabel = document.getElementById('modeLabel');
+
+    function renderSettings() {
+      const temp = Number(temperature.value);
+      const p = Number(topP.value);
+      const tokens = Number(maxTokens.value);
+      const attention = document.querySelector('input[name="attention"]:checked').value;
+      temperatureValue.textContent = temp.toFixed(1);
+      topPValue.textContent = p.toFixed(2);
+      maxTokensValue.textContent = tokens.toLocaleString('ja-JP');
+
+      if (temp <= 0.2) {
+        samplingEffect.textContent = 'high-probability Tokenへ強く集中。再現性は上がるが、誤ったmodeへ固定されることもある。';
+        modeLabel.textContent = 'deterministic leaning';
+      } else if (temp >= 1.1) {
+        samplingEffect.textContent = 'low-probability Tokenも選びやすい。多様性と同時にvarianceも増える。';
+        modeLabel.textContent = 'exploratory generation';
+      } else {
+        samplingEffect.textContent = `多様性と安定性の中間。Top-p ${p.toFixed(2)} でcandidate setを制限する。`;
+        modeLabel.textContent = 'balanced generation';
+      }
+
+      tokenEffect.textContent = `最大${tokens.toLocaleString('ja-JP')} Token。上限を増やすとlong responseを許すが、latency、cost、KV Cache使用量も増えうる。`;
+
+      const attentionText = {
+        MHA: 'MHAは各Query headが独立したKey / Valueを持ち、KV Cacheが最も大きくなりやすい。',
+        GQA: 'GQAは複数Query headでKey / Valueを共有し、MHAよりKV Cacheを抑える。',
+        MLA: 'MLAはKey / Value representationをlatent spaceへ圧縮し、Inference時のcacheとbandwidthを抑える。'
+      };
+      attentionEffect.textContent = attentionText[attention];
     }
-    budget.addEventListener('input', renderBudget);
-    renderBudget();
+
+    [temperature, topP, maxTokens].forEach((input) => input.addEventListener('input', renderSettings));
+    document.querySelectorAll('input[name="attention"]').forEach((input) => input.addEventListener('change', renderSettings));
+    renderSettings();
   </script>
 </body>
 </html>
