@@ -4,6 +4,6 @@ Public GitHub Pages artifacts exported from the private `mental-model-system` so
 
 Published pages:
 
-- `bitcoin-from-first-principles.html` (v5 Faza-parity essay)
+- `bitcoin-from-first-principles.html` (v6 store-of-value + Faza-parity essay)
 - `llm-from-first-principles.html`
 - `quantum-computing-from-first-principles.html`
