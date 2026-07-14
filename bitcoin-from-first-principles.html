@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Bitcoin v4 — コピーがほぼ無料な世界で、なぜ現金を『渡せる』のかを、歴史・仕組み・過程可視化Labから再構築するFaza風長編ファーストプリンシパル・エッセイ。">
-  <title>Bitcoin from First Principles v4 | コストのかかる共有履歴</title>
+  <meta name="description" content="Bitcoin v5 — 複製無料という物理制約から、伝播・UTXO・PoW・難易度・検証範囲まで、制約が次の発明を強制する鎖として再構築する。">
+  <title>Bitcoin from First Principles v5 | コストのかかる共有履歴</title>
   <link rel="stylesheet" href="./assets/css/site.css">
   <link rel="stylesheet" href="./assets/css/sim-kit.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -37,15 +37,8 @@
     .ladder th { background:var(--mm-gray-soft); font-size:13px; }
     .sim-embed { margin:30px 0; border:1px solid var(--mm-line); background:#fff; padding:16px; }
     .sim-hard-claim { margin:0 0 10px; padding:8px 10px; background:var(--mm-gold-soft); border-left:3px solid var(--mm-gold); font-size:13px; }
-    .sim-canvas-wrap {
-      margin:12px 0; background:#0f1a24; border:1px solid #243241;
-      overflow:hidden; line-height:0; max-height:320px;
-    }
-    .sim-canvas-wrap canvas {
-      display:block; width:100%; max-width:100%;
-      /* height is set from the canvas height attribute via JS; never use height:auto */
-      vertical-align:top;
-    }
+    .sim-canvas-wrap { margin:12px 0; background:#0f1a24; border:1px solid #243241; overflow:hidden; }
+    .sim-canvas-wrap canvas { display:block; width:100%; height:auto; }
     .chains { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
     .chain { padding:12px; border:1px solid var(--mm-line); background:#fff; transition:outline .2s, opacity .2s; }
     .chain.tip { outline:2px solid var(--mm-green); }
@@ -90,6 +83,24 @@
       .pull-quote { font-size:19px; }
       .photo-bleed img { max-height:320px; }
     }
+
+    .callout-soft { margin:22px 0; padding:0; border:0; background:transparent; color:#3e4d5a; font-size:15px; }
+    .scope-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
+    .scope-card { border:1px solid var(--mm-line); padding:14px; background:#fff; }
+    .scope-card h4 { margin:0 0 8px; font-size:14px; }
+    .scope-card.limited { border-top:4px solid var(--mm-gold); }
+    .scope-card.full { border-top:4px solid var(--mm-green); }
+    .metric-row { display:flex; gap:16px; flex-wrap:wrap; margin:10px 0; font-size:13px; color:#3e4d5a; }
+    .metric-row b { color:var(--mm-navy); }
+    .thermo-bar { height:18px; background:#2d4254; border-radius:2px; overflow:hidden; margin:8px 0 14px; }
+    .thermo-fill { height:100%; background:linear-gradient(90deg,#1677b8,#b77912,#b54749); width:40%; transition:width .25s; }
+    .gossip-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:#8fb4c9; margin:8px 0; }
+    .gossip-legend span::before { content:""; display:inline-block; width:10px; height:10px; margin-right:6px; vertical-align:middle; border-radius:50%; }
+    .lg-idle::before { background:#4e6d82; }
+    .lg-sees1::before { background:#1677b8; }
+    .lg-sees2::before { background:#b54749; }
+    .lg-conflict::before { background:#b77912; }
+    @media (max-width:720px) { .scope-grid { grid-template-columns:1fr; } }
 </style>
 </head>
 <body>
@@ -101,7 +112,9 @@
         <a class="toc-only" href="#wonder">序</a>
         <a class="toc-only" href="#history">履歴</a>
         <a class="toc-only" href="#doublespend">二重支払い</a>
+        <a class="toc-only" href="#gossip">伝播</a>
         <a class="toc-only" href="#pow">PoW</a>
+        <a class="toc-only" href="#spv">検証範囲</a>
         <a class="toc-only" href="#agency">実践</a>
         <a class="toc-only" href="#references">出典</a>
       </nav>
@@ -110,10 +123,10 @@
 
   <header class="article-head">
     <div class="wrap">
-      <p class="kicker">Monetary technology · Distributed systems · Essay v4</p>
+      <p class="kicker">Monetary technology · Distributed systems · Essay v5</p>
       <h1>Bitcoin, from First Principles</h1>
-      <p class="dek">コピーがほぼ無料な世界で、なぜ画面上の数字の移動が「現金を渡した」ことになりうるのか——二重支払いを止めに行く発明の鎖を、危機の文脈・部品の歴史・過程が見える Lab から、長く滞留しながら組み立てる。</p>
-      <p class="meta">Mental Model Studio · 2026-07-14 · v4 gap-fill essay · 投資助言ではない</p>
+      <p class="dek">コピーがほぼ無料な世界で、なぜ画面上の数字の移動が「現金を渡した」ことになりうるのか——各部品が前の部品の失敗を埋める鎖として、伝播・状態・コスト・検証まで一気に歩く。</p>
+      <p class="meta">Mental Model Studio · 2026-07-14 · v5 Faza-parity dwell · 投資助言ではない</p>
     </div>
   </header>
 
@@ -144,10 +157,7 @@
       <p class="dwell">三つ目。高額の支払いを受け取った相手が「6確認待ってから商品を渡す」と言う。あなたは取引所の「反映済み」で安心したが、相手は別の時計を見ている。確定は感覚ではなく、<strong>累積した作業コスト</strong>の話である。</p>
       <p>これらは投資の成否ではない。<strong>主権・委任・確定</strong>という、システム設計の切れ目である。この記事は、その切れ目に長く滞留しながら、再構築可能なメカニズムへ分解する。</p>
 
-      <div class="callout">
-        <p><strong>すること</strong>：なぜ銀行のような台帳係なしに「同じコインを二度使えない」と主張できるかを、制約→必然の鎖で説明する。危機の文脈、先行実験、公開規則、検証可能なコスト、過程が見える Lab へ接続する。</p>
-        <p><strong>しないこと</strong>：価格予測・売買タイミング・ポートフォリオ助言。Lightning やサイドチェーンの詳細。Script / Taproot のオペコード一覧。</p>
-      </div>
+      <p class="callout-soft dwell">ここから先は、台帳係なしに「同じコインを二度使えない」と言える理由を、制約が次の発明を強制する順で歩く。価格予測や売買助言、Lightning やサイドチェーンの詳細、Script のオペコード一覧には入らない——それらはこの足場の上に後から載る応用である。</p>
     </section>
 
     <section class="section reading" id="bank">
@@ -159,7 +169,7 @@
 
       <figure class="sourced">
         <img src="./assets/images/bitcoin-first-principles/photos/bank-of-england.jpg" alt="イングランド銀行の建物" width="1280" height="960">
-        <figcaption>イングランド銀行（写真: Wikimedia Commons）。近代の貨幣は建物や金庫そのものより、誰が台帳を書き換えられるかという権限構造に依存する。</figcaption>
+        <figcaption>イングランド銀行（Wikimedia Commons）。建物の重厚さは信頼の演出だが、ここで実際に重要なのは「誰が内部台帳を書き換えられるか」という権限構造である。Bitcoin が外そうとしているのも、この権限の必須性だ。</figcaption>
       </figure>
 
       <p class="dwell">電子現金の長年の夢は、この台帳係を必須としないことだった。物理の現金は、中央データベースなしで手から手へ移る。デジタルでも同じことをしたい——ただし、複製無料という物理法則に逆らう必要がある。</p>
@@ -175,7 +185,7 @@
 
       <figure class="sourced">
         <img src="./assets/images/bitcoin-first-principles/photos/nyse.jpg" alt="ニューヨーク証券取引所の外観" width="1280" height="1707">
-        <figcaption>ニューヨーク証券取引所（Wikimedia Commons）。公開市場は価格を発見するが、Bitcoinプロトコルが定義しているのは価格ではなく、履歴の検証規則である。混同しないことが、この記事全体の読み方である。</figcaption>
+        <figcaption>ニューヨーク証券取引所（Wikimedia Commons）。相場ボードが示すのは需要と供給の合意価格であり、プロトコルが定義する「どの履歴が正規か」の規則ではない。価格アプリの緑と赤は、この建物側の言語である。</figcaption>
       </figure>
     </section>
 
@@ -210,7 +220,8 @@
       </figure>
 
       <p class="dwell">論文の導入部は率直である。商業上の電子決済はほとんど金融機関を信頼の要にしている一方、完全に不可逆な支払いには向かない。物理の現金は少額の対面取引ではその隙間を埋めるが、通信チャネル越しの同等物が欠けている——そこへ peer-to-peer の電子現金を置く、というのが宣言である<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
-      <p class="dwell">重要なのは、各先行案が「欠けていたピース」を教えてくれることだ。中央発行体は便利だが単一障害点になる。ハッシュのコストだけあっても、誰が何を所有するかの状態表現がなければ現金にならない。署名だけあっても、同じコインを二度使うことを止められない。Bitcoin の新しさは、部品の発明そのものより、<strong>部品の組み合わせが閉じた閉ループになる</strong>点にある。</p>
+      <p class="dwell">重要なのは、各先行案が「欠けていたピース」を教えてくれることだ。中央発行体は便利だが単一障害点になる——だから発行体なしで状態を持つ必要が残る。ハッシュのコストだけあっても、誰が何を所有するかの状態表現がなければ現金にならない——だから UTXO のような共有状態が要る。署名だけあっても、同じコインを二度使うことを止められない——だから順序付き履歴が要る。履歴が無料で増殖するなら偽身分に飲まれる——だから検証可能な提案コストが要る。Bitcoin の新しさは、部品の発明そのものより、<strong>これらの不足が互いに埋め合って閉ループになる配置</strong>にある。</p>
+      <p class="dwell">したがって次節からの歩き方は年表ではなく、失敗が次の制約を強制する順である。まず「同じコインを二人に払えない」とは何かを固定し、そこから伝播・指紋・所有・状態・束ね・検証範囲・コスト・インセンティブへと降りていく。</p>
     </section>
 
     <section class="section reading" id="doublespend">
@@ -229,14 +240,14 @@
       <div class="sim-embed sim-root" id="sim-race">
         <p class="sim-title">Double-spend Race Lab</p>
         <p class="sim-hard-claim"><strong>Hard claim:</strong> 共有された順序なしでは、同じ入力への二つの支払いが一時的に両立して見えうる。正規履歴は後で片方だけを残す。</p>
-        <p>再生すると、Tx1（Bob）と Tx2（Carol）がネットワーク上を競う。最終的に一本の履歴だけが残り、もう一方は orphaned になる。</p>
-        <div class="sim-canvas-wrap"><canvas id="raceCanvas" width="900" height="280" aria-label="二重支払い競合の可視化"></canvas></div>
+        <p>Alice が同じ入力から Tx1（Bob）と Tx2（Carol）を同時にブロードキャストする。ノードは近所から取引を受け取り、最初に見た側をローカルに保持する——中央の司令はない。</p>
+        <div class="sim-canvas-wrap"><canvas id="raceCanvas" width="900" height="320" aria-label="二重支払い競合の可視化"></canvas></div>
         <div class="sim-controls">
-          <button type="button" class="sim-btn" id="btnRacePlay">再生</button>
+          <button type="button" class="sim-btn" id="btnRacePlay">競合を再生</button>
           <button type="button" class="sim-btn" id="btnRaceReset">リセット</button>
         </div>
-        <p class="sim-status" id="raceStatus">再生すると、競合する二取引の運命が見えます。</p>
-        <p class="sim-caption">Lesson: 問題は「誰が正しい人か」ではなく、「どの順序の消費が一意か」である。</p>
+        <p class="sim-status" id="raceStatus">再生すると、競合する二取引がノード群へ広がり、最終的に片方だけが残る過程が見えます。</p>
+        <p class="sim-caption">Lesson: 問題は「誰が正しい人か」ではなく、「どの順序の消費が一意か」である。次の節で、なぜ一時的に両立して見えるかを伝播の物理として見る。</p>
       </div>
 
       <div class="diagram" aria-label="四層図">
@@ -252,17 +263,52 @@
 
       <figure class="sourced">
         <img src="./assets/images/bitcoin-first-principles/layers.svg" alt="署名・UTXO・PoW・フルノードの四層パイプライン" width="920" height="280">
-        <figcaption>Mental Model Studio による層分け図。以降の節は、この四つの役割を一つずつ、滯留しながら埋める。</figcaption>
+        <figcaption>四つの役割を一気にラベル付けしても理解は進まない。以降は、伝播の物理から始めて、権限・状態・コスト・検証を、前の層の限界が次を強制する順で埋める。</figcaption>
       </figure>
     </section>
 
+    <section class="section reading" id="gossip">
+      <h2>伝播の物理：なぜ「一時的に両立」が起きるのか</h2>
+      <p class="dwell">二重支払い問題を解くには共有履歴が要る、と分かっても、その履歴は光速で一瞬に世界へ同期しない。Bitcoinのノードは peer-to-peer で噂話のように取引とブロックをリレーする<a class="fn-ref" href="#ref-4">(*4)</a>。光もケーブルも遅延を持つ。だから Alice が同じコインを東と西へ同時に投げれば、東の近所は Tx1 を先に見、西の近所は Tx2 を先に見る——しばらくのあいだ、ローカルな真実が割れる。</p>
+      <p class="dwell">これは設計の欠陥ではない。中央サーバなしに開いた網上で状態を動かすなら、伝播遅延は避けられない物理である。銀行の台帳係は「会社内の一本の時計」で順序を強制する。Bitcoinは「遅延がある網上で、最終的に一本に収束する手続き」に置き換える。だから確認待ちは礼儀ではなく、競合が消えるまでのコスト時計である。</p>
+      <p class="dwell">ここが次の制約を生む。伝播だけあっても、矛盾する履歴候補は無限に作れる。噂が広がる仕組みは必要だが、どの噂が正規かを決める値段が別途要る——それが後段の Proof-of-Work だ。いまはまず、伝播そのものを触って理解する。</p>
+
+      <div class="sim-embed sim-root" id="sim-gossip">
+        <p class="sim-title">P2P Gossip Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> 同一入力の二つの取引は、伝播の途上で異なるノード集合に先着し、一時的に両立したローカル状態をつくりうる。</p>
+        <div class="gossip-legend">
+          <span class="lg-idle">未受信</span>
+          <span class="lg-sees1">Tx1(Bob) 先着</span>
+          <span class="lg-sees2">Tx2(Carol) 先着</span>
+          <span class="lg-conflict">両方可視（競合意識）</span>
+        </div>
+        <div class="sim-canvas-wrap"><canvas id="gossipCanvas" width="900" height="340" aria-label="P2P伝播の可視化"></canvas></div>
+        <div class="sim-controls">
+          <button type="button" class="sim-btn" id="btnGossipPlay">二重支払いをブロードキャスト</button>
+          <button type="button" class="sim-btn" id="btnGossipOne">Tx1だけ送る</button>
+          <button type="button" class="sim-btn" id="btnGossipReset">リセット</button>
+        </div>
+        <div class="metric-row">
+          <span>Tx1到達: <b id="gReach1">0</b>/12</span>
+          <span>Tx2到達: <b id="gReach2">0</b>/12</span>
+          <span>競合ノード: <b id="gConflict">0</b></span>
+          <span>収束: <b id="gConverge">—</b></span>
+        </div>
+        <p class="sim-status" id="gossipStatus">Alice から東西へ伝播させ、ローカル視野の割れを観察してください。</p>
+        <p class="sim-caption">Lesson: 伝播遅延がある限り、二重支払いは「一瞬だけ」両立しうる。収束には共有された順序（と、それを高価にするコスト）が要る。</p>
+      </div>
+
+      <p class="dwell">では何を「同じ順序」で比べればよいのか。巨大な取引ログを毎回全文比較するのは現実的でない——だから次に、データの要約指紋としてのハッシュが必要になる。</p>
+    </section>
+
+
     <section class="section reading" id="hash">
       <h2>指紋としてのハッシュ：改ざんを「検出」できる道具</h2>
-      <p class="dwell">共有履歴が必要だと分かっても、巨大な取引ログを毎回全文比較するのは現実的でない。欲しいのは、データの要約指紋である。暗号学的ハッシュは、同じ入力なら同じ出力、入力を1ビット変えると出力が予測不能に変わり、出力から入力を逆算するのは実務上不可能に近い、という性質の束を与える<a class="fn-ref" href="#ref-2">(*2)</a><a class="fn-ref" href="#ref-1">(*1)</a>。</p>
+      <p class="dwell">共有履歴と比較が必要だと分かっても、巨大な取引ログを毎回全文突き合わせるのは現実的でない。欲しいのは、データの要約指紋である。暗号学的ハッシュは、同じ入力なら同じ出力、入力を1ビット変えると出力が予測不能に変わり、出力から入力を逆算するのは実務上不可能に近い、という性質の束を与える<a class="fn-ref" href="#ref-2">(*2)</a><a class="fn-ref" href="#ref-1">(*1)</a>。</p>
 
       <figure class="sourced">
         <img src="./assets/images/bitcoin-first-principles/photos/sha2.png" alt="SHA-2 ハッシュ関数の構造概略図" width="960" height="678">
-        <figcaption>SHA-2 家族の構造概略（Wikimedia Commons）。Bitcoin の PoW は二重 SHA-256 を使う。ここでのポイントは回路図の暗記ではなく、「わずかな入力差が出力を予測不能に散らす」ことである。</figcaption>
+        <figcaption>SHA-2 家族の構造概略（Wikimedia Commons）。右へ進むほどビットが混ざり合う。Bitcoin の PoW は二重 SHA-256 を使うが、覚えるべきは回路ではなく、「1ビットの差が出力全体を予測不能に散らす」という性質だけだ。</figcaption>
       </figure>
 
       <p class="dwell">この性質だけでも、「改ざん不可能」までは言えない。言えるのは「改ざんを検出できる」という弱いが重要な主張である。ブロックヘッダが直前ブロックのハッシュを含めば、過去を1バイト書き換えれば以降のハッシュが連鎖的に食い違う。検出は安い。しかし検出しやすいだけで、攻撃者が新しい整合した鎖を作り直すのを止めはしない——そこには後でコストが要る。</p>
@@ -339,7 +385,7 @@
 
       <figure class="sourced">
         <img src="./assets/images/bitcoin-first-principles/photos/blockchain-overview.png" alt="ブロックが鎖状に繋がる概念図" width="451" height="1200">
-        <figcaption>ブロック鎖の概念図（Wikimedia Commons）。図の細部より、「各ブロックが直前を参照する」という結合が改ざん検出を連鎖させる、という一点を持てばよい。</figcaption>
+        <figcaption>ブロックが直前を参照して繋がる概念図（Wikimedia Commons）。縦に伸びる鎖のうち、読者が持つべきは一点だけ——過去1バイトを書き換えれば、それ以降のハッシュ結合が連鎖的に壊れる、という検出の性質である。</figcaption>
       </figure>
 
       <table class="ladder">
@@ -376,7 +422,45 @@
         <figcaption>Genesis（2009-01-03）は履歴のゼロ地点。以降のブロックは直前ヘッダのハッシュを含む<a class="fn-ref" href="#ref-2">(*2)</a><a class="fn-ref" href="#ref-7">(*7)</a>。</figcaption>
       </figure>
 
-      <p class="dwell">SPV（Simplified Payment Verification）クライアントはヘッダ鎖と Merkle proof で包含を確認しようとするが、すべてのコンセンサスルールを自ら検証するわけではない<a class="fn-ref" href="#ref-1">(*1)</a>。「改ざん不可能」に聞こえる宣伝は、しばしば<strong>自分が検証した範囲</strong>を超えて語られる。まだ足りない。誰でもヘッダを書いてよいなら、矛盾するブロックは無限に増える。</p>
+      <p class="dwell">SPV の便利さは本物だが、それは検証の全体ではない。次の節で、包含と規則執行の切れ目を操作して確かめる。</p>
+    </section>
+
+    <section class="section reading" id="spv">
+      <h2>検証の範囲：包含の証明は、規則の執行ではない</h2>
+      <p class="dwell">Merkle proof は魅力的だ。ヘッダと数本の兄弟ハッシュだけで「この取引はあのブロックに入っている」と主張できる。携帯電話のウォレットの多くが近似的にやっているのもこれ——いわゆる SPV（Simplified Payment Verification）である<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
+      <p class="dwell">しかし包含の証明は、コンセンサスルール全体の検証と同じではない。ヘッダ鎖と Merkle proof は「どこかに載った」ことの安い証拠になりうるが、そのブロックが金額保存・二重支払い禁止・コインベース上限など全規則を満たしているかは、フルノードが UTXO 集合まで検証しないと保証できない。宣伝が「改ざん不可能」と言うとき、しばしば話者は自分が検証した範囲を超えて語っている。</p>
+      <p class="dwell">ここにもトレードオフがある。全員が常にフルノードを回せるわけではない。委任は悪ではない——どの範囲を自分で見、どこを他人のノードや会社に預けるかを明示できることがリテラシーだ。次の Lab は、同じ偽ブロックを二つの検証者に見せて、見える範囲の差を並べて確かめる。</p>
+
+      <div class="sim-embed sim-root" id="sim-spv">
+        <p class="sim-title">SPV vs Full Node Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> Merkle 包含が通っても、フルのコンセンサスルール検証を省略したクライアントは、規則違反ブロックを受理しうる。</p>
+        <div class="sim-controls">
+          <label><input type="radio" name="attackCase" value="ok" checked> 正当な取引（規則OK・包含OK）</label>
+          <label><input type="radio" name="attackCase" value="inflated"> 過大コインベース（包含OK・規則違反）</label>
+          <label><input type="radio" name="attackCase" value="fakeproof"> 偽の Merkle 証明（包含NG）</label>
+        </div>
+        <div class="sim-controls">
+          <button type="button" class="sim-btn" id="btnSpvRun">両クライアントへ提示</button>
+          <button type="button" class="sim-btn" id="btnSpvReset">リセット</button>
+        </div>
+        <div class="scope-grid">
+          <div class="scope-card limited" id="spvCard">
+            <h4>SPV クライアント</h4>
+            <p>見るもの: ヘッダ鎖 + Merkle proof</p>
+            <ul class="check-list" id="spvChecks"></ul>
+            <p class="sim-status" id="spvStatus">未判定</p>
+          </div>
+          <div class="scope-card full" id="fullCard">
+            <h4>フルノード</h4>
+            <p>見るもの: ヘッダ + 全取引 + UTXO規則</p>
+            <ul class="check-list" id="fullChecks"></ul>
+            <p class="sim-status" id="fullStatus">未判定</p>
+          </div>
+        </div>
+        <p class="sim-caption">Lesson: 「検証した」の中身はクライアントの種類で違う。委任するなら、委任した範囲を自分の言葉で言える必要がある。</p>
+      </div>
+
+      <p class="dwell">検証範囲の差を押さえたうえで、まだ開いた問題がある。誰でもヘッダを書いてよいなら、矛盾するブロックは無限に増える。伝播も指紋も包含証明も、提案が無料なら偽身分の洪水に飲まれる——次に必要なのは、追記権への検証可能な値段である。</p>
     </section>
 
     <section class="section reading" id="pow">
@@ -394,8 +478,8 @@
       <p class="dwell">エネルギー消費への批判は当然生じうる。メンタルモデルとしては、そのエネルギーを「浪費」とだけ見るのではなく、「公開ネットワークで履歴を防衛するための継続課金」として読む必要がある。課金の大小が社会的に妥当かは別議論だが、ゼロコストで同等の公開防衛を得る設計はまだ見つかっていない、というのが少なからぬ研究者の見立てに近い。ここでも価格やモラルを先に結論せず、何のためのコストかを見失わないことが先である。</p>
 
       <figure class="sourced">
-        <img src="./assets/images/bitcoin-first-principles/photos/mining-farm.jpg" alt="多数の筐体が並ぶマイニング施設" width="1400" height="787">
-        <figcaption>ASIC マイニング施設の一例（Wikimedia Commons）。エネルギーと機材が「提案コスト」の物理的姿である。これは安全保障の支払いであり、それ自体が価格の上昇を証明するわけではない。</figcaption>
+        <img src="./assets/images/bitcoin-first-principles/photos/mining-farm.jpg" alt="ASIC が並ぶマイニング施設" width="1400" height="787">
+        <figcaption>ASIC が並ぶマイニング施設（Wikimedia Commons）。各筐体はハッシュ探索専用の機械で、ここでの電力は「次の正規履歴候補を提案する権利」への継続課金である。見た目の壮観さは価格の正しさを証明しない——証明しているのは提案コストの物理量だけだ。</figcaption>
       </figure>
 
       <div class="sim-embed sim-root" id="sim-pow">
@@ -512,15 +596,36 @@
       <p class="dwell">半減についても同様の分離が要る。補助金スケジュールは供給側の機械的な出来事である。それが需要・価格・ハッシュレートにどう波及するかは市場とインセンティブの相互作用であり、プロトコルが保証する命題ではない。「半減したから上がる」は物語になりやすく、設計説明としては短すぎる。</p>
       <p class="dwell">難易度はおよそ2週間（2,016ブロック）ごとに調整され、出塊の時間リズムを保とうとする<a class="fn-ref" href="#ref-6">(*6)</a><a class="fn-ref" href="#ref-2">(*2)</a>。ハッシュレートが増えても、平均10分という鼓動を無理に速めない——むしろ探索をより難しくする。ここでの「セキュリティ」は、防衛に支払われている資源フローの別名に近い。補助金が減るほど、長期的には手数料市場がその予算をどれだけ支えるかが論点になる。それは価格予測ではなく、インセンティブ設計の読み方である。</p>
 
+      <div class="sim-embed sim-root" id="sim-diff">
+        <p class="sim-title">Difficulty Thermostat Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> ハッシュレートが増えても、難易度調整が探索を厳しくし、平均出塊間隔を目標リズムへ引き戻す。</p>
+        <label>相対ハッシュレート: <strong id="hashrateLabel">1.0×</strong></label>
+        <input type="range" id="hashrateSlider" min="10" max="400" value="100" style="width:100%">
+        <div class="metric-row">
+          <span>調整前の平均間隔: <b id="intervalBefore">10.0</b> 分</span>
+          <span>難易度倍数: <b id="diffMult">1.00×</b></span>
+          <span>調整後の平均間隔: <b id="intervalAfter">10.0</b> 分</span>
+        </div>
+        <div class="thermo-bar" aria-hidden="true"><div class="thermo-fill" id="thermoFill"></div></div>
+        <div class="sim-canvas-wrap"><canvas id="diffCanvas" width="900" height="160" aria-label="難易度調整の可視化"></canvas></div>
+        <p class="sim-status" id="diffStatus">ハッシュレートを変えると、調整前後の鼓動が見えます。</p>
+        <p class="sim-caption">Lesson: セキュリティの「鼓動」は、ハッシュレートの増減を難易度で吸収するサーモスタットである。半減や価格とは独立した機構だ。</p>
+      </div>
+
       <div class="sim-embed sim-root" id="sim-mempool">
         <p class="sim-title">Mempool Auction Lab</p>
-        <p class="sim-hard-claim"><strong>Hard claim:</strong> 次ブロックの限られた枠では、手数料率の高い取引が優先され、低い取引は後回しになる。</p>
-        <label>次ブロックに入る件数: <strong id="blockSlotsLabel">3</strong></label>
-        <input type="range" id="blockSlots" min="1" max="6" value="3" style="width:100%">
-        <div class="sim-canvas-wrap"><canvas id="mempoolCanvas" width="900" height="180" aria-label="mempool入札"></canvas></div>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> 次ブロックの限られた枠では、手数料率の高い取引が優先され、低い取引は後回しになる。混雑が続けば、低い入札は待ち続ける。</p>
+        <div class="sim-controls">
+          <label>次ブロック枠: <strong id="blockSlotsLabel">3</strong></label>
+          <input type="range" id="blockSlots" min="1" max="6" value="3" style="width:180px">
+          <button type="button" class="sim-btn" id="btnMemArrive">新規TX到着</button>
+          <button type="button" class="sim-btn" id="btnMemMine">1ブロック確定</button>
+          <button type="button" class="sim-btn" id="btnMemReset">リセット</button>
+        </div>
+        <div class="sim-canvas-wrap"><canvas id="mempoolCanvas" width="900" height="200" aria-label="mempool入札"></canvas></div>
         <div class="mempool-bars" id="mempoolBars"></div>
         <p class="sim-status" id="mempoolStatus"></p>
-        <p class="sim-caption">Lesson: 手数料は「BTCの値段」とは別市場——ブロック空間の入札である。</p>
+        <p class="sim-caption">Lesson: 手数料は「BTCの値段」とは別市場——限られたブロック空間への時間付き入札である。</p>
       </div>
     </section>
 
@@ -559,7 +664,9 @@
       <table class="ladder">
         <thead><tr><th>感じる現象</th><th>なぜそう感じるか</th></tr></thead>
         <tbody>
+          <tr><td>送金した直後、相手と自分の画面が食い違う</td><td>P2P伝播の途上でローカル視野が一時的に割れる</td></tr>
           <tr><td>取引所の「反映済み」と相手の「確定」がずれる</td><td>内部帳簿と累積PoW上の確認は別時計</td></tr>
+          <tr><td>軽いウォレットは通るがフルノードは拒む</td><td>SPVは包含、フルノードは規則まで見る</td></tr>
           <tr><td>手数料が日によって違う</td><td>ブロック空間の入札市場</td></tr>
           <tr><td>「6確認を待て」と言われる</td><td>差し替えに要する累積作業量の経験則</td></tr>
           <tr><td>シードをなくすと誰も戻せない</td><td>秘密鍵＝主権。救済当局なし</td></tr>
@@ -569,7 +676,7 @@
       </table>
 
       <p class="dwell">Faza のソフトウェア論が言うように、理解できるものだけが制御できる。Bitcoinでも同じである。価格アプリの数字を眺めることと、自分がどの委任構造の上に立っているかを説明できることは、別のリテラシーだ。AIが要約や送金手順を提案する時代でも、最終的に検証すべきなのはモデル——署名、UTXO、累積作業量、フルノード——のどれが自分の手元にあるかである。</p>
-      <p class="dwell">この記事が目指したのは、用語辞典ではなく、世界の見え方が一段変わる足場である。コピーが無料でも希少性を強制できること、銀行がなくても順序を共有できること、作業量が見えるコストであること、そしてあなたがいまどこに委任しているか——それが説明できたなら、十分に遠くまで歩いたことになる。</p>
+      <p class="dwell">この記事が目指したのは、用語辞典ではなく、世界の見え方が一段変わる足場である。コピーが無料でも希少性を強制できること、伝播遅延があっても最終的に順序を共有できること、作業量が見えるコストであること、検証範囲を自分の言葉で言えること——それができれば、十分に遠くまで歩いたことになる。</p>
     </section>
 
     <section class="section reading" id="references">
@@ -585,7 +692,7 @@
         <li id="ref-8">Wei Dai, <em>b-money</em>, 1998. <a href="http://www.weidai.com/bmoney.txt">weidai.com/bmoney.txt</a></li>
         <li id="ref-9">画像: David Shankbone, <em>Lehman Brothers Times Square</em> (Wikimedia Commons, CC BY 3.0); Bank of England / NYSE / mining farm / SHA-2 / blockchain diagrams via Wikimedia Commons（各ファイルのライセンス表記に従う）。</li>
       </ol>
-      <p style="color:var(--mm-muted);font-size:13px;">注: 本稿の Lab は教育用の簡略モデルであり、実ネットワークの暗号・難易度・伝播をシミュレートするものではない。</p>
+      <p style="color:var(--mm-muted);font-size:13px;">注: 本稿の Lab は教育用の簡略モデルであり、実ネットワークの暗号・難易度・伝播・手数料市場をシミュレートするものではない。過程の直観を作るための玩具である。</p>
     </section>
   </main>
 
@@ -609,80 +716,123 @@
     }
     function fitCanvas(c) {
       if (!c) return null;
-      // Lock logical CSS height from the original height attribute.
-      // Reading c.height after DPR scaling would multiply on every resize
-      // and grow the black lab area without bound (mobile Safari especially).
-      if (!c.dataset.logicH) {
-        c.dataset.logicH = c.getAttribute("height") || "220";
-      }
-      var parent = c.parentElement || c;
-      var rect = parent.getBoundingClientRect();
-      var dpr = Math.min(window.devicePixelRatio || 1, 2);
-      var w = Math.max(280, Math.floor(rect.width || 300));
-      var h = parseInt(c.dataset.logicH, 10) || 220;
-      var bw = Math.floor(w * dpr);
-      var bh = Math.floor(h * dpr);
-      if (c.width !== bw || c.height !== bh) {
-        c.width = bw;
-        c.height = bh;
-      }
-      c.style.width = "100%";
+      var rect = c.getBoundingClientRect();
+      var dpr = window.devicePixelRatio || 1;
+      var w = Math.max(300, Math.floor(rect.width || c.width));
+      var h = c.height;
+      c.width = Math.floor(w * dpr);
+      c.height = Math.floor(h * dpr);
+      c.style.width = w + "px";
       c.style.height = h + "px";
       var ctx = c.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       return { ctx: ctx, w: w, h: h };
     }
 
-    /* Double-spend race */
+    /* Double-spend race — mesh of nodes */
     (function () {
       var c = document.getElementById("raceCanvas");
       if (!c) return;
-      var t = 0, playing = false, winner = null, raf;
+      var nodes = [];
+      for (var r = 0; r < 3; r++) for (var col = 0; col < 4; col++) {
+        nodes.push({ x: 0.18 + col * 0.2, y: 0.28 + r * 0.28, seen: 0 });
+      }
+      var packets = [], t = 0, playing = false, winner = null, raf;
       function draw() {
         var f = fitCanvas(c); if (!f) return;
         var ctx = f.ctx, w = f.w, h = f.h;
         ctx.clearRect(0,0,w,h);
         ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
-        ctx.fillStyle = "#8fb4c9"; ctx.font = "13px IBM Plex Sans, sans-serif";
-        ctx.fillText("Alice", 24, h/2);
-        ctx.beginPath(); ctx.arc(70, h/2, 16, 0, Math.PI*2); ctx.fillStyle = "#b77912"; ctx.fill();
-        var p1 = Math.min(1, t / 100);
-        var p2 = Math.min(1, t / 115);
-        var x1 = 100 + (w - 220) * p1;
-        var x2 = 100 + (w - 220) * p2;
-        ctx.fillStyle = "#1677b8"; ctx.beginPath(); ctx.arc(x1, h/2 - 36, 10, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#b54749"; ctx.beginPath(); ctx.arc(x2, h/2 + 36, 10, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = "#8fb4c9"; ctx.fillText("Tx1→Bob", x1 - 20, h/2 - 50);
-        ctx.fillText("Tx2→Carol", x2 - 28, h/2 + 58);
-        ctx.strokeStyle = "#2d4254"; ctx.beginPath(); ctx.moveTo(100, h/2-36); ctx.lineTo(w-100, h/2-36); ctx.moveTo(100, h/2+36); ctx.lineTo(w-100, h/2+36); ctx.stroke();
-        ctx.fillStyle = "#16836f"; ctx.fillRect(w-90, h/2-50, 70, 100);
-        ctx.fillStyle = "#fff"; ctx.fillText("履歴", w-72, h/2);
+        // edges
+        ctx.strokeStyle = "#243241"; ctx.lineWidth = 1;
+        for (var i = 0; i < nodes.length; i++) for (var j = i+1; j < nodes.length; j++) {
+          var a = nodes[i], b = nodes[j];
+          var dx = a.x-b.x, dy = a.y-b.y;
+          if (dx*dx+dy*dy < 0.085) {
+            ctx.beginPath();
+            ctx.moveTo(a.x*w, a.y*h); ctx.lineTo(b.x*w, b.y*h); ctx.stroke();
+          }
+        }
+        nodes.forEach(function (n) {
+          var color = n.seen === 1 ? "#1677b8" : n.seen === 2 ? "#b54749" : n.seen === 3 ? "#b77912" : "#4e6d82";
+          ctx.beginPath(); ctx.arc(n.x*w, n.y*h, 12, 0, Math.PI*2);
+          ctx.fillStyle = color; ctx.fill();
+        });
+        ctx.fillStyle = "#b77912";
+        ctx.beginPath(); ctx.arc(0.08*w, 0.5*h, 14, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#8fb4c9"; ctx.font = "12px IBM Plex Sans, sans-serif";
+        ctx.fillText("Alice", 0.08*w - 16, 0.5*h + 28);
+        packets.forEach(function (p) {
+          ctx.beginPath(); ctx.arc(p.x*w, p.y*h, 6, 0, Math.PI*2);
+          ctx.fillStyle = p.kind === 1 ? "#1677b8" : "#b54749"; ctx.fill();
+        });
         if (winner) {
           ctx.fillStyle = "#e9f7f3";
-          ctx.fillText(winner === "bob" ? "正規: Tx1 残る / Tx2 orphaned" : "正規: Tx2 残る / Tx1 orphaned", 100, 28);
+          ctx.fillText(winner === "bob"
+            ? "正規履歴は Tx1(Bob)。Carol 向けは orphaned。"
+            : "正規履歴は Tx2(Carol)。Bob 向けは orphaned。", 24, 22);
         }
+      }
+      function neighbors(i) {
+        var out = [];
+        for (var j = 0; j < nodes.length; j++) {
+          if (i === j) continue;
+          var dx = nodes[i].x-nodes[j].x, dy = nodes[i].y-nodes[j].y;
+          if (dx*dx+dy*dy < 0.085) out.push(j);
+        }
+        return out;
       }
       function tick() {
         if (!playing) return;
-        t += 1.6;
-        if (t >= 115) {
+        t += 1;
+        // advance packets
+        packets.forEach(function (p) {
+          p.x += (p.tx - p.x) * 0.08;
+          p.y += (p.ty - p.y) * 0.08;
+          if (Math.abs(p.x-p.tx)+Math.abs(p.y-p.ty) < 0.02 && !p.delivered) {
+            p.delivered = true;
+            var n = nodes[p.target];
+            if (n.seen === 0) n.seen = p.kind;
+            else if (n.seen !== p.kind && n.seen !== 3) n.seen = 3;
+            neighbors(p.target).forEach(function (j) {
+              if (nodes[j].seen === 0 || (nodes[j].seen !== p.kind && nodes[j].seen !== 3 && Math.random() < 0.55)) {
+                packets.push({ x: p.tx, y: p.ty, tx: nodes[j].x, ty: nodes[j].y, kind: p.kind, target: j, delivered: false });
+              }
+            });
+          }
+        });
+        packets = packets.filter(function (p) { return !p.delivered || t < p.born + 40; });
+        var settled = nodes.every(function (n) { return n.seen !== 0; });
+        if (settled && t > 90) {
           playing = false;
-          winner = Math.random() < 0.55 ? "bob" : "carol";
+          var c1 = nodes.filter(function (n) { return n.seen === 1 || n.seen === 3; }).length;
+          var c2 = nodes.filter(function (n) { return n.seen === 2 || n.seen === 3; }).length;
+          winner = c1 >= c2 ? "bob" : "carol";
+          // resolve: majority first-seen becomes canonical for demo
+          nodes.forEach(function (n) { n.seen = winner === "bob" ? 1 : 2; });
           document.getElementById("raceStatus").textContent = winner === "bob"
-            ? "共有履歴は Tx1（Bob）を採用。Carol 向けは orphaned。"
-            : "共有履歴は Tx2（Carol）を採用。Bob 向けは orphaned。";
+            ? "伝播後、ネットワークは Tx1（Bob）へ収束。Tx2 は orphaned。"
+            : "伝播後、ネットワークは Tx2（Carol）へ収束。Tx1 は orphaned。";
         }
         draw();
         if (playing) raf = requestAnimationFrame(tick);
       }
-      document.getElementById("btnRacePlay").onclick = function () {
-        cancelAnimationFrame(raf); t = 0; winner = null; playing = true;
-        document.getElementById("raceStatus").textContent = "競合中… どちらの消費が先に正規履歴へ入るか。";
+      function seed(dual) {
+        cancelAnimationFrame(raf); playing = true; t = 0; winner = null; packets = [];
+        nodes.forEach(function (n) { n.seen = 0; });
+        // inject into left and right clusters
+        packets.push({ x: 0.08, y: 0.5, tx: nodes[0].x, ty: nodes[0].y, kind: 1, target: 0, delivered: false, born: 0 });
+        if (dual) packets.push({ x: 0.08, y: 0.5, tx: nodes[3].x, ty: nodes[3].y, kind: 2, target: 3, delivered: false, born: 0 });
+        document.getElementById("raceStatus").textContent = dual
+          ? "競合伝播中… ノードの色がローカルに先着した取引を示す。"
+          : "Tx1 のみ伝播中…";
         tick();
-      };
+      }
+      document.getElementById("btnRacePlay").onclick = function () { seed(true); };
       document.getElementById("btnRaceReset").onclick = function () {
-        cancelAnimationFrame(raf); playing = false; t = 0; winner = null;
-        document.getElementById("raceStatus").textContent = "再生すると、競合する二取引の運命が見えます。";
+        cancelAnimationFrame(raf); playing = false; packets = []; winner = null;
+        nodes.forEach(function (n) { n.seen = 0; });
+        document.getElementById("raceStatus").textContent = "再生すると、競合する二取引がノード群へ広がり、最終的に片方だけが残る過程が見えます。";
         draw();
       };
       window.addEventListener("resize", draw); draw();
@@ -1000,49 +1150,301 @@
       };
     }
 
-    /* Mempool */
-    var mempool = [
-      { name: "Alice", fee: 5 }, { name: "Bob", fee: 50 }, { name: "Carol", fee: 12 },
-      { name: "Dave", fee: 28 }, { name: "Eve", fee: 3 }, { name: "Frank", fee: 41 }
-    ];
-    function drawMempoolCanvas(sorted, slots) {
-      var c = document.getElementById("mempoolCanvas"); if (!c) return;
-      var f = fitCanvas(c); if (!f) return;
-      var ctx = f.ctx, w = f.w, h = f.h;
-      ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
-      var maxFee = sorted[0].fee;
-      sorted.forEach(function (tx, idx) {
-        var x = 40 + idx * ((w - 60) / sorted.length);
-        var hh = 30 + (tx.fee / maxFee) * (h - 70);
-        ctx.fillStyle = idx < slots ? "#b77912" : "#2d4254";
-        ctx.fillRect(x, h - 30 - hh, 36, hh);
-        ctx.fillStyle = "#8fb4c9"; ctx.font = "11px IBM Plex Sans, sans-serif";
-        ctx.fillText(tx.name[0], x + 12, h - 12);
-      });
-      ctx.fillStyle = "#5ddea8"; ctx.fillText("金色=次ブロック候補", 40, 24);
-    }
-    function renderMempool() {
-      var slots = parseInt(document.getElementById("blockSlots").value, 10);
-      document.getElementById("blockSlotsLabel").textContent = String(slots);
-      var sorted = mempool.slice().sort(function (a, b) { return b.fee - a.fee; });
-      var maxFee = sorted[0].fee;
-      var box = document.getElementById("mempoolBars"); box.innerHTML = "";
-      var included = [];
-      sorted.forEach(function (tx, idx) {
-        var row = document.createElement("div");
-        row.className = "mempool-row";
-        var inBlock = idx < slots;
-        if (inBlock) included.push(tx.name + "(" + tx.fee + ")");
-        row.innerHTML = "<span>" + tx.name + "</span><div class='bar' style='transform:scaleX(" + (tx.fee / maxFee) + ");opacity:" + (inBlock ? "1" : ".35") + "'></div><span>" + tx.fee + " sat/vB</span>";
-        box.appendChild(row);
-      });
-      document.getElementById("mempoolStatus").textContent = "次ブロック候補: " + included.join(", ") + "。枠外は待ち続ける。";
-      drawMempoolCanvas(sorted, slots);
-    }
-    if (document.getElementById("blockSlots")) {
-      document.getElementById("blockSlots").addEventListener("input", renderMempool);
-      window.addEventListener("resize", renderMempool); renderMempool();
-    }
+    /* Gossip propagation */
+    (function () {
+      var c = document.getElementById("gossipCanvas");
+      if (!c) return;
+      var N = 12;
+      var nodes = [];
+      for (var i = 0; i < N; i++) {
+        var ang = (i / N) * Math.PI * 2 - Math.PI/2;
+        nodes.push({ x: 0.5 + Math.cos(ang)*0.34, y: 0.52 + Math.sin(ang)*0.34, first: 0, both: false });
+      }
+      var edges = [], packets = [], raf, playing = false, tickN = 0, mode = "dual";
+      for (var a = 0; a < N; a++) for (var b = a+1; b < N; b++) {
+        if ((b - a) % N === 1 || (a === 0 && b === N-1) || (b - a) === 2 || (a + 2) % N === b) edges.push([a,b]);
+      }
+      // also a few chords
+      edges.push([0,5],[3,8],[6,11],[2,9]);
+      function draw() {
+        var f = fitCanvas(c); if (!f) return;
+        var ctx = f.ctx, w = f.w, h = f.h;
+        ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+        ctx.strokeStyle = "#243241"; ctx.lineWidth = 1;
+        edges.forEach(function (e) {
+          ctx.beginPath();
+          ctx.moveTo(nodes[e[0]].x*w, nodes[e[0]].y*h);
+          ctx.lineTo(nodes[e[1]].x*w, nodes[e[1]].y*h);
+          ctx.stroke();
+        });
+        // Alice
+        ctx.fillStyle = "#b77912";
+        ctx.beginPath(); ctx.arc(0.5*w, 0.5*h, 16, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#fff"; ctx.font = "11px IBM Plex Sans, sans-serif";
+        ctx.fillText("Alice", 0.5*w-16, 0.5*h+4);
+        nodes.forEach(function (n, idx) {
+          var col = "#4e6d82";
+          if (n.both) col = "#b77912";
+          else if (n.first === 1) col = "#1677b8";
+          else if (n.first === 2) col = "#b54749";
+          ctx.beginPath(); ctx.arc(n.x*w, n.y*h, 11, 0, Math.PI*2);
+          ctx.fillStyle = col; ctx.fill();
+          ctx.fillStyle = "#c8d8e4"; ctx.font = "10px IBM Plex Sans, sans-serif";
+          ctx.fillText(String(idx+1), n.x*w-3, n.y*h+3);
+        });
+        packets.forEach(function (p) {
+          var x = p.x0 + (p.x1-p.x0)*p.u;
+          var y = p.y0 + (p.y1-p.y0)*p.u;
+          ctx.beginPath(); ctx.arc(x*w, y*h, 5, 0, Math.PI*2);
+          ctx.fillStyle = p.kind===1 ? "#1677b8" : "#b54749"; ctx.fill();
+        });
+      }
+      function neighbors(i) {
+        var out = [];
+        edges.forEach(function (e) {
+          if (e[0]===i) out.push(e[1]);
+          if (e[1]===i) out.push(e[0]);
+        });
+        return out;
+      }
+      function metrics() {
+        var r1 = nodes.filter(function(n){return n.first===1||n.both;}).length;
+        var r2 = nodes.filter(function(n){return n.first===2||n.both;}).length;
+        var conf = nodes.filter(function(n){return n.both;}).length;
+        document.getElementById("gReach1").textContent = r1;
+        document.getElementById("gReach2").textContent = r2;
+        document.getElementById("gConflict").textContent = conf;
+        var done = r1 + r2 - conf >= N && (mode!=="dual" || (r1>0&&r2>0));
+        if (mode === "one") done = r1 >= N;
+        document.getElementById("gConverge").textContent = playing ? "伝播中" : (tickN ? (conf ? "局所競合あり（順序未決）" : "到達完了") : "—");
+      }
+      function deliver(to, kind, from) {
+        var n = nodes[to];
+        if (n.first === 0) n.first = kind;
+        else if (n.first !== kind) n.both = true;
+        neighbors(to).forEach(function (j) {
+          if (j === from) return;
+          var already = (kind===1 && (nodes[j].first===1||nodes[j].both)) || (kind===2 && (nodes[j].first===2||nodes[j].both));
+          if (!already || (nodes[j].first && nodes[j].first !== kind && !nodes[j].both && Math.random()<0.4)) {
+            packets.push({
+              x0: nodes[to].x, y0: nodes[to].y,
+              x1: nodes[j].x, y1: nodes[j].y,
+              u: 0, kind: kind, to: j, from: to, speed: 0.035 + Math.random()*0.025
+            });
+          }
+        });
+      }
+      function step() {
+        if (!playing) return;
+        tickN++;
+        packets.forEach(function (p) { p.u += p.speed; });
+        var next = [];
+        packets.forEach(function (p) {
+          if (p.u >= 1) deliver(p.to, p.kind, p.from);
+          else next.push(p);
+        });
+        packets = next;
+        metrics(); draw();
+        if (packets.length === 0 && tickN > 5) {
+          playing = false;
+          metrics();
+          var conf = nodes.filter(function(n){return n.both;}).length;
+          document.getElementById("gossipStatus").textContent = mode === "dual"
+            ? (conf ? "伝播完了。一部ノードは両方を見て競合を認識。共有順序なしではどちらが正規か未決。" : "伝播完了。偶然どちらか一方だけが全域に広まった。")
+            : "Tx1 のみが全域へ到達。競合なし。";
+          return;
+        }
+        raf = requestAnimationFrame(step);
+      }
+      function start(dual) {
+        cancelAnimationFrame(raf);
+        playing = true; tickN = 0; packets = []; mode = dual ? "dual" : "one";
+        nodes.forEach(function (n) { n.first = 0; n.both = false; });
+        // seed east / west ring nodes
+        packets.push({ x0:0.5, y0:0.5, x1:nodes[0].x, y1:nodes[0].y, u:0, kind:1, to:0, from:-1, speed:0.05 });
+        if (dual) packets.push({ x0:0.5, y0:0.5, x1:nodes[6].x, y1:nodes[6].y, u:0, kind:2, to:6, from:-1, speed:0.05 });
+        document.getElementById("gossipStatus").textContent = dual
+          ? "東西へ同時ブロードキャスト。色の割れはローカル先着を示す。"
+          : "Tx1 のみ伝播。";
+        step();
+      }
+      document.getElementById("btnGossipPlay").onclick = function(){ start(true); };
+      document.getElementById("btnGossipOne").onclick = function(){ start(false); };
+      document.getElementById("btnGossipReset").onclick = function(){
+        cancelAnimationFrame(raf); playing=false; packets=[]; tickN=0;
+        nodes.forEach(function(n){ n.first=0; n.both=false; });
+        document.getElementById("gossipStatus").textContent = "Alice から東西へ伝播させ、ローカル視野の割れを観察してください。";
+        metrics(); draw();
+      };
+      window.addEventListener("resize", draw); metrics(); draw();
+    })();
+
+    /* SPV vs Full Node */
+    (function () {
+      function paint(listId, items) {
+        var ul = document.getElementById(listId); ul.innerHTML = "";
+        items.forEach(function (it) {
+          var li = document.createElement("li");
+          li.className = it.ok ? "pass" : "fail";
+          li.textContent = (it.ok ? "✓ " : "✗ ") + it.name;
+          ul.appendChild(li);
+        });
+      }
+      function run() {
+        var v = (document.querySelector('input[name="attackCase"]:checked') || {}).value || "ok";
+        var merkleOk = v !== "fakeproof";
+        var rulesOk = v === "ok";
+        paint("spvChecks", [
+          { name: "ヘッダが鎖に繋がる", ok: true },
+          { name: "Merkle proof が根と一致", ok: merkleOk }
+        ]);
+        paint("fullChecks", [
+          { name: "ヘッダが鎖に繋がる", ok: true },
+          { name: "Merkle / 取引集合の整合", ok: merkleOk },
+          { name: "署名・二重支払い・金額保存", ok: rulesOk && merkleOk },
+          { name: "コインベース上限", ok: rulesOk && merkleOk }
+        ]);
+        var spvAccept = merkleOk;
+        var fullAccept = merkleOk && rulesOk;
+        var spvSt = document.getElementById("spvStatus");
+        var fullSt = document.getElementById("fullStatus");
+        spvSt.className = "sim-status" + (spvAccept ? "" : " reject");
+        fullSt.className = "sim-status" + (fullAccept ? "" : " reject");
+        spvSt.textContent = spvAccept ? "SPV: 受理（包含OK）" : "SPV: 拒否（証明不一致）";
+        fullSt.textContent = fullAccept ? "フルノード: 受理（規則OK）" : "フルノード: 拒否（規則 or 証明）";
+        if (spvAccept && !fullAccept) {
+          spvSt.textContent += " — 規則違反を見ない";
+        }
+      }
+      if (document.getElementById("btnSpvRun")) {
+        document.getElementById("btnSpvRun").onclick = run;
+        document.getElementById("btnSpvReset").onclick = function () {
+          document.querySelector('input[name="attackCase"][value="ok"]').checked = true;
+          document.getElementById("spvChecks").innerHTML = "";
+          document.getElementById("fullChecks").innerHTML = "";
+          document.getElementById("spvStatus").className = "sim-status";
+          document.getElementById("fullStatus").className = "sim-status";
+          document.getElementById("spvStatus").textContent = "未判定";
+          document.getElementById("fullStatus").textContent = "未判定";
+        };
+      }
+    })();
+
+    /* Difficulty thermostat */
+    (function () {
+      var c = document.getElementById("diffCanvas");
+      if (!c) return;
+      function render() {
+        var hr = parseInt(document.getElementById("hashrateSlider").value, 10) / 100;
+        document.getElementById("hashrateLabel").textContent = hr.toFixed(1) + "×";
+        var before = 10 / hr;
+        var mult = hr; // after adjustment, difficulty scales with hashrate
+        var after = 10; // returns to target
+        document.getElementById("intervalBefore").textContent = before.toFixed(1);
+        document.getElementById("diffMult").textContent = mult.toFixed(2) + "×";
+        document.getElementById("intervalAfter").textContent = after.toFixed(1);
+        document.getElementById("thermoFill").style.width = Math.min(100, hr * 40) + "%";
+        document.getElementById("diffStatus").textContent =
+          "ハッシュレート " + hr.toFixed(1) + "× の直後は約 " + before.toFixed(1) +
+          " 分間隔になるが、調整後は難易度 " + mult.toFixed(2) + "× で再び約10分へ戻る。";
+        var f = fitCanvas(c); if (!f) return;
+        var ctx = f.ctx, w = f.w, h = f.h;
+        ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+        function beats(y, intervalMin, color, label) {
+          var gap = Math.max(8, (intervalMin / 10) * 28);
+          ctx.fillStyle = color;
+          for (var x = 40; x < w - 40; x += gap) {
+            ctx.fillRect(x, y, 6, 28);
+          }
+          ctx.fillStyle = "#8fb4c9"; ctx.font = "12px IBM Plex Sans, sans-serif";
+          ctx.fillText(label, 40, y - 8);
+        }
+        beats(54, before, "#b54749", "調整前の出塊（模式）");
+        beats(114, after, "#16836f", "調整後 ≈ 10分リズム");
+      }
+      document.getElementById("hashrateSlider").addEventListener("input", render);
+      window.addEventListener("resize", render); render();
+    })();
+
+    /* Mempool with arrivals */
+    (function () {
+      var names = ["Alice","Bob","Carol","Dave","Eve","Frank","Gina","Hank","Ivy","Jon"];
+      var mempool = [
+        { name: "Alice", fee: 5 }, { name: "Bob", fee: 50 }, { name: "Carol", fee: 12 },
+        { name: "Dave", fee: 28 }, { name: "Eve", fee: 3 }, { name: "Frank", fee: 41 }
+      ];
+      var nameIdx = 0;
+      function drawMempoolCanvas(sorted, slots) {
+        var c = document.getElementById("mempoolCanvas"); if (!c) return;
+        var f = fitCanvas(c); if (!f) return;
+        var ctx = f.ctx, w = f.w, h = f.h;
+        ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+        if (!sorted.length) {
+          ctx.fillStyle = "#8fb4c9"; ctx.fillText("mempool 空", 40, 40); return;
+        }
+        var maxFee = Math.max.apply(null, sorted.map(function(t){return t.fee;}));
+        sorted.forEach(function (tx, idx) {
+          var x = 40 + idx * Math.min(70, (w - 60) / sorted.length);
+          var hh = 30 + (tx.fee / maxFee) * (h - 80);
+          ctx.fillStyle = idx < slots ? "#b77912" : "#2d4254";
+          ctx.fillRect(x, h - 36 - hh, 28, hh);
+          ctx.fillStyle = "#8fb4c9"; ctx.font = "10px IBM Plex Sans, sans-serif";
+          ctx.fillText(tx.name.slice(0,1), x + 9, h - 14);
+          ctx.fillText(String(tx.fee), x + 2, h - 40 - hh);
+        });
+        ctx.fillStyle = "#5ddea8"; ctx.font = "12px IBM Plex Sans, sans-serif";
+        ctx.fillText("金色=次ブロック候補 / 灰=待機", 40, 24);
+      }
+      function renderMempool() {
+        var slots = parseInt(document.getElementById("blockSlots").value, 10);
+        document.getElementById("blockSlotsLabel").textContent = String(slots);
+        var sorted = mempool.slice().sort(function (a, b) { return b.fee - a.fee; });
+        var maxFee = sorted.length ? sorted[0].fee : 1;
+        var box = document.getElementById("mempoolBars"); box.innerHTML = "";
+        var included = [];
+        sorted.forEach(function (tx, idx) {
+          var row = document.createElement("div");
+          row.className = "mempool-row";
+          var inBlock = idx < slots;
+          if (inBlock) included.push(tx.name + "(" + tx.fee + ")");
+          row.innerHTML = "<span>" + tx.name + "</span><div class='bar' style='transform:scaleX(" + (tx.fee / maxFee) + ");opacity:" + (inBlock ? "1" : ".35") + "'></div><span>" + tx.fee + " sat/vB</span>";
+          box.appendChild(row);
+        });
+        document.getElementById("mempoolStatus").textContent = sorted.length
+          ? ("待機 " + sorted.length + " 件 / 次ブロック候補: " + (included.join(", ") || "—") + "。枠外は次以降まで残る。")
+          : "mempool は空です。新規TXを到着させてください。";
+        drawMempoolCanvas(sorted, slots);
+      }
+      if (document.getElementById("blockSlots")) {
+        document.getElementById("blockSlots").addEventListener("input", renderMempool);
+        document.getElementById("btnMemArrive").onclick = function () {
+          var fee = Math.floor(2 + Math.random() * 60);
+          var name = names[nameIdx % names.length] + (nameIdx >= names.length ? String(Math.floor(nameIdx/names.length)+1) : "");
+          nameIdx++;
+          mempool.push({ name: name, fee: fee });
+          document.getElementById("mempoolStatus").textContent = name + " が " + fee + " sat/vB で到着。";
+          renderMempool();
+        };
+        document.getElementById("btnMemMine").onclick = function () {
+          var slots = parseInt(document.getElementById("blockSlots").value, 10);
+          var sorted = mempool.slice().sort(function (a, b) { return b.fee - a.fee; });
+          var taken = sorted.slice(0, slots).map(function (t) { return t.name; });
+          mempool = sorted.slice(slots);
+          document.getElementById("mempoolStatus").textContent = taken.length
+            ? ("ブロック確定: " + taken.join(", ") + " が入り、残り " + mempool.length + " 件が待機。")
+            : "入れる取引がありません。";
+          renderMempool();
+        };
+        document.getElementById("btnMemReset").onclick = function () {
+          mempool = [
+            { name: "Alice", fee: 5 }, { name: "Bob", fee: 50 }, { name: "Carol", fee: 12 },
+            { name: "Dave", fee: 28 }, { name: "Eve", fee: 3 }, { name: "Frank", fee: 41 }
+          ];
+          nameIdx = 0; renderMempool();
+        };
+        window.addEventListener("resize", renderMempool); renderMempool();
+      }
+    })();
   })();
   </script>
 </body>
