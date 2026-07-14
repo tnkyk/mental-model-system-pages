@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Bitcoin v5 — 複製無料という物理制約から、伝播・UTXO・PoW・難易度・検証範囲まで、制約が次の発明を強制する鎖として再構築する。">
-  <title>Bitcoin from First Principles v5 | コストのかかる共有履歴</title>
+  <meta name="description" content="Bitcoin v6 — 価値保存と貨幣史から法定通貨との分岐を置き、複製無料の制約を伝播・UTXO・PoW・検証範囲まで再構築する。">
+  <title>Bitcoin from First Principles v6 | コストのかかる共有履歴</title>
   <link rel="stylesheet" href="./assets/css/site.css">
   <link rel="stylesheet" href="./assets/css/sim-kit.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -117,6 +117,7 @@
       <nav class="site-nav" aria-label="サイトナビ">
         <a class="nav-index" href="./index.html">記事一覧</a>
         <a class="toc-only" href="#wonder">序</a>
+        <a class="toc-only" href="#sov">価値保存</a>
         <a class="toc-only" href="#history">履歴</a>
         <a class="toc-only" href="#doublespend">二重支払い</a>
         <a class="toc-only" href="#gossip">伝播</a>
@@ -130,17 +131,17 @@
 
   <header class="article-head">
     <div class="wrap">
-      <p class="kicker">Monetary technology · Distributed systems · Essay v5</p>
+      <p class="kicker">Monetary technology · Distributed systems · Essay v6</p>
       <h1>Bitcoin, from First Principles</h1>
-      <p class="dek">コピーがほぼ無料な世界で、なぜ画面上の数字の移動が「現金を渡した」ことになりうるのか——各部品が前の部品の失敗を埋める鎖として、伝播・状態・コスト・検証まで一気に歩く。</p>
-      <p class="meta">Mental Model Studio · 2026-07-14 · v5 Faza-parity dwell · 投資助言ではない</p>
+      <p class="dek">価値保存の宿題から法定通貨との分岐を置き、コピーがほぼ無料な世界でなぜ画面上の数字の移動が「現金を渡した」ことになりうるのか——制約が次の発明を強制する鎖として歩く。</p>
+      <p class="meta">Mental Model Studio · 2026-07-14 · v6 store-of-value + Faza dwell · 投資助言ではない</p>
     </div>
   </header>
 
   <section class="thesis-band" id="model">
     <div class="reading">
       <p class="thesis-label">最終メンタルモデル</p>
-      <p class="thesis">Bitcoinは、署名で「誰が許可したか」を示し、UTXO台帳で「何がまだ未使用か」を示し、Proof-of-Workの連鎖で「どの履歴が正規か」を示し、フルノードが同じ規則で検証する、信頼最小化の電子現金システムである。価格や取引所残高は、その上に乗る市場・委任レイヤである。</p>
+      <p class="thesis">Bitcoinは、署名で「誰が許可したか」を示し、UTXO台帳で「何がまだ未使用か」を示し、Proof-of-Workの連鎖で「どの履歴が正規か」を示し、フルノードが同じ規則で検証する、信頼最小化の電子現金システムである。発行スケジュールと改訂コストが公開検証可能なため価値保存の候補としても語られるが、需要・為替・購買力の結果はプロトコル外である。価格や取引所残高は、その上に乗る市場・委任レイヤである。</p>
     </div>
   </section>
 
@@ -151,7 +152,7 @@
       <p class="lead-para dwell">スマートフォンで友人に写真を送るとき、あなたは自分の端末から写真を「渡して」いない。コピーが相手へ増え、手元のファイルはそのまま残る。音楽ファイルも、スライド資料も、ほぼあらゆるデジタルオブジェクトも同じである。送信は複製であり、複製の限界費用は実質ゼロに近い。</p>
       <p class="dwell">それなら、画面に「0.05 BTC を送った」と出た瞬間、なぜそれが現金の受け渡しに近い出来事だと言えるのか。銀行の窓口係も、店舗の金庫も、署名した紙の領収書も、プロトコルの画面には出てこない。出てくるのは文字列と数字と、少し待って消えるローディング表示だけである。</p>
       <p class="dwell">多くの解説はここで「ブロックチェーンがあるから」と答えて止まる。しかしラベルはメカニズムではない。現金が現金である理由は、紙の質感ではなく、同じ紙幣を二人に同時に渡せないことにある。デジタルで同じことを言うには、複製可能という物理に逆らう共有状態が要る。この記事はその共有状態の中身を、急がずに分解する。</p>
-      <p class="dwell">もう一つ先に断りたい。Bitcoinを「通貨か、商品か、投機か」と分類する議論は市場では重要でも、プロトコル理解の最初の問いとしては早すぎる。最初に必要なのは、ある履歴候補がなぜ他の候補より高くつくのか、ある署名が何を証明して何を証明しないのか、画面の数字がどの委任層を指しているのか、という分解である。</p>
+      <p class="dwell">もう一つ先に断りたい。Bitcoinを「必ず上がる資産」と読む議論は市場では熱いが、本稿の足場ではない。先に置くのは、お金が価値保存として何を要求してきたか——そして兌換の錨が外れたあと、なぜ検証可能な供給制約が語られうるか——という性質の話である。価格予言ではなく、発行と改訂を誰がどう検証するかの話だ。</p>
       <p class="dwell">私にとって最も奇妙な点はここにある。Bitcoinが証明しようとしているのは「魔法の価値」でも「必ず上がる資産」でもない。データが好き放題コピーできる物理的現実の中で、<strong>同じ単位を二人に同時に使わせない</strong>ための、公開された手続きである。価格チャートはその上に重ねられた市場の物語であり、プロトコル本体の説明ではない。</p>
 
       <figure class="sourced">
@@ -164,7 +165,7 @@
       <p class="dwell">三つ目。高額の支払いを受け取った相手が「6確認待ってから商品を渡す」と言う。あなたは取引所の「反映済み」で安心したが、相手は別の時計を見ている。確定は感覚ではなく、<strong>累積した作業コスト</strong>の話である。</p>
       <p>これらは投資の成否ではない。<strong>主権・委任・確定</strong>という、システム設計の切れ目である。この記事は、その切れ目に長く滞留しながら、再構築可能なメカニズムへ分解する。</p>
 
-      <p class="callout-soft dwell">ここから先は、台帳係なしに「同じコインを二度使えない」と言える理由を、制約が次の発明を強制する順で歩く。価格予測や売買助言、Lightning やサイドチェーンの詳細、Script のオペコード一覧には入らない——それらはこの足場の上に後から載る応用である。</p>
+      <p class="callout-soft dwell">ここから先は、価値保存の歴史を一度噛み、そのうえで台帳係なしに「同じコインを二度使えない」と言える理由を、制約が次の発明を強制する順で歩く。価格予測や売買助言、Lightning やサイドチェーンの詳細、Script のオペコード一覧には入らない——それらはこの足場の上に後から載る応用である。</p>
     </section>
 
     <section class="section reading" id="bank">
@@ -194,6 +195,33 @@
         <img src="./assets/images/bitcoin-first-principles/photos/nyse.jpg" alt="ニューヨーク証券取引所の外観" width="1280" height="1707">
         <figcaption>ニューヨーク証券取引所（Wikimedia Commons）。相場ボードが示すのは需要と供給の合意価格であり、プロトコルが定義する「どの履歴が正規か」の規則ではない。価格アプリの緑と赤は、この建物側の言語である。</figcaption>
       </figure>
+
+      <p class="dwell">ただし、委任を外す動機は「決済の不便」だけではない。人々がなお貨幣に求める宿題——購買力を時間を超えて運ぶこと——は、台帳係の話より古く、法定通貨の便利さだけでは閉じない。次節ではその宿題を、貝殻と金と1971年の転換を通して一度整理してから、電子現金の部品史へ入る。</p>
+    </section>
+
+    <section class="section reading" id="sov">
+      <h2>価値の保存という宿題：貝殻から法定通貨、そしてデジタル希少性へ</h2>
+      <p class="dwell">前節で見たように、現代の決済の大半は台帳係への委任である。しかし「だから電子現金が要る」と言う前に、もう一段古い問いがある。すでに円やドルがあるのに、なぜ敢えて別の貨幣性を探すのか。答えは支払いの速さではなく、<strong>価値の保存</strong>——購買力を、十分に予測可能な形で未来へ持ち越せるか——に寄っている。</p>
+      <p class="dwell">イングランド銀行の入門論考は、貨幣の役割を三つに分ける。価値の保存、計算単位、交換手段である。価値の保存とは、ある程度予測可能な仕方で時間が経っても価値を残すこと——何百年前に掘られた金や銀は今日なお価値を持ちうるが、腐る食料はそうではない、と彼らは対比する<a class="fn-ref" href="#ref-10">(*10)</a>。交換手段は明日も使える見込みがあって初めて強くなる。実際、超インフレで従来通貨が価値保存として崩れると、人々は別の通貨で売買し始めることがある——第一次世界大戦後のドイツ・マルクはその古典例として挙げられている<a class="fn-ref" href="#ref-10">(*10)</a>。</p>
+      <p class="dwell">ここで重要なのはモラルではない。機能である。法定通貨は、計算単位と日常の交換手段として極めて強い。それは政策・法・ネットワーク効果が支える信頼の結晶だ。同時に現代貨幣の本体は、銀行預金を含む<strong>特殊な IOU（借用証書）</strong>である、と英中銀は述べる<a class="fn-ref" href="#ref-10">(*10)</a>。IOUとしての強さは発行・決済制度への信頼に依存する。だから「法定通貨が使えている」ことと、「発行が裁量的でも購買力を長い間きれいに保存できる」ことは、同じ命題ではない。</p>
+      <p class="dwell">貨幣の起源をたどると、価値保存は交換の傍ら役ではない、と読む論もある。Nick Szabo の <em>Shelling Out</em> は、貝殻・牙・家財といったコレクタブルが、現代マネー以前に「安全な形で体現された価値」の先駆になったと論じる<a class="fn-ref" href="#ref-11">(*11)</a>。それは単なる装飾ではなく、安く増刷できないこと・耐久・携帯・査定しやすさといった、非法定貨幣と共有する属性を持っていた。供給が製造業によって一気に膨らめば（北米のワムパムがその例として語られる）、貨幣性は薄れ、装飾へ退化する——希少性の硬さは、歴史上はじめて「気分」ではなく製造コストの話だった<a class="fn-ref" href="#ref-11">(*11)</a>。</p>
+      <p class="dwell">そこから近代までの道は、おおざっぱにこう読める。実物や貴金属（供給膨張にコストがかかる）→ 兌換を約束した紙幣（持ち運びは紙、錨は金属側に残る）→ 兌換義務を外した法定通貨（政策の自由度が上がり、価値保存は制度への信用に寄る）。便利さは右へ進みやすい。失われやすいのは、<strong>発行体を信じなくても検査できる希少性</strong>である。</p>
+
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/money-hardness-ladder.svg" alt="コレクション／貴金属から兌換紙幣、裁量的法定通貨、公開供給制約へと移る価値保存の検証コストの梯子" width="920" height="300">
+        <figcaption>見るべきは値段ではなく、検証の置き場である。左は材質と採掘・製造コスト、中ほどは発行体と兌換、右端の法定通貨は制度信頼、その先に「誰でも検査できる発行スケジュールと改訂コスト」というデジタル上の選択肢が開く。</figcaption>
+      </figure>
+
+      <p class="dwell">二十世紀の区切りとして、第二次世界大戦後のブレトン・ウッズ体制を置くと分かりやすい。多くの通貨はドルに（例外的に調整可能な形で）固定され、ドルは金一オンス＝35ドルという交換比率で金と結ばれていた<a class="fn-ref" href="#ref-12">(*12)</a>。価値保存の最終的な錨は、なお金属側に残っていた——少なくとも公式の対外交換においては。1971年8月、インフレと金の取り付け懸念のなかで、ニクソン大統領はドルの金兌換を停止する。連邦準備制度史は、これにより国際通貨体制が実質的にフィアット（不換）へ転じ、ブレトン・ウッズの終わりの始まりになった、と要約する<a class="fn-ref" href="#ref-12">(*12)</a>。</p>
+      <p class="dwell">この転換を「悪役の物語」にすると誤解が増える。政策には景気・雇用・国際収支という別の制約がある。本稿が取りたいのはもっと狭い命題だ。<strong>価値保存の質が、商品の物理制約から、主権者の裁量と信用の維持能力へ、はっきりと移った</strong>という構造変化である。円やドルが劣った道具だと言いたいのではない。それらは交換と計算単位として覇権的である。だが長期の購買力について「発行ルールを自分で検証できるか」と問うと、答えは制度文書と政治過程にあり、誰でも同じノード規則で監査できる公開台帳にはない。</p>
+      <p class="dwell">Bitcoin がこの歴史に差し込むのは、「法定通貨を廃せ」というスローガンではない。複製無料のデジタル領域で、<strong>発行スケジュールと履歴改訂のコストを、発行体の好意ではなく公開手続きとして検査できる</strong>貨幣候補を作ることだ。約2100万枚の上限や半減は価格の予言ではなく、供給側の機械的制約である——需要・為替・購買力の結果は、なお市場と制度の外生変数だ（後節の限界でも繰り返す）。だが法定通貨側が一貫して委託してきた「希少性の最終裁定」を、検証可能なコストへ移そうとする設計である、とは言える。</p>
+      <p class="dwell">ここが次の制約を生む。価値保存の候補であっても、それがデジタルの<strong>持ち運び可能な単位</strong>なら、同じ単位を二人に同時に渡せない手続きが要る。貝殻は物理的に一つしか渡せない。銀行預金は台帳係が順序を決める。Bitcoin がそのどちらでもなく電子現金を目指すなら、中央なしで二重支払いを抑える閉ループが要る——次節の電子現金史と、そのあとのメカニズム分解は、まさにこの宿題への応答である<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
+
+      <blockquote class="pull-quote">
+        法定通貨が壊れているから Bitcoin が要る、ではない。法定通貨が交換と単位で強い世界のうえで、価値保存に「検証可能な供給制約」を足す選択肢が、デジタルではじめて開かれた——というのが本稿の主張である。
+      </blockquote>
+
+      <p class="callout-soft dwell">注意：価値保存の<strong>性質</strong>（発行・改訂をどう検証するか）と、資産の<strong>成績</strong>（将来の購買力や相場）は別物である。本稿は前者を歴史とメカニズムから説明する。売買助言や「法定通貨からの逃避」を煽る議論は範囲外である。</p>
     </section>
 
     <section class="section reading" id="history">
@@ -643,6 +671,7 @@
         <thead><tr><th>領域</th><th>限界の根拠</th></tr></thead>
         <tbody>
           <tr><td>価格</td><td>約2100万枚の供給上限は供給側の制約。需要と為替は市場（プロトコル外）</td></tr>
+          <tr><td>価値保存の成績</td><td>発行・改訂の検証可能性はプロトコル内。購買力の将来結果は需要・制度・競合資産に依存</td></tr>
           <tr><td>完全匿名</td><td>取引は公開台帳。連鎖分析で追跡されうる</td></tr>
           <tr><td>無限スループット</td><td>オンチェーン容量は意図的に制約される</td></tr>
           <tr><td>鍵の社会的回復</td><td>シード喪失の救済はプロトコル外</td></tr>
@@ -655,6 +684,7 @@
         <li>「マイナーがすべてを決める」→ 無効ブロックはフルノードが拒否する<a class="fn-ref" href="#ref-4">(*4)</a></li>
         <li>「取引所の残高＝自分のBitcoin」→ 鍵制御が本義（多くはIOU）</li>
         <li>「半減期＝必ず稀少性バブル」→ 供給スケジュールの話であって価格の法則ではない</li>
+        <li>「法定通貨が滅びるからBitcoinが要る」→ 本稿の主張は交換手段の否定ではなく、検証可能な供給制約という選択肢の追加</li>
       </ul>
     </section>
 
@@ -678,12 +708,13 @@
           <tr><td>「6確認を待て」と言われる</td><td>差し替えに要する累積作業量の経験則</td></tr>
           <tr><td>シードをなくすと誰も戻せない</td><td>秘密鍵＝主権。救済当局なし</td></tr>
           <tr><td>半減期が騒ぎになる</td><td>補助金スケジュール≠安全保障そのもの</td></tr>
+          <tr><td>インフレ懸念でBitcoinの話になる</td><td>価値保存の性質（検証可能な供給）と相場の成績は別時計</td></tr>
           <tr><td>「改ざん不可能」と聞いても不安が残る</td><td>条件付きの累積コスト＋自分の検証範囲</td></tr>
         </tbody>
       </table>
 
       <p class="dwell">Faza のソフトウェア論が言うように、理解できるものだけが制御できる。Bitcoinでも同じである。価格アプリの数字を眺めることと、自分がどの委任構造の上に立っているかを説明できることは、別のリテラシーだ。AIが要約や送金手順を提案する時代でも、最終的に検証すべきなのはモデル——署名、UTXO、累積作業量、フルノード——のどれが自分の手元にあるかである。</p>
-      <p class="dwell">この記事が目指したのは、用語辞典ではなく、世界の見え方が一段変わる足場である。コピーが無料でも希少性を強制できること、伝播遅延があっても最終的に順序を共有できること、作業量が見えるコストであること、検証範囲を自分の言葉で言えること——それができれば、十分に遠くまで歩いたことになる。</p>
+      <p class="dwell">この記事が目指したのは、用語辞典ではなく、世界の見え方が一段変わる足場である。価値保存が歴史上なにを要求してきたか、コピーが無料でも希少性を強制できること、伝播遅延があっても最終的に順序を共有できること、作業量が見えるコストであること、検証範囲を自分の言葉で言えること——それができれば、十分に遠くまで歩いたことになる。</p>
     </section>
 
     <section class="section reading" id="references">
@@ -698,6 +729,9 @@
         <li id="ref-7">Bitcoin Wiki, Genesis block. <a href="https://en.bitcoin.it/wiki/Genesis_block">en.bitcoin.it/wiki/Genesis_block</a></li>
         <li id="ref-8">Wei Dai, <em>b-money</em>, 1998. <a href="http://www.weidai.com/bmoney.txt">weidai.com/bmoney.txt</a></li>
         <li id="ref-9">画像: David Shankbone, <em>Lehman Brothers Times Square</em> (Wikimedia Commons, CC BY 3.0); Bank of England / NYSE / mining farm / SHA-2 / blockchain diagrams via Wikimedia Commons（各ファイルのライセンス表記に従う）。</li>
+        <li id="ref-10">Michael McLeay, Amar Radia, Ryland Thomas, <em>Money in the modern economy: an introduction</em>, Bank of England Quarterly Bulletin, 2014 Q1. <a href="https://www.bankofengland.co.uk/quarterly-bulletin/2014/q1/money-in-the-modern-economy-an-introduction">bankofengland.co.uk/…/money-in-the-modern-economy-an-introduction</a></li>
+        <li id="ref-11">Nick Szabo, <em>Shelling Out: The Origins of Money</em>, 2002. <a href="https://nakamotoinstitute.org/library/shelling-out/">nakamotoinstitute.org/library/shelling-out/</a></li>
+        <li id="ref-12">Sandra Kollen Ghizoni, <em>Nixon Ends Convertibility of U.S. Dollars to Gold and Announces Wage/Price Controls</em>, Federal Reserve History, 2013. <a href="https://www.federalreservehistory.org/essays/gold-convertibility-ends">federalreservehistory.org/essays/gold-convertibility-ends</a></li>
       </ol>
       <p style="color:var(--mm-muted);font-size:13px;">注: 本稿の Lab は教育用の簡略モデルであり、実ネットワークの暗号・難易度・伝播・手数料市場をシミュレートするものではない。過程の直観を作るための玩具である。</p>
     </section>
