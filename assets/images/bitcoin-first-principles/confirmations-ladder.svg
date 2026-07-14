@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 280" role="img">
+  <rect width="920" height="280" fill="#fff"/>
+  <text x="40" y="36" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="15" font-weight="700" fill="#263d59">確認数＝差し替えコストの梯子</text>
+  <text x="40" y="58" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">取引を含むブロックの上に、さらに何段の累積 PoW が積まれたか</text>
+  <g font-family="IBM Plex Sans, sans-serif">
+    <rect x="60" y="200" width="110" height="36" fill="#fceeee" stroke="#b54749"/><text x="115" y="223" text-anchor="middle" font-size="12" fill="#b54749">0 conf</text>
+    <rect x="190" y="170" width="110" height="66" fill="#fff5df" stroke="#b77912"/><text x="245" y="208" text-anchor="middle" font-size="12" fill="#b77912">1 conf</text>
+    <rect x="320" y="140" width="110" height="96" fill="#eaf4fb" stroke="#1677b8"/><text x="375" y="192" text-anchor="middle" font-size="12" fill="#1677b8">3 conf</text>
+    <rect x="450" y="100" width="110" height="136" fill="#e9f7f3" stroke="#16836f"/><text x="505" y="172" text-anchor="middle" font-size="12" fill="#16836f">6 conf</text>
+    <rect x="580" y="70" width="280" height="166" fill="#263d59"/><text x="720" y="150" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">再実行コスト上昇</text><text x="720" y="175" text-anchor="middle" font-size="12" fill="#c9d6e2">攻撃者は以降すべてを作り直す</text>
+  </g>
+</svg>

@@ -4,6 +4,6 @@ Public GitHub Pages artifacts exported from the private `mental-model-system` so
 
 Published pages:
 
-- `bitcoin-from-first-principles.html` (v3 essay)
+- `bitcoin-from-first-principles.html` (v4 gap-fill essay)
 - `llm-from-first-principles.html`
 - `quantum-computing-from-first-principles.html`
