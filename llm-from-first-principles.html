@@ -3,764 +3,895 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LLMを探索、変換、検証、権限の分離として理解し、学習、推論、因果、研究動向、Codex利用までを一次資料から説明する。">
-  <title>LLM from First Principles | 探索・変換・検証のメンタルモデル</title>
+  <meta name="description" content="LLMを探索・変換・検証・権限の分離として、観測尤度・Attention・サンプリング・Tool・因果・証拠梯子までファーストプリンシパルで再構築する長文記事（3 Lab付き）。">
+  <title>LLM from First Principles | 探索・変換・検証・権限</title>
+  <link rel="stylesheet" href="./assets/css/site.css">
+  <link rel="stylesheet" href="./assets/css/sim-kit.css">
   <style>
-    :root {
-      --ink:#17212b; --muted:#536271; --paper:#fbfcfd; --white:#fff; --line:#d8e0e6;
-      --blue:#1677b8; --blue-soft:#eaf4fb; --gold:#b77912; --gold-soft:#fff5df;
-      --green:#16836f; --green-soft:#e9f7f3; --red:#b54749; --red-soft:#fceeee;
-      --gray:#677786; --gray-soft:#eff3f5; --navy:#263d59; --max:1080px;
-    }
-    * { box-sizing:border-box; min-width:0; }
-    html { scroll-behavior:smooth; }
-    body { margin:0; color:var(--ink); background:var(--paper); font:16px/1.82 Inter, "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif; overflow-x:hidden; }
-    a { color:#075f9d; text-underline-offset:3px; overflow-wrap:anywhere; }
-    a:hover { color:#034d7e; }
-    button,input { font:inherit; }
-    code { font:13px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace; background:#edf2f5; padding:2px 5px; overflow-wrap:anywhere; white-space:normal; }
-    .wrap { width:min(var(--max), calc(100% - 48px)); margin:0 auto; }
-    .reading { width:min(820px, calc(100% - 48px)); margin:0 auto; }
-    .topbar { position:sticky; top:0; z-index:20; border-bottom:1px solid var(--line); background:rgba(251,252,253,.97); }
-    .topbar-inner { min-height:58px; display:flex; align-items:center; justify-content:space-between; gap:24px; }
-    .brand { color:var(--navy); text-decoration:none; font-size:14px; font-weight:800; white-space:nowrap; }
-    .desktop-nav { display:flex; gap:18px; align-items:center; font-size:13px; white-space:nowrap; }
-    .desktop-nav a { color:var(--muted); text-decoration:none; }
-    .desktop-nav a:hover { color:var(--ink); }
-    .mobile-nav { display:none; position:relative; }
-    .mobile-nav summary { cursor:pointer; font-size:14px; font-weight:700; list-style:none; }
-    .mobile-nav summary::-webkit-details-marker { display:none; }
-    .mobile-nav[open] .mobile-menu { position:absolute; right:0; top:34px; width:220px; border:1px solid var(--line); background:var(--white); box-shadow:0 10px 30px rgba(23,33,43,.12); padding:10px; }
-    .mobile-menu a { display:block; padding:8px 9px; color:var(--ink); text-decoration:none; font-size:14px; }
-    .article-head { padding:62px 0 46px; border-bottom:1px solid var(--line); background:#f1f6f7; }
-    .kicker { margin:0 0 12px; color:var(--green); font-size:13px; font-weight:800; }
-    h1,h2,h3,h4 { letter-spacing:0; line-height:1.3; }
-    h1 { margin:0; max-width:900px; font-size:54px; font-weight:820; }
-    .dek { max-width:790px; margin:20px 0 0; color:#334656; font-size:19px; }
-    .meta { margin:20px 0 0; color:var(--muted); font-size:13px; }
-    .thesis-band { padding:30px 0; border-bottom:1px solid #aac7c1; background:var(--green-soft); }
-    .thesis-label { margin:0 0 8px; color:#0e6557; font-size:13px; font-weight:800; }
-    .thesis { margin:0; color:#183d38; font-size:20px; line-height:1.7; font-weight:650; }
-    main { padding:18px 0 84px; }
-    .section { padding:54px 0; border-bottom:1px solid var(--line); scroll-margin-top:72px; }
-    .section:last-child { border-bottom:0; }
-    h2 { margin:0 0 18px; font-size:32px; }
-    h3 { margin:34px 0 12px; font-size:21px; }
-    h4 { margin:24px 0 8px; font-size:16px; }
-    p { margin:0 0 18px; }
-    ul,ol { margin:0 0 18px; padding-left:1.35em; }
-    li + li { margin-top:8px; }
-    .lead { color:#344555; font-size:18px; }
-    .callout { margin:26px 0; padding:19px 21px; border-left:4px solid var(--green); background:var(--green-soft); }
-    .callout p:last-child { margin-bottom:0; }
-    .warning { border-left-color:var(--red); background:var(--red-soft); }
-    .definition { display:grid; grid-template-columns:170px 1fr; gap:18px; padding:16px 0; border-top:1px solid var(--line); }
-    .definition:last-child { border-bottom:1px solid var(--line); }
-    .definition dt { font-weight:800; color:var(--navy); }
-    .definition dd { margin:0; color:#3e4d5a; }
-    .diagram { margin:30px 0; border:1px solid var(--line); background:var(--white); padding:24px; }
-    .diagram-title { margin:0 0 18px; font-size:15px; color:var(--navy); font-weight:800; }
-    .caption { margin:16px 0 0; color:var(--muted); font-size:13px; }
-    .legend { display:flex; flex-wrap:wrap; gap:14px 20px; margin:0 0 20px; padding:12px 14px; background:var(--gray-soft); font-size:12px; color:#40505e; }
-    .legend-item { display:flex; align-items:center; gap:7px; }
-    .swatch { width:14px; height:14px; border:2px solid currentColor; background:var(--white); }
-    .swatch.blue { color:var(--blue); background:var(--blue-soft); }
-    .swatch.gold { color:var(--gold); background:var(--gold-soft); }
-    .swatch.green { color:var(--green); background:var(--green-soft); }
-    .swatch.red { color:var(--red); background:var(--red-soft); }
-    .line-key { width:24px; border-top:2px solid var(--gray); }
-    .line-key.dotted { border-top-style:dotted; }
-    .line-key.dashed { border-top-style:dashed; }
-    .thesis-flow { display:grid; grid-template-columns:1fr 54px 1.1fr 54px 1fr 54px 1fr; align-items:stretch; }
-    .node { border:1px solid var(--line); padding:16px; background:var(--white); }
-    .node b { display:block; margin-bottom:6px; font-size:15px; }
-    .node span { display:block; color:var(--muted); font-size:13px; line-height:1.55; }
-    .node.blue { border-top:4px solid var(--blue); background:var(--blue-soft); }
-    .node.gold { border-top:4px solid var(--gold); background:var(--gold-soft); }
-    .node.green { border-top:4px solid var(--green); background:var(--green-soft); }
-    .node.red { border-top:4px solid var(--red); background:var(--red-soft); }
-    .arrow { display:flex; align-items:center; justify-content:center; color:var(--gray); font-size:24px; font-weight:800; }
-    .arrow::before { content:"→"; }
-    .search-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
-    .search-item { border:1px solid #9dc5de; background:var(--blue-soft); padding:17px; }
-    .search-item b { display:block; color:#0e5d90; margin-bottom:6px; }
-    .search-item p { margin:0; font-size:14px; color:#3c5261; }
-    .timeline { position:relative; margin:8px 0 0; padding-left:42px; }
-    .timeline::before { content:""; position:absolute; left:15px; top:18px; bottom:18px; width:3px; background:var(--line); }
-    .phase { position:relative; margin:0 0 14px; border:1px solid var(--line); background:var(--white); padding:17px 18px; }
-    .phase::before { content:attr(data-step); position:absolute; left:-42px; top:17px; width:31px; height:31px; display:grid; place-items:center; border:2px solid var(--gold); background:var(--gold-soft); color:#76500d; font-size:12px; font-weight:800; }
-    .phase.data::before { border-color:var(--blue); background:var(--blue-soft); color:#0b5f94; }
-    .phase.behavior::before { border-color:var(--green); background:var(--green-soft); color:#0c6557; }
-    .phase.gate::before { border-color:var(--red); background:var(--red-soft); color:#883638; }
-    .phase h3 { margin:0 0 6px; font-size:17px; }
-    .phase p { margin:0; color:#435260; font-size:14px; }
-    .term-table { width:100%; border-collapse:collapse; table-layout:fixed; margin:20px 0; font-size:14px; }
-    .term-table th,.term-table td { border-bottom:1px solid var(--line); padding:12px; vertical-align:top; text-align:left; overflow-wrap:anywhere; }
-    .term-table th { background:var(--gray-soft); color:#34495c; font-size:13px; }
-    .term-table th:first-child { width:24%; }
-    .term-table th:nth-child(2) { width:38%; }
-    .sequence { counter-reset:seq; display:grid; gap:10px; }
-    .sequence-step { counter-increment:seq; display:grid; grid-template-columns:44px 165px 1fr; border:1px solid var(--line); background:var(--white); }
-    .sequence-step::before { content:counter(seq); display:grid; place-items:center; background:var(--blue-soft); color:#0d6398; font-weight:850; }
-    .sequence-step b { padding:13px 12px; border-right:1px solid var(--line); font-size:14px; }
-    .sequence-step span { padding:13px 14px; color:#435260; font-size:14px; }
-    .block-stack { display:grid; gap:8px; width:min(560px,100%); margin:0 auto; }
-    .block-layer { display:grid; grid-template-columns:160px 1fr; border:1px solid var(--line); }
-    .block-layer b { padding:11px 13px; background:var(--gold-soft); color:#75500d; font-size:13px; }
-    .block-layer span { padding:11px 13px; color:#465561; font-size:13px; }
-    .block-arrow { text-align:center; color:var(--gray); line-height:1; }
-    .block-arrow::before { content:"↓"; }
-    .stack-wrap { display:grid; grid-template-columns:1fr 90px; gap:18px; align-items:center; }
-    .system-stack { display:flex; flex-direction:column; gap:8px; }
-    .stack-layer { display:grid; grid-template-columns:170px 1fr; border:1px solid var(--line); min-height:62px; background:var(--white); }
-    .stack-layer b { display:flex; align-items:center; padding:12px 14px; border-right:1px solid var(--line); background:var(--gray-soft); font-size:14px; }
-    .stack-layer span { display:flex; align-items:center; padding:12px 14px; color:#445461; font-size:13px; }
-    .stack-layer.application b { background:var(--green-soft); color:#0e6558; }
-    .stack-layer.model b { background:var(--gold-soft); color:#79510d; }
-    .stack-layer.hardware b { background:var(--blue-soft); color:#0c6298; }
-    .bi-flow { position:relative; height:100%; min-height:330px; display:flex; justify-content:space-around; }
-    .flow-down,.flow-up { position:relative; width:3px; height:100%; min-height:330px; }
-    .flow-down { background:var(--green); }
-    .flow-up { background:var(--blue); }
-    .flow-down::after { content:"▼"; position:absolute; bottom:-10px; left:-7px; color:var(--green); }
-    .flow-up::after { content:"▲"; position:absolute; top:-12px; left:-7px; color:var(--blue); }
-    .flow-label { position:absolute; writing-mode:vertical-rl; font-size:11px; color:var(--muted); }
-    .flow-down .flow-label { top:50px; left:8px; }
-    .flow-up .flow-label { bottom:50px; left:8px; }
-    .settings-lab { margin:30px 0; border:1px solid var(--line); background:var(--white); }
-    .settings-head { padding:18px 20px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:16px; align-items:center; }
-    .settings-head h3 { margin:0; font-size:18px; }
-    .mode-label { color:var(--green); font-size:13px; font-weight:800; }
-    .settings-body { display:grid; grid-template-columns:1fr 1fr; gap:0; }
-    .controls { padding:20px; border-right:1px solid var(--line); }
-    .control + .control { margin-top:20px; }
-    .control label { display:flex; justify-content:space-between; gap:12px; font-size:14px; font-weight:750; }
-    input[type="range"] { width:100%; margin:9px 0 2px; accent-color:var(--blue); }
-    fieldset { border:0; margin:20px 0 0; padding:0; }
-    legend { padding:0; margin-bottom:8px; font-size:14px; font-weight:750; }
-    .segments { display:grid; grid-template-columns:repeat(3,1fr); border:1px solid var(--line); }
-    .segments label { position:relative; padding:8px 6px; text-align:center; font-size:12px; cursor:pointer; border-right:1px solid var(--line); }
-    .segments label:last-child { border-right:0; }
-    .segments input { position:absolute; opacity:0; pointer-events:none; }
-    .segments label:has(input:checked) { background:var(--blue-soft); color:#0a6096; font-weight:800; }
-    .settings-output { padding:20px; background:#f7f9fa; }
-    .settings-output h4 { margin:0 0 12px; }
-    .effect { padding:12px 0; border-top:1px solid var(--line); }
-    .effect b { display:block; font-size:13px; }
-    .effect span { display:block; color:var(--muted); font-size:13px; }
-    .causal-ladder { display:grid; gap:8px; width:min(700px,100%); margin:0 auto; }
-    .rung { margin:0 auto; padding:16px 18px; text-align:center; border:1px solid var(--line); }
-    .rung b { display:block; margin-bottom:4px; }
-    .rung span { display:block; font-size:13px; color:#465563; }
-    .rung.counterfactual { width:58%; border-color:#d99b9d; background:var(--red-soft); }
-    .rung.intervention { width:78%; border-color:#82beae; background:var(--green-soft); }
-    .rung.association { width:100%; border-color:#8fc0df; background:var(--blue-soft); }
-    .bridge { text-align:center; color:var(--green); font-size:13px; font-weight:800; }
-    .bridge::before { content:"↑ "; }
-    .uncertain { text-align:center; color:var(--red); font-size:12px; }
-    .uncertain::before { content:"⇢ "; }
-    .research-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-    .research-item { border:1px solid var(--line); background:var(--white); padding:17px; }
-    .research-item b { display:block; margin-bottom:5px; color:var(--navy); }
-    .research-item span { display:block; color:var(--muted); font-size:13px; }
-    .misconception { padding:18px 0; border-top:1px solid var(--line); }
-    .misconception:last-child { border-bottom:1px solid var(--line); }
-    .misconception h3 { margin:0 0 7px; font-size:17px; }
-    .misconception p { margin:0; color:#40505e; }
-    .verify-loop { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-    .verify-step { position:relative; border:1px solid var(--line); padding:15px; background:var(--white); min-height:108px; }
-    .verify-step:nth-child(1),.verify-step:nth-child(2) { border-top:4px solid var(--blue); }
-    .verify-step:nth-child(3),.verify-step:nth-child(4) { border-top:4px solid var(--gold); }
-    .verify-step:nth-child(5),.verify-step:nth-child(6) { border-top:4px solid var(--green); }
-    .verify-step:nth-child(7),.verify-step:nth-child(8) { border-top:4px solid var(--red); }
-    .verify-step b { display:block; margin-bottom:5px; font-size:14px; }
-    .verify-step span { display:block; color:var(--muted); font-size:12px; line-height:1.5; }
-    .verify-step:not(:nth-child(4)):not(:nth-child(8))::after { content:"→"; position:absolute; right:-10px; top:42px; z-index:2; color:var(--gray); font-weight:800; }
-    .final-model { margin:28px 0; padding:26px; border:2px solid var(--green); background:var(--green-soft); }
-    .final-model p { margin:0; color:#193f39; font-size:19px; font-weight:650; }
-    .formula { margin:20px 0; padding:16px; border:1px solid #d4a957; background:var(--gold-soft); text-align:center; font:700 16px/1.6 ui-monospace, SFMono-Regular, Consolas, monospace; overflow-wrap:anywhere; }
-    .source-list { font-size:14px; }
-    .source-list li + li { margin-top:9px; }
-    footer { border-top:1px solid var(--line); padding:28px 0 54px; color:var(--muted); font-size:13px; }
-    @media (max-width:820px) {
-      .wrap,.reading { width:min(100% - 32px, var(--max)); }
-      .desktop-nav { display:none; }
-      .mobile-nav { display:block; }
-      .article-head { padding:42px 0 34px; }
-      h1 { font-size:38px; overflow-wrap:anywhere; }
-      .dek { font-size:17px; }
-      .thesis { font-size:17px; }
-      .section { padding:40px 0; }
-      h2 { font-size:27px; }
-      .definition { grid-template-columns:1fr; gap:4px; }
-      .diagram { padding:16px; margin-left:0; margin-right:0; }
-      .thesis-flow { grid-template-columns:1fr; gap:0; }
-      .arrow { min-height:32px; }
-      .arrow::before { content:"↓"; }
-      .search-grid,.research-grid { grid-template-columns:1fr; }
-      .sequence-step { grid-template-columns:38px 1fr; }
-      .sequence-step b { border-right:0; }
-      .sequence-step span { grid-column:2; padding-top:0; }
-      .block-layer,.stack-layer { grid-template-columns:1fr; }
-      .block-layer b,.stack-layer b { border-right:0; border-bottom:1px solid var(--line); }
-      .stack-wrap { grid-template-columns:1fr; }
-      .bi-flow { display:none; }
-      .settings-body { grid-template-columns:1fr; }
-      .controls { border-right:0; border-bottom:1px solid var(--line); }
-      .verify-loop { grid-template-columns:1fr; }
-      .verify-step { min-height:auto; }
-      .verify-step::after { content:"↓" !important; right:auto !important; left:50%; top:auto !important; bottom:-21px; }
-      .verify-step:last-child::after { display:none; }
-      .term-table,.term-table tbody,.term-table tr,.term-table td { display:block; width:100%; }
-      .term-table thead { display:none; }
-      .term-table tr { border:1px solid var(--line); margin-bottom:12px; background:var(--white); }
-      .term-table td { border:0; border-bottom:1px solid var(--line); padding:10px 12px 10px 42%; position:relative; }
-      .term-table td:last-child { border-bottom:0; }
-      .term-table td::before { content:attr(data-label); position:absolute; left:12px; top:10px; width:36%; color:var(--navy); font-size:12px; font-weight:800; }
-      .rung.counterfactual { width:76%; }
-      .rung.intervention { width:88%; }
-    }
-    @media (max-width:420px) {
-      .wrap,.reading { width:min(100% - 24px, var(--max)); }
-      h1 { font-size:33px; }
-      .section { padding:34px 0; }
-      h2 { font-size:24px; }
-      .diagram { padding:12px; }
-      .legend { gap:9px 12px; padding:10px; }
-      .timeline { padding-left:35px; }
-      .phase::before { left:-35px; width:26px; height:26px; }
-      .segments { grid-template-columns:1fr; }
-      .segments label { border-right:0; border-bottom:1px solid var(--line); }
-      .segments label:last-child { border-bottom:0; }
-      .term-table td { padding-left:12px; padding-top:31px; }
-      .term-table td::before { width:auto; top:7px; }
-      .final-model { padding:19px; }
-      .final-model p { font-size:17px; }
+    .layer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .layer-card { border: 1px solid var(--mm-line); padding: 14px; min-height: 120px; }
+    .layer-card b { display: block; margin-bottom: 6px; font-size: 14px; }
+    .layer-card span { display: block; color: var(--mm-muted); font-size: 13px; line-height: 1.5; }
+    .layer-card.blue { border-top: 4px solid var(--mm-blue); background: var(--mm-blue-soft); }
+    .layer-card.gold { border-top: 4px solid var(--mm-gold); background: var(--mm-gold-soft); }
+    .layer-card.green { border-top: 4px solid var(--mm-green); background: var(--mm-green-soft); }
+    .layer-card.red { border-top: 4px solid var(--mm-red); background: var(--mm-red-soft); }
+    .ladder { width: 100%; border-collapse: collapse; font-size: 14px; margin: 18px 0; }
+    .ladder th, .ladder td { border-bottom: 1px solid var(--mm-line); padding: 10px 8px; text-align: left; vertical-align: top; }
+    .ladder th { background: var(--mm-gray-soft); font-size: 13px; }
+    .callout { margin: 22px 0; padding: 16px 18px; border-left: 4px solid var(--mm-green); background: var(--mm-green-soft); }
+    .callout.warning { border-left-color: var(--mm-red); background: var(--mm-red-soft); }
+    .sim-embed { margin: 24px 0; }
+    .sim-hard-claim { margin: 0 0 10px; padding: 8px 10px; background: var(--mm-gold-soft); border-left: 3px solid var(--mm-gold); font-size: 13px; }
+    .sim-status { margin-top: 10px; padding: 10px; background: var(--mm-green-soft); font-size: 13px; }
+    .sim-status.reject { background: var(--mm-red-soft); }
+    .sim-status.caution { background: var(--mm-gold-soft); }
+    .sim-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .sim-panel { padding: 12px; border: 1px solid var(--mm-line); background: var(--mm-paper); }
+    .sim-panel h4 { margin: 0 0 8px; font-size: 14px; }
+    .ctx-token { padding: 10px; border: 1px solid var(--mm-line); margin-bottom: 8px; font-size: 13px; }
+    .ctx-token.fact-a { border-left: 3px solid var(--mm-blue); }
+    .ctx-token.fact-b { border-left: 3px solid var(--mm-green); }
+    .ctx-token.distractor { border-left: 3px solid var(--mm-red); }
+    .contrib-row { display: grid; grid-template-columns: 100px 1fr 48px; gap: 8px; align-items: center; margin: 8px 0; font-size: 13px; }
+    .contrib-track { height: 14px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); }
+    .contrib-bar { height: 100%; background: var(--mm-blue); }
+    .contrib-bar.gold { background: var(--mm-gold); }
+    .contrib-bar.red { background: var(--mm-red); }
+    .logit-row { display: grid; grid-template-columns: 120px 1fr 56px; gap: 8px; align-items: center; margin: 6px 0; font-size: 13px; }
+    .logit-track { height: 12px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); }
+    .logit-bar { height: 100%; background: var(--mm-blue); }
+    .logit-bar.wrong { background: var(--mm-red); }
+    .logit-bar.correct { background: var(--mm-green); }
+    .causal-ladder { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 16px 0; }
+    .causal-rung { padding: 12px 14px; border: 1px solid var(--mm-line); border-left-width: 4px; }
+    .causal-rung.l1 { border-left-color: var(--mm-blue); background: var(--mm-blue-soft); }
+    .causal-rung.l2 { border-left-color: var(--mm-gold); background: var(--mm-gold-soft); }
+    .causal-rung.l3 { border-left-color: var(--mm-red); background: var(--mm-red-soft); }
+    .causal-rung b { display: block; margin-bottom: 4px; }
+    .causal-rung span { color: var(--mm-muted); font-size: 13px; }
+    .research-map td:first-child { font-weight: 700; white-space: nowrap; }
+    .eq { font-family: var(--mm-mono); font-size: 14px; padding: 12px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); overflow-x: auto; }
+    .role-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 14px; font-size: 13px; color: var(--mm-muted); }
+    .role-legend i.swatch { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; }
+    .role-legend .swatch.blue { background: var(--mm-blue); }
+    .role-legend .swatch.gold { background: var(--mm-gold); }
+    .role-legend .swatch.green { background: var(--mm-green); }
+    .role-legend .swatch.red { background: var(--mm-red); }
+    .stage-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+    .stage-btns button[aria-pressed="true"] { outline: 2px solid var(--mm-accent); background: var(--mm-blue-soft); }
+    .claim-box { padding: 12px; border: 1px dashed var(--mm-line); background: var(--mm-paper); font-size: 15px; margin: 10px 0; }
+    @media (max-width: 720px) {
+      .layer-grid, .sim-grid-2 { grid-template-columns: 1fr; }
+      .ladder { display: block; overflow-x: auto; }
+      .contrib-row, .logit-row { grid-template-columns: 80px 1fr 40px; }
     }
   </style>
 </head>
 <body>
-  <header class="topbar">
-    <div class="wrap topbar-inner">
-      <a class="brand" href="./">Mental Model Studio</a>
-      <nav class="desktop-nav" aria-label="本文目次">
-        <a href="#conclusion">結論</a><a href="#training">学習</a><a href="#inference">推論</a><a href="#causality">因果</a><a href="#research">研究</a><a href="#codex">Codex利用</a>
+  <header class="site-header">
+    <div class="site-header-inner wrap">
+      <a class="site-brand" href="./index.html">Mental Models</a>
+      <nav class="site-nav" aria-label="サイトナビ">
+        <a class="nav-index" href="./index.html">記事一覧</a>
+        <a class="toc-only" href="#agency">不安</a>
+        <a class="toc-only" href="#model">モデル</a>
+        <a class="toc-only" href="#ladder">Ladder</a>
+        <a class="toc-only" href="#sim-attn">Lab</a>
+        <a class="toc-only" href="#references">出典</a>
       </nav>
-      <details class="mobile-nav">
-        <summary>目次</summary>
-        <nav class="mobile-menu" aria-label="mobile本文目次">
-          <a href="#conclusion">結論</a><a href="#training">学習</a><a href="#inference">推論</a><a href="#causality">因果</a><a href="#research">研究</a><a href="#codex">Codex利用</a><a href="#model">最終モデル</a>
-        </nav>
-      </details>
     </div>
   </header>
 
   <header class="article-head">
     <div class="wrap">
-      <p class="kicker">メンタルモデル / AIシステム</p>
-      <h1>LLMをファーストプリンシプルで理解する</h1>
-      <p class="dek">LLMを「答えを知る主体」ではなく、探索、変換、検証、権限の分離として捉え直す。学習から推論、計算資源、因果、研究動向、Codex利用までを一つの流れで理解する。</p>
-      <p class="meta">公開情報の基準日: 2026-07-13 ・ 一次論文と公式資料に基づく</p>
+      <p class="kicker">AI systems · Mental Model Studio · rebuilt 2026-07-15</p>
+      <h1>LLM from First Principles</h1>
+      <p class="dek">流暢さ・説明・自信と、正しさ・因果・権限の裂け目を、観測尤度・Attention・サンプリング・Tool・証拠梯子まで再構築する長文ガイド（one-shot rebuild · 3 Labs）。</p>
+      <p class="meta">Mental Model Studio · 2026-07-15 · 投資・製品ランキング予言ではない</p>
     </div>
   </header>
 
-  <section class="thesis-band" aria-label="最終メンタルモデル">
+  <section class="thesis-band" id="model">
     <div class="reading">
-      <p class="thesis-label">主張する結論</p>
-      <p class="thesis">LLMは、重み、文脈、外部情報から役に立つパターンを探し、質問、仕様、コード、画像、Tool結果を別の表現へ変換する仕組みである。真偽、因果、責任は自動では付かない。だから実用では、LLMに探索と変換を任せ、検証、権限、人間の承認を外側に残す。</p>
+      <p class="thesis-label">最終メンタルモデル</p>
+      <p class="thesis">LLMは、重み・文脈・外部情報から次の出力に役立つパターンを探索し、質問・仕様・コード・Tool結果などの表現を別の表現へ変換する仕組みである。学習は主に観測系列の予測であり、真偽・因果介入・責任を直接保証しない。したがって実用では探索と変換を機械に担わせ、検証・権限・人間の承認を外側に置く。</p>
+      <p class="eq" style="margin-top:14px;">有用なAIシステム = 探索 + 変換 + 検証 + 権限 + 人間の責任</p>
     </div>
   </section>
 
-  <main>
-    <article>
-      <section id="conclusion" class="section">
-        <div class="reading">
-          <h2>1. なぜ探索・変換・検証へ分けるのか</h2>
-          <p class="lead">LLMが賢く見える理由と、LLMだけでは任せきれない理由は同じ場所から来る。大量の観測文から次にありそうな表現を作る仕組みは、候補を出す力を持つが、その候補が事実か、原因か、実行してよい行為かまでは保証しない。</p>
-          <p>ここから四つの分離が必要になる。第一に、答えはどこから来たのかを分ける。第二に、表現をどう変換したのかを見る。第三に、候補を証拠で検証する。第四に、現実へ作用する権限を人間とシステム側で制御する。</p>
+  <main class="article">
+    <section class="section reading" id="agency">
+      <h2>すでに触れている裂け目（Lived stake）</h2>
+      <p>一つ目の場面。社内のナレッジチャットに「このAPIの現行の認証方式は何か」と聞く。答えは滑らかで、自信ありげで、用語も正しい。三日後、実装を見たらそのAPIは既に別方式へ移行していた。画面上の流暢さは、正しさの代理変数ではなかった。あなたは「嘘をつく主体」に騙されたのではなく、観測系列から次にありそうな続きを出したプログラムのふるまいに、信用を渡しすぎた。</p>
+      <p>二つ目の場面。モデルが長い手順を「まずは〜を確認し、次に〜を検討し、結論として〜」と書き連ねる。文章は思考の跡に見える。レビュー会で誰かが「Chain of Thoughtがあるから大丈夫」と言い、検証を後回しにした。見える推論文は出力チャネルの一つであり、内部活性化や因果計算の完全な転写ではない。もっともらしい手順書は、正しさの証明書ではない。</p>
+      <p>三つ目の場面。Coding Agentが差分を提案する。「このロックは冗長です。削除します」と説明し、自信を持ってパッチを出す。そのロックは稀なレース条件を防いでいた。Agentは探索と変換は得意でも、本番への到達範囲と承認の境界は自動では与えられない。危険な変更提案は、モデルが「悪い」からではなく、権限レイヤが流暢さに引きずられたときに起きる。</p>
+      <p>これらは「AIが賢いかどうか」の話ではない。あなたがすでに感じている<strong>流暢さ・説明・自信</strong>と、<strong>正しさ・因果・権限</strong>の裂け目である。</p>
 
-          <h3>制約から生まれる四つの役割</h3>
-          <div class="sequence">
-            <div class="sequence-step"><b>観測だけでは世界を保証しない</b><span>学習データは観測された文章の集まりであり、世界そのものでも実験結果の全体でもない。だから出力はまず候補として扱う。</span></div>
-            <div class="sequence-step"><b>候補を作るには探索が要る</b><span>重みに圧縮されたパターン、現在の文脈、Toolで見に行く外部情報から、次の出力に使えそうな材料を集める。</span></div>
-            <div class="sequence-step"><b>仕事にするには変換が要る</b><span>質問を回答へ、仕様をコードへ、エラーログを修正案へ、計画をTool呼び出しへ変換することで価値が出る。</span></div>
-            <div class="sequence-step"><b>現実に出すには検証と権限が要る</b><span>テスト、出典、制約、レビューで確かめ、削除、公開、支払い、本番変更のような行為は別の承認を通す。</span></div>
+      <h3>この記事がすること／しないこと</h3>
+      <p><strong>すること</strong>：上の三つの裂け目を、再構築可能な機構（目的関数・層・サンプリング・配信・Tool・検証・権限）へ分解する。Coverage Map の順に、なぜ「保証なき候補生成」が工学的に選ばれ、どこで検証と権限が外側に残るかを鎖で説明する。Attention / Sampling / Evidence の各 Lab（いずれも教育用トイ）と接続し、途中で Everyday phenomena（P1–P6）を回収する。</p>
+      <p><strong>しないこと</strong>：価格・投資・採用ROI・どの製品が一位かの予言。プロンプト技のカタログや、閉鎖frontierの非公開回路を事実扱いすること。意識・道徳的地位の結論。RAGや長期記憶製品の完全仕様。</p>
+      <p>読み終えたとき、あなたは「このモデルは信じられるか」ではなく、「自分は今、探索・変換・検証・権限のどの層に立ち、何を機械に任せ、何を外側に残しているか」を説明できるはずである。</p>
+
+      <h3>約束する現象（Everyday phenomena）</h3>
+      <table class="ladder">
+        <thead><tr><th>id</th><th>現象</th><th>mid-callback</th><th>最終回収</th></tr></thead>
+        <tbody>
+          <tr><td>P1</td><td>自信ありげな答えが後から誤りだった</td><td>N4–N6, N8</td><td>N15</td></tr>
+          <tr><td>P2</td><td>Temperature を下げても嘘が消えない</td><td>N8 Sampling Lab</td><td>N8, N15</td></tr>
+          <tr><td>P3</td><td>「考えた様子」の文章が正しさの証明に見えてしまう</td><td>N6, N12</td><td>N15</td></tr>
+          <tr><td>P4</td><td>長い文脈を入れたのに重要な箇所を見落とす</td><td>N7 Attention Lab, N9</td><td>N9, N15</td></tr>
+          <tr><td>P5</td><td>Agent が自信を持って危険な変更を提案する</td><td>N11, N14</td><td>N14, N15</td></tr>
+          <tr><td>P6</td><td>絶対語で LLM を語ってしまう</td><td>N2, N12</td><td>N15</td></tr>
+        </tbody>
+      </table>
+
+      <h3>探索の三層（モデル補足）</h3>
+      <ul>
+        <li><strong>重み内探索</strong>: 重みに圧縮されたパターンから、現在の文脈に合う続きを活性化する（parametric）</li>
+        <li><strong>文脈内探索</strong>: Attention がプロンプト・履歴・取得文書・Tool結果の関連位置を選ぶ（context）</li>
+        <li><strong>外部探索</strong>: Web・リポジトリ・DB・ファイル・実行環境を Tool で観測する</li>
+        <li><strong>変換</strong>: ある表現を別の表現へ写す（質問→回答、仕様→コード、ログ→修正案、計画→Tool呼び出し）</li>
+      </ul>
+      <p>これは「内部で候補を総当たりしている」という字義どおりの主張ではない。能力の型を理解するためのメンタルモデルである。</p>
+    </section>
+
+    <section class="section reading" id="ladder">
+      <h2>Coverage Ladder</h2>
+      <table class="ladder">
+        <thead>
+          <tr><th>Step</th><th>node</th><th>layer</th><th>読者が理解すること</th><th>why_exists</th><th>Visual / Sim</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>N1</td><td>framing</td><td>流暢さ≠信用・権限</td><td>裂け目の契約化</td><td>—</td></tr>
+          <tr><td>2</td><td>N2</td><td>framing</td><td>主目的は観測尤度</td><td>保証なき候補生成</td><td>—</td></tr>
+          <tr><td>3</td><td>N3</td><td>framing</td><td>四役割の分離</td><td>役割が潰れる</td><td>四役割図</td></tr>
+          <tr><td>4</td><td>N4</td><td>mechanism</td><td>Tokenizer + next-token CE</td><td>学習空間の固定</td><td>—</td></tr>
+          <tr><td>5</td><td>N5</td><td>mechanism</td><td>compute–data 配分</td><td>広範なパターン圧縮</td><td>—</td></tr>
+          <tr><td>6</td><td>N6</td><td>mechanism</td><td>SFT/選好/Reasoning RL</td><td>別信号で分布を動かす</td><td>—</td></tr>
+          <tr><td>7</td><td>N7</td><td>mechanism</td><td>Attention混合・MLP変換</td><td>文脈選択と特徴変換</td><td>Attention Lab</td></tr>
+          <tr><td>8</td><td>N8</td><td>mechanism</td><td>Temp/Top-p は形を変える</td><td>1トークン選定</td><td>Sampling Lab</td></tr>
+          <tr><td>9</td><td>N9</td><td>mechanism</td><td>Prefill/Decode・KV</td><td>メモリ帯域と逐次</td><td>—</td></tr>
+          <tr><td>10</td><td>N10</td><td>mechanism</td><td>行列積とメモリ支配</td><td>加速器上の制約</td><td>—</td></tr>
+          <tr><td>11</td><td>N11</td><td>mechanism</td><td>Toolは権威を付与しない</td><td>現在状態を外から足す</td><td>→ Evidence Lab</td></tr>
+          <tr><td>12</td><td>N12</td><td>mechanism</td><td>語ること≠因果同定</td><td>観測NTPの限界</td><td>Causal ladder</td></tr>
+          <tr><td>13</td><td>N13</td><td>lineage</td><td>複数制約への攻撃</td><td>一位表の誤読</td><td>Research map</td></tr>
+          <tr><td>14</td><td>N14</td><td>limits</td><td>証拠梯子</td><td>判断規則</td><td>Evidence Lab</td></tr>
+          <tr><td>15</td><td>N15</td><td>limits</td><td>自分の立ち位置</td><td>誤用防止</td><td>合成表</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section reading" id="n1">
+      <h2>1. N1 — Lived stake: 流暢さと信頼の裂け目</h2>
+      <p>（冒頭の三場面が N1 本体である。）</p>
+      <p>読者が最初に固定すべき契約は一つだけである。流暢な文章・自信ありげな口調・長い手順書・「私は確かだ」というメタ発言は、いずれも<strong>信用や権限の代理変数ではない</strong>。それらは生成されたトークン系列の見た目である。この記事の以降の節は、なぜそうなるかを機構から再構築し、どこから検証と権限が外側に残るかを示す。N1 は「用語の定義」ではなく、あなたがすでに損をしうる裂け目の命名である。</p>
+      <h3>次の限界</h3>
+      <p>裂け目を感じたあとで最初に落ちる罠は、「ではLLMはダメだ／万能だ」の二択である。次節は、なぜ観測系列の予測という目的が工学的に選ばれ、その目的が何を保証しないかを先に置く。</p>
+    </section>
+
+    <section class="section reading" id="n2">
+      <h2>2. N2 — 観測的予測のトレードオフ：なぜ「保証なき候補生成」が選ばれるか</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N1 の裂け目だけを見ると、「正しさを直接最適化すればよいのに」と感じる。だが実務が直面する制約は別である。世界の真偽ラベル付きコーパスを、あらゆる質問とあらゆる未来状態について用意することはできない。その一方で、人間が書いたテキスト・コード・対話の山は、すでに大量に存在する。工学は「真理関数を直接学習する神託」ではなく、「観測された系列の次を当てる」方向へ進んだ——それが主目的を観測尤度に置く理由である。</p>
+      <h3>仕組み</h3>
+      <p>一般的な事前学習の目的は、観測系列 <code>x₁,…,x_T</code> に対して、条件付き確率 <code>P(x_{t+1}|x_{≤t})</code> を高くすることである。これは連想（association）の言語に近い。テキスト上で「Aの近くにBが来る」「エラーメッセージの次に修正案の型が来る」といった統計を、巨大な関数近似器に圧縮する。真偽判定器や因果同定器を直接損失にしていないため、流暢な誤答・表面相関の再生産・因果語彙の模倣が同じ最適化の裏で起きうる<a class="fn-ref" id="fnref-9" href="#ref-9">(*9)</a>。</p>
+      <p>ここで重要なのは、「だから役に立たない」ではない。観測尤度の最適化は、<strong>候補生成の広大な空間</strong>を一度に開く。自然言語・コード・表・Tool呼び出し形式など、同じ「次トークン」の器に載る表現を多種学べる。その代償として、正しさ・介入効果・実行許可は自動では同定されない——それが N2 の hard claim である。</p>
+      <p>Association と truth を混ぜると P6 が生まれる。「ブロックチェーンだから改ざん不可」に似た絶対語（「学習済みだから正しい」「推論したから正しい」）で LLM を語ると、観測目的が保証する範囲を超える。</p>
+      <div class="callout">
+        <p>ここでP6が回収され始める: 絶対語は性質の誤読である。観測尤度の最適化は、改ざん耐性や真理保証のアルゴリズムではない。</p>
+      </div>
+      <h3>worked example</h3>
+      <p>社内Wikiに古い認証方式の説明が残っている世界を考える。事前学習や検索でその文章を多く見れば、モデルは現行の正しい方式より、古い方式の言い回しを流暢に再生産しやすい。損失が「観測テキスト上の尤度」なら、それはバグというより目的関数の素直な帰結である。正しさが欲しいなら、現行仕様という別チャネルの検証が要る——それが後の N14 につながる。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「予測だから単純」→ 目的は単純でも、最適化された関数の内部表現は複雑になりうる。単純な目的＝単純な能力ではない。</li>
+        <li>「予測だから真理不能」→ 不可能の全面宣言ではない。識別条件・実験・外部検証がなければ保証されない、という話である<a class="fn-ref" id="fnref-9b" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10" href="#ref-10">(*10)</a>。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>観測尤度だけで「回答機械」を作ると、検索・翻訳・検証・権限が一つの流暢な吹き出しに潰れる。次節で四つの役割を分離する。</p>
+    </section>
+
+    <section class="section reading" id="n3">
+      <h2>3. N3 — 四つの役割：探索・変換・検証・権限</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N2 までで「候補を出すエンジン」であることは見えた。だが日常語の「検索」「翻訳」だけで説明すると、Roleが潰れる。Web検索だけが探索ではなく、仕様→コードだけが変換でもない。さらに、候補を現実の結果や行為へ落とすとき、検証と権限が同じ吹き出しの中で勝手に済む、という誤解が残る。有用なシステムは、探索・変換・検証・権限の分離を要する——これが N3 の hard claim である。</p>
+      <h3>仕組み</h3>
+      <p>四役割を、Chat画面の見た目ではなく、システム境界として定義する。</p>
+      <figure class="diagram" aria-label="四役割図">
+        <p class="diagram-title">四つの役割は別物である</p>
+        <div class="role-legend">
+          <span><i class="swatch blue"></i>探索</span>
+          <span><i class="swatch gold"></i>変換</span>
+          <span><i class="swatch green"></i>検証</span>
+          <span><i class="swatch red"></i>権限</span>
+        </div>
+        <div class="layer-grid">
+          <div class="layer-card blue"><b>探索</b><span>次の変換に使う材料を集める。重み内・文脈内・外部の三層（N4–N8, N11）。</span></div>
+          <div class="layer-card gold"><b>変換</b><span>材料を別表現へ写す。Transformerブロックと LM Head が担う中核（N7–N8）。</span></div>
+          <div class="layer-card green"><b>検証</b><span>受け入れ条件を別チャネルで測る。Test・出典突合・型検査・ヒューマンレビュー。モデル自身の「正しそう」は検証チャネルではない。</span></div>
+          <div class="layer-card red"><b>権限</b><span>どの行為がどの到達範囲で許されるか。削除・デプロイ・決済・秘密アクセスは流暢な提案とは別ゲート<a class="fn-ref" id="fnref-16" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17" href="#ref-17">(*17)</a>。</span></div>
+        </div>
+        <figcaption class="caption">Lesson: 「検索と翻訳」一語では潰れる四役割。正しさと責任は検証・権限レイヤに残す。</figcaption>
+      </figure>
+      <h3>worked example</h3>
+      <p>「このバグを直して」という一文依頼を、四役割に分解する。</p>
+      <ul>
+        <li>探索: 失敗ログ、関連ファイル、既存Testを集める</li>
+        <li>変換: 仮説→パッチ案、ログ→次の調査手順</li>
+        <li>検証: 再現Testと関連スイートの結果</li>
+        <li>権限: ネットワーク制限下の sandbox、workspace外書き込み禁止、本番への到達を承認制にする<a class="fn-ref" id="fnref-17b" href="#ref-17">(*17)</a></li>
+      </ul>
+      <p>同じ「パッチ提案」でも、検証なし・権限なしならそれはまだテキストである。有用な Agent システムとは、四役割を workflow として設計したものである。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「Toolを付ければ検証済み」→ Toolは探索と行為を増やす。検証は受け入れ条件を別チャネルで測る工程である（N11/N14）。</li>
+        <li>「人間が最後に見る＝権限」→ 見るだけでは不十分。破壊的操作には明示的な承認境界が要る<a class="fn-ref" id="fnref-16b" href="#ref-16">(*16)</a>。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>役割を分離しても、機械側が実際に何を最適化しているかが不明なままでは、任せる範囲が決まらない。次節から離散トークンと次トークン損失へ降りる。</p>
+    </section>
+
+    <section class="section reading" id="n4">
+      <h2>4. N4 — Tokenization と next-token 目的：学習空間の定義</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N3 は役割を分けたが、モデルが見ている世界の原子がいまだ曖昧である。人間が見る「単語」や「意味」は、学習の直接の入力ではない。テキストはまず有限語彙上の離散トークン列へ写され、その列上で次トークン予測の損失が定義される。Tokenizer + next-token Cross-Entropy が学習空間を定義する——これが N4 の hard claim である。</p>
+      <p>四役割の話を先に置くと、「では機械は何を探索しているのか」が口語のまま残る。探索の対象が曖昧なままだと、検証も「なんとなく見た感じ」に戻る。だから機構の第一歩は、入力がどの記号列になり、何を正解と呼ぶかを固定することである。</p>
+      <h3>仕組み</h3>
+      <p><strong>Tokenizer</strong> は raw text をトークンID列へ変えるアルゴリズムである。トークンは必ずしも単語と一致しない。subword、句読点、空白、コード片が一つのトークンになりうる。SentencePiece は、生コーパスから言語に依存しにくいサブワード分割を学習・適用する枠組みを示した<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a>。同じ内容でも分割が変わればトークン数が変わり、context 消費と計算コストが変わる。</p>
+      <p>分割規則は「前処理の雑用」ではない。モデルが比較できるのは、最終的に並んだID列の統計である。空白の扱い、数字の割れ方、絵文字、INDENT、日本語の漢字かな混じり——これらは、人間の直感する「一文」とモデルの見る「系列長」をずらしうる。</p>
+      <p>decoder-only LLM の典型的な事前学習では、位置 <code>t</code> までの文脈から次トークン <code>x_{t+1}</code> を予測する。</p>
+      <ol>
+        <li>Forward で各位置の表現を積み上げ、語彙サイズ分の logit（Softmax 前のスコア）を出す</li>
+        <li>Softmax が合計1の確率分布へ変える</li>
+        <li>正解トークンの負の対数尤度（Cross-Entropy）を損失とする</li>
+        <li>誤差逆伝播が損失への寄与を各重みへ伝え、最適化器が少し更新する</li>
+      </ol>
+      <p>学習分布に現れない最新事実や、稀な失敗モードは学びにくい——これは能力不足のレッテル以前に、分布の問題である。</p>
+      <div class="callout">
+        <p>ここでP1が回収され始める: 自信ありげな誤答は、学習空間上で「ありそう」な続きが高い確率を持つことと両立する。尤度の高さと真理は別軸である。</p>
+      </div>
+      <h3>worked example</h3>
+      <p>文字列 <code>oauth2</code> と、内部で使っている古い商品名が混在する文書を考える。Tokenizer は前者を少数トークンにまとめても、後者を細かく割ることがある。モデルが「覚える」対象は、あなたの意味単位ではなく、分割後の記号列上の統計である。</p>
+      <p>コードでは、識別子の途中分割が長い文脈を消費し、見た目上短いファイルでも context を圧迫することがある。たとえば <code>VeryLongInternalServiceNameFactory</code> が多数の部分トークンへ割れると、同じ「ファイルを添付した」でも実効の系列長が伸び、のちの Prefill（N9）と Attention の混合（N7）にまで影響する。</p>
+      <p>別の例として、日付やバージョン番号を考える。人間は <code>2024-03</code> と <code>2026-07</code> を同じ「日付型」として比較するが、トークン列上では数字とハイフンの並びにすぎない。時系列の新旧が自動で保証されないのも、真理関数ではなく系列尤度だからである。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「トークン＝意味の原子」→ 実装上の離散記号である。意味は後段の表現学習が担う。</li>
+        <li>「損失が下がった＝正しい知識が増えた」→ 観測分布への当てはまりが良くなった、という主張までが安全である。</li>
+        <li>「語彙が大きいほど常に賢い」→ 語彙は空間の解像度であり、データと計算の配分（N5）なしに能力は決まらない。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>離散空間と損失が決まっても、広大なパターンを圧縮する段階が要る。次節は事前学習と計算・データの配分である。</p>
+    </section>
+
+    <section class="section reading" id="n5">
+      <h2>5. N5 — Pre-training と compute–data：広大なパターン圧縮</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N4 の目的だけでは「小さなコーパスで次トークンを当てる玩具モデル」も作れる。実務の LLM が必要とするのは、多様な文脈で有用な続きを出せるだけの広範なパターン圧縮である。その段階が Pre-training であり、固定計算予算ではパラメータ数と訓練トークン数の配分が効く——これが N5 の hard claim である<a class="fn-ref" id="fnref-3" href="#ref-3">(*3)</a>。</p>
+      <h3>仕組み</h3>
+      <p>Pre-training は大量のトークン系列から general-purpose な重みを作る段階である。データ収集、品質フィルタ、重複除去、言語・コード・ドメインの混合物、ライセンスやプライバシー処理が、実際の <strong>Training distribution</strong> を作る。モデルは世界全体ではなく、この分布から損失を下げるパターンを学ぶ。分布に薄い領域は薄くしか学習されない。</p>
+      <p>多数GPUでは、Data / Tensor / Pipeline / Expert Parallel などを組み合わせ、勾配の集約（AllReduce 等）で同期する。低精度（BF16、FP8 等）はメモリと演算を節約するが、数値安定性の管理が要る<a class="fn-ref" id="fnref-18" href="#ref-18">(*18)</a>。並列化は「同じ損失を分散して最小化している」のであり、並列そのものが新しい目的関数を与えるわけではない。</p>
+      <div class="callout">
+        <p>パラメータを増やすほど賢い、という単調神話ではない。固定フロップ予算では、モデルを大きくしすぎてデータを相対的に薄くすると非効率になりうる。Chinchilla 研究は、計算最適の配分を議論するための一次足場である<a class="fn-ref" id="fnref-3b" href="#ref-3">(*3)</a>。以後のアーキテクチャ・データ混合で最適点はずれうる——経験則であり永遠の定数表ではない。</p>
+      </div>
+      <p>Mid-training（長く続ける事前学習寄り、長文脈・ドメイン混合、継続事前学習など）は製品ごとに置き方が違い、全モデル共通の標準工程ではない。だが思想は同じで、「すでに圧縮した分布を、別の方向へ延長する」である。</p>
+      <div class="callout">
+        <p>P1 の深さ: 事前学習で圧縮された相関が、後から誤りと判明する「ありそうな知識」の供給源になりうる。誤りは後訓練で上書きされることもあるが、保証ではない（→ N6）。事前学習は真実の倉庫ではなく、候補の広大な盆地を掘る工程である。</p>
+      </div>
+      <h3>worked example</h3>
+      <p>同じ計算予算で、(A) 極端に大きなモデルを相対的に少ないトークンで回す、(B) やや小さめのモデルをより多くのトークンで回す、を比較する思考実験をする。Chinchilla の論点は「B側が当時の慣行より良いことがありうる」という配分問題であり、特定製品の正確なトークン数を断言する材料ではない<a class="fn-ref" id="fnref-3c" href="#ref-3">(*3)</a>。</p>
+      <p>社内適用の例でも同じである。ドメイン特化のために「とにかく巨大モデルを買う」より先に、自社コーパスの品質・重複・期間・ライセンスを見ないなら、薄い分布の上で大きなパラメータを遊ばせることになりうる。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「公開ベンチで一位＝世界知識の網羅」→ ベンチは限定分布上の証拠である。</li>
+        <li>「パラメータ数が能力の唯一の軸」→ active compute、データ品質、後訓練、推論時計算が別レバーになる（N6, N13）。</li>
+        <li>「もっとデータを足せばハルシネーションは消える」→ 分布は変えられるが、観測尤度目的そのものは真理保証へ自動変換されない（N2）。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>広い生成能力ができても、ユーザー意図への追従・選好・検証可能な推論方策までは自動で揃わない。次節が Post-training である。</p>
+    </section>
+
+    <section class="section reading" id="n6">
+      <h2>6. N6 — Post-training：振る舞い分布を動かす別信号</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>Base model は文章を続けられても、安定して指示に従い、拒否すべきところで拒否し、読みやすい手順を出し、検証可能な課題で長く探索するとは限らない。指示追従・選好・検証可能推論は、別信号で方策を形作る——これが N6 の why_exists である。SFT / 選好最適化 / Reasoning RL は振る舞い分布を動かすが、真理保証ではない——hard claim である<a class="fn-ref" id="fnref-4" href="#ref-4">(*4)</a><a class="fn-ref" id="fnref-5" href="#ref-5">(*5)</a><a class="fn-ref" id="fnref-13" href="#ref-13">(*13)</a>。</p>
+      <h3>仕組み</h3>
+      <p><strong>Supervised Fine-Tuning（SFT）</strong> は、instruction と望ましい response の demonstration を模倣させる。InstructGPT は human feedback パイプラインの最初に SFT を置いた<a class="fn-ref" id="fnref-4b" href="#ref-4">(*4)</a>。教えるのは主に「この入力形式にはこの出力形式」という行動マッピングである。デモに誤りがあればその誤りも真似る。SFT は文章継続器を指示追従器へ寄せるが、デモ外の事実性や頑健性を保証しない。</p>
+      <p><strong>選好最適化</strong> は、一つのプロンプトに複数応答を作り、人間または AI judge がどちらを好むかを比較する。古典的な RLHF は選好から Reward Model を学び、PPO 等で報酬を上げつつ元方策から外れすぎないよう制約する<a class="fn-ref" id="fnref-4c" href="#ref-4">(*4)</a>。効きやすいのは、丁寧さ、拒否の仕方、説明の読みやすさ、曖昧依頼への補足である。一方、Reward Model が測っていない事実性や実運用の副作用までは保証しない。</p>
+      <p><strong>DPO</strong> は、preferred の相対尤度を rejected より高める分類型目的で、明示的報酬モデルと online RL を省ける経路を示した<a class="fn-ref" id="fnref-5b" href="#ref-5">(*5)</a>。経路が分岐すること自体が重要である。「RLHFという一語」で後訓練を片付けると、何が報酬で何が上書きされたかが見えなくなる。DPO も選好データの範囲で分布を動かす技術であり、選好が事実確認を含まなければ事実性は直接保証されない。</p>
+      <p><strong>Reasoning RL / Verifier / Distillation</strong> は、数学やコードのように答えを機械採点できる領域で強い。正答や Test pass を報酬にできれば、長い探索トレースを出す方策を強化しうる。DeepSeek-R1 は rule-based reward を含む大規模 RL を報告し<a class="fn-ref" id="fnref-13b" href="#ref-13">(*13)</a>、Qwen3 は thinking / non-thinking と thinking budget を公開した<a class="fn-ref" id="fnref-14" href="#ref-14">(*14)</a>。これは next-token generator を廃止したのではなく、どの系列を報酬するかと推論時の計算配分を変えている。Verifier が間違えば、物差しに適応する。自由記述や現実因果では報酬設計自体が難しい。</p>
+      <p>Distillation は、高価な Teacher の応答・推論例・出力分布を使い、軽い Student に似た振る舞いを移す。低コスト化や遅延削減には効くが、Teacher の誤りも引き継ぎうる。</p>
+      <div class="callout">
+        <p>ここでP3が回収される: 「考えた様子」の文章は、後訓練と推論テンプレートで読みやすく最適化されうる出力である。見える CoT は内部思考の完全記録ではない。正しさの証明に使うな。長くなったことが、介入検証（N12/N14）の代替にはならない。</p>
+      </div>
+      <p>Evaluation・red teaming・release gate は、benchmark スコアがその test distribution 上の証拠であることを思い出す段階である。実世界の全タスク保証ではない。</p>
+      <h3>worked example</h3>
+      <p>spec-to-code 能力は一phaseから生まれない。Pre-training でコードパターンを学び、SFT で指示形式を学び、選好で読みやすさを寄せ、Reasoning RL や Verifier で Test を通す方策を強め、Application 側が repository search と Test 実行を Tool として与える。レビューで「R1 だから正しい」と言うのは、報酬設計と検証チャネルを無視した飛ばし読みである<a class="fn-ref" id="fnref-13c" href="#ref-13">(*13)</a>。</p>
+      <p>同じモデル名でも、thinking mode の on/off と thinking budget が違えば、比較対象がすでに別レバーになっている<a class="fn-ref" id="fnref-14b" href="#ref-14">(*14)</a>。「先週より賢くなった」談話の前に、後訓練と推論制御のどのノブが動いたかを問うのが N6 の読み方である。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「RLHF＝真理アライメント」→ 選好と安全行動の再配分であり、真理関数の置換ではない<a class="fn-ref" id="fnref-4d" href="#ref-4">(*4)</a>。</li>
+        <li>「長い thinking ＝深い理解」→ 追加トークンと報酬付き探索であり、因果同定や権限とは別<a class="fn-ref" id="fnref-14c" href="#ref-14">(*14)</a>。</li>
+        <li>「Post-trainingで世界知識が丸ごと入る」→ 主に方策の再配分である。知識の更新はデータと目的次第であり、保証語にしない。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>振る舞いが形作られても、一回の応答が文脈のどこを見てどう変換するかが見えない。次節は Transformer ブロックである。</p>
+    </section>
+
+    <section class="section reading" id="n7">
+      <h2>7. N7 — Transformer ブロック：文脈混合と特徴変換</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>ここまでの節は「何を最適化し、どう振る舞いを曲げるか」を扱った。しかし一トークンを出す瞬間、モデルは文脈のどこを参照し、各位置の表現をどう書き換えているかがまだ空洞である。文脈選択と位置ごとの変換が要る——Attention は文脈混合、MLP は特徴変換であり、literal な外部DB検索ではない<a class="fn-ref" id="fnref-1" href="#ref-1">(*1)</a>。これが N7 の hard claim である。</p>
+      <h3>仕組み</h3>
+      <p>元の Transformer は、再帰や畳み込みに頼らず、自己注意を中心に系列変換を行うアーキテクチャとして提案された<a class="fn-ref" id="fnref-1b" href="#ref-1">(*1)</a>。現代の多くのチャットLLMは因果マスク付き decoder-only だが、中核の演算は同じ家族である。典型的なブロックでは次が重なる（順序・正規化の詳細は実装差がある）。</p>
+      <ol>
+        <li><strong>Embedding</strong>: トークンIDを連続ベクトルへ</li>
+        <li><strong>位置情報（例: RoPE）</strong>: 相対位置を注意計算で使えるようにする</li>
+        <li><strong>正規化</strong>: LayerNorm / RMSNorm など</li>
+        <li><strong>Q/K/V 射影</strong>: 隠れ状態を Query・Key・Value へ線形変換</li>
+        <li><strong>Masked Self-Attention</strong>: <code>softmax(QKᵀ/√d)V</code> で、未来を見ずに過去文脈を混合<a class="fn-ref" id="fnref-1c" href="#ref-1">(*1)</a></li>
+        <li><strong>残差接続</strong>: 変換結果に入力を足し、情報流と最適化を安定させる</li>
+        <li><strong>MLP / FFN</strong>: 各位置で特徴を拡張・非線形変換・圧縮（SwiGLU 等）</li>
+        <li>（任意）<strong>MoE</strong>: Router がトークンごとに少数 Expert を選び、総パラメータと active compute を分離<a class="fn-ref" id="fnref-12" href="#ref-12">(*12)</a></li>
+      </ol>
+      <p>直感の対応づけは次である。Query は「今の位置が何を探しているか」、Key は「各過去位置が持つ手がかり」、Value は「選ばれたときに渡す情報」。Attention は類似度から重みを作り Value を混ぜる。MLP は混ぜた情報を位置ごとに変換する。</p>
+      <p><strong>MHA / GQA / MLA</strong> は、主に KV をどう持つかの設計家族である。MHA は head ごとに独立した Key/Value を持つ。GQA は複数 Query head で Key/Value を共有し、推論時の KV を抑える。DeepSeek 系の MLA は Key/Value を latent へ圧縮し、キャッシュ負荷を下げる方向を報告する<a class="fn-ref" id="fnref-12b" href="#ref-12">(*12)</a>。</p>
+
+      <h3>Lab A — Attention Mix（教育用トイ）</h3>
+      <div class="sim-embed sim-root" id="sim-attn">
+        <p class="sim-title">Attention Mix Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> Attention は文脈位置への内容依存の加重混合であり、外部データベースの行引きではない。長い文脈 ≠ 正しい焦点の保証。</p>
+        <p class="sim-caption" style="margin-top:0;">実モデルの多head・RoPE・学習済み重みは再現しない教育用トイです。</p>
+        <div class="sim-grid-2" style="margin-top:12px;">
+          <div class="sim-panel">
+            <h4>Context tokens</h4>
+            <div class="ctx-token fact-a"><strong>Fact A</strong><br>現行: OAuth2 + PKCE が正規手順</div>
+            <div class="ctx-token fact-b"><strong>Fact B</strong><br>旧: 独自トークンヘッダを使う</div>
+            <div class="ctx-token distractor"><strong>Distractor</strong><br>噂: 認証は来月なくなる（無関係）</div>
           </div>
-
-          <h3>このページで使う用語</h3>
-          <dl>
-            <div class="definition"><dt>重み内探索</dt><dd>重みに圧縮されたパターンから、現在の文脈に合う続きを活性化する。英語では Parametric Search と呼ぶ。</dd></div>
-            <div class="definition"><dt>文脈内探索</dt><dd>Attentionがプロンプト、会話履歴、取得文書、Tool結果の関連位置を選ぶ。英語では Context Search と呼ぶ。</dd></div>
-            <div class="definition"><dt>外部探索</dt><dd>Web、リポジトリ、データベース、ファイルシステム、実行環境をToolで観測する。</dd></div>
-            <div class="definition"><dt>変換</dt><dd>ある表現を別の表現へ写すこと。質問から回答、仕様からコード、コードからテスト、エラーログから修正案、計画からTool呼び出しへの変換を含む。</dd></div>
-          </dl>
-          <div class="callout"><p><strong>重要な限定:</strong> これはLLMが内部で候補を総当たりしているという文字どおりの主張ではない。Transformer内部には分散表現と大量の行列計算がある。このメンタルモデルは、何を得意とし、何を別途保証しなければならないかを見抜くための道具である。</p></div>
-        </div>
-
-        <figure class="diagram wrap">
-          <p class="diagram-title">探索 → 変換 → 検証 → 承認済みの結果</p>
-          <div class="legend">
-            <span class="legend-item"><i class="swatch blue"></i>観測 / 探索</span>
-            <span class="legend-item"><i class="swatch gold"></i>変換</span>
-            <span class="legend-item"><i class="swatch green"></i>検証</span>
-            <span class="legend-item"><i class="swatch red"></i>リスク / 権限</span>
-            <span class="legend-item"><i class="line-key"></i>流れ</span>
-            <span class="legend-item"><i class="line-key dotted"></i>戻り</span>
-            <span class="legend-item"><i class="line-key dashed"></i>保証なし</span>
-          </div>
-          <div class="thesis-flow">
-            <div class="node blue"><b>三種類の探索</b><span>重み、文脈、外部世界から候補になる材料を集める</span></div><div class="arrow"></div>
-            <div class="node gold"><b>変換の中核</b><span>表現をTransformer Blockで変え、TokenやTool呼び出しへ写す</span></div><div class="arrow"></div>
-            <div class="node green"><b>検証</b><span>出典、テスト、制約、実験で候補を確かめる</span></div><div class="arrow"></div>
-            <div class="node red"><b>権限のゲート</b><span>人間の承認と最小権限を通った行為だけを許す</span></div>
-          </div>
-          <figcaption class="caption">色は装飾ではない。青は観測、黄は変換、緑は検証、赤は権限境界を表す。流れは左から右、モバイルでは上から下へ変わる。</figcaption>
-        </figure>
-
-        <div class="reading">
-          <h3>この結論の根拠</h3>
-          <ol>
-            <li>Pre-trainingは主に次のTokenの条件付き確率を最適化し、真実や因果効果そのものを損失関数にしていない。</li>
-            <li>Attentionは文脈から情報を選び、MLPは表現を変換する。</li>
-            <li>Toolは外部観測と行為を増やすが、Modelへ自動で責任を与えない。</li>
-            <li>因果ベンチマークでは改善例と同時に、時間順序を因果と誤認する失敗も確認されている。</li>
-          </ol>
-        </div>
-      </section>
-
-      <section id="training" class="section">
-        <div class="reading">
-          <h2>2. 学習: 能力が作られる段階</h2>
-          <p class="lead">「LLMを学習する」は単一工程ではない。何を学習可能にするか、広いパターンをどう圧縮するか、どの振る舞いを選びやすくするかは別の段階で決まる。</p>
-        </div>
-
-        <figure class="diagram wrap">
-          <p class="diagram-title">学習の流れ</p>
-          <div class="timeline">
-            <div class="phase data" data-step="0"><h3>目的関数とデータ設計</h3><p>収集、品質フィルタ、重複除去、混合比、ライセンス、プライバシー処理により、学習分布を決める。</p></div>
-            <div class="phase data" data-step="1"><h3>Tokenization</h3><p>元データをsubwordなどのToken IDへ変換する。Token数は文脈長と計算コストへ影響する。</p></div>
-            <div class="phase" data-step="2"><h3>Pre-training</h3><p>次TokenのCross-Entropyを下げ、一般的なパターンを重みへ圧縮する。</p></div>
-            <div class="phase" data-step="3"><h3>Mid-training</h3><p>長文脈、専門領域、多言語、マルチモーダル能力などを延長する場合がある。全Model共通ではない。</p></div>
-            <div class="phase behavior" data-step="4"><h3>Supervised Fine-Tuning</h3><p>指示と望ましい応答の例を模倣し、Base ModelをAssistantらしい振る舞いへ向ける。</p></div>
-            <div class="phase behavior" data-step="5"><h3>Preference Optimization</h3><p>RLHF、PPO、DPOなどで、好ましい応答を相対的に選びやすくする。</p></div>
-            <div class="phase behavior" data-step="6"><h3>Reasoning RLとDistillation</h3><p>Verifierの報酬で問題解決方針を強め、TeacherからStudentへ能力を移す。</p></div>
-            <div class="phase gate" data-step="7"><h3>評価と公開判断</h3><p>benchmark、red teaming、領域テスト、遅延、コスト、失敗分析で公開可否を判断する。</p></div>
-          </div>
-          <figcaption class="caption">上から下が時間の流れ。青はデータ、黄は重み形成、緑は振る舞いの調整、赤は公開ゲートである。</figcaption>
-        </figure>
-
-        <div class="reading">
-          <h3>Pre-trainingの一回の重み更新</h3>
-          <ol>
-            <li><strong>Forward Pass</strong>: Modelが各位置で語彙全体のLogitを計算する。</li>
-            <li><strong>Softmax</strong>: Logitを合計1の確率分布へ変換する。</li>
-            <li><strong>Cross-Entropy</strong>: 正解Tokenへ割り当てた確率が低いほど大きな損失にする。</li>
-            <li><strong>Backpropagation</strong>: 損失への寄与を各重みへ伝える。</li>
-            <li><strong>Optimizer</strong>: 損失が下がる方向へ重みを少し更新する。</li>
-          </ol>
-          <p>多数GPUではData Parallel、Tensor Parallel、Pipeline Parallel、Expert Parallelを組み合わせる。AllReduceは複数デバイスの勾配を集約する通信操作である。FP8やBF16はメモリと計算を節約する低精度形式だが、数値安定性の管理が必要になる。</p>
-
-          <h3>Post-training: Base Modelを「使える相手」に変える</h3>
-          <p>Pre-trainingだけで作られたBase Modelは、文章を続ける力を持つが、ユーザーの依頼に従う、危険な依頼を断る、読みやすい形式で答える、途中でToolを使う、といった会話上の作法を安定して持つとは限らない。Post-trainingは、新しい世界知識を魔法のように注入する工程ではなく、Base Modelが持つ広い生成能力の中から、どの振る舞いを出しやすくするかを調整する工程である。</p>
-
-          <h4>SFT: 文章継続器を指示追従器へ寄せる</h4>
-          <p>Supervised Fine-Tuningは、ユーザーの指示と望ましい応答のペアを見せ、「この形式の入力には、この形式で返す」という写像を学ばせる。背景にある問題は、Pre-trainingの目的が「次のTokenを当てる」ことであって、「ユーザーの意図を汲み、必要なら手順化し、安全に返す」ことではない点にある。SFTは、モデルに会話の入口、拒否、要約、コード修正、説明の型を与える。</p>
-          <p>ただしSFTは模倣である。デモデータにない状況、矛盾した仕様、事実確認が必要な質問では、正しさを保証しない。SFTで改善するのは主に応答の形、指示への従いやすさ、基本的な安全作法であり、出典確認や因果検証は別に必要になる。</p>
-
-          <h4>Reward ModelとRLHF: 「どちらがよい応答か」を学習信号にする</h4>
-          <p>SFTだけでは、同じ質問に対して複数のもっともらしい応答があるとき、どれを選ぶべきかを細かく制御しにくい。そこで人間が複数応答を比較し、「こちらの方が役に立つ」「こちらの方が安全」「こちらの方が誠実」といった選好データを作る。Reward Modelは、その比較データから応答にスコアを付ける評価器である。</p>
-          <p>RLHFでは、このReward Modelのスコアが高くなるようにPolicyを更新する。PPOは、その更新でModelが元の分布から急に離れすぎないように制約を入れる。効く場所は、丁寧さ、拒否の仕方、説明の読みやすさ、曖昧な依頼への補足などである。一方で、Reward Modelが測っていない事実性、長期的な正しさ、実運用での副作用までは保証しない。評価器をだますような応答が高得点を取るreward hackingも残る。</p>
-
-          <h4>DPO: 強化学習を軽くし、好ましい応答を直接選びやすくする</h4>
-          <p>DPOは、Reward Modelを別に学習してPPOで最適化する複雑さを減らし、選好ペアから「好ましい応答の尤度を、好ましくない応答より高める」方向へ直接Modelを更新する。背景には、RLHFのpipelineが重く、Reward Modelの品質やPPOの安定性に左右されやすいという実務上の制約がある。</p>
-          <p>DPOは学習を単純化しやすく、既存Modelを選好データへ合わせるのに使いやすい。ただし、DPOも結局は選好データの範囲で出力分布を動かす技術である。選好データが事実確認を含まなければ、事実性は直接保証されない。つまり、DPOは「よく見える応答」を増やせるが、「現実に正しい応答」を単独で保証する仕組みではない。</p>
-
-          <h4>Reasoning RLとVerifier: 正解を機械的に測れる領域で探索を強める</h4>
-          <p>数学、競技プログラミング、コード修正のように、最終答えやTest結果を機械的に判定できる領域では、単なる人間の好みより強い学習信号を作れる。Reasoning RLは、正解やTest passなどのVerifier rewardを使い、正解に到達しやすい生成方針を強める。ここで重要なのは、「考える主体」が突然生まれるというより、正解へ近づくToken列や探索方針が報酬で選ばれやすくなるということだ。</p>
-          <p>この技術は、計算を多く使う難問、複数ステップの推論、コードの修正ループに効きやすい。一方で、Verifierがない自由記述、価値判断、現実世界の因果判断では報酬を作りにくい。Verifierが間違っていれば、Modelはその間違った物差しに適応する。</p>
-
-          <h4>Distillation: 高価な能力を小さなModelへ移す</h4>
-          <p>強いModelをそのまま使うと、コスト、遅延、配布、プライバシーの制約が大きい。Distillationは、強いTeacher Modelの応答、推論例、出力分布を使って、軽いStudent Modelに似た振る舞いを学ばせる。これは「知識の圧縮」というより、Teacherが作る入出力写像をStudentが再現しやすくする工程である。</p>
-          <p>効く場所は、低コスト化、オンデバイス化、特定タスクへの特化、推論遅延の削減である。ただしStudentはTeacherの誤りも引き継ぎうる。Teacherより広い能力や、Teacherが検証していない事実性を自動で得るわけではない。</p>
-
-          <p>Chinchilla研究は、固定された計算予算ではparameter数と学習Token数の配分が重要だと示した。InstructGPTはSFT、Reward Model、PPO-based RLHFの流れを示し、DPOはpreference pairからより単純に方針を最適化する方法を示した。これらをまとめると、Post-trainingとは「知識を入れる工程」ではなく、「どの変換を選びやすくするかを、デモ、選好、Verifier、Teacherで形づくる工程」である。</p>
-          <div class="callout"><p><strong>仕様からコードを書く能力は複数段階の合成能力である。</strong> Pre-trainingでコードのパターンを学び、SFTで指示形式を学び、Preference Optimizationで読みやすい応答を選び、Reasoning RLやVerifierでテストを通す方策を強める。Application側のリポジトリ探索とTest Toolが最後の差を埋める。</p></div>
-        </div>
-      </section>
-
-      <section id="inference" class="section">
-        <div class="reading">
-          <h2>3. 推論: リクエストから応答まで</h2>
-          <p class="lead">推論は一回のModel呼び出しではない。Application、Orchestrator、Model Server、Runtime、Acceleratorが連なり、Tool呼び出しがあると外部ループへ出て再びModelへ戻る。</p>
-        </div>
-
-        <figure class="diagram wrap">
-          <p class="diagram-title">推論の実行順序</p>
-          <div class="sequence">
-            <div class="sequence-step"><b>Application</b><span>ユーザー入力、System Instruction、履歴、取得文脈、Tool schemaをプロンプトへ構成する。</span></div>
-            <div class="sequence-step"><b>Orchestrator</b><span>Retrieval、memory、Tool、再試行、予算、承認、停止条件を管理する。</span></div>
-            <div class="sequence-step"><b>Scheduler</b><span>認証、rate limit、queueing後、リクエストをContinuous Batchへ配置する。</span></div>
-            <div class="sequence-step"><b>Tokenizer</b><span>テキストとschemaをToken IDへ変換する。</span></div>
-            <div class="sequence-step"><b>Prefill</b><span>プロンプト全体を並列処理し、各layerのKey / ValueをKV Cacheへ保存する。</span></div>
-            <div class="sequence-step"><b>Transformer</b><span>Normalization、Attention、MLPまたはMoE、Residual Connectionで表現を更新する。</span></div>
-            <div class="sequence-step"><b>Sampling</b><span>LM HeadがLogitを作り、Temperature、Top-pなどに従って次Tokenを選ぶ。</span></div>
-            <div class="sequence-step"><b>Decode Loop</b><span>KV Cacheを再利用しながらTokenを一つずつ追加する。</span></div>
-            <div class="sequence-step"><b>Tool Loop</b><span>schema検証と権限確認の後にToolを実行し、結果を文脈へ戻す。</span></div>
-            <div class="sequence-step"><b>Streaming</b><span>Token、Tool状態、使用量、エラーをApplicationへ返し、ログと監視へ記録する。</span></div>
-          </div>
-          <figcaption class="caption">番号は実行順序。Tool呼び出しがない場合はStep 9を飛ばす。Tool結果が戻ると新しいModel passが始まる。</figcaption>
-        </figure>
-
-        <div class="reading">
-          <h3>推論は「一回の回答」ではなく、状態を組み替える流れである</h3>
-          <p>ユーザーから見ると、推論は「質問を送ると答えが返る」だけに見える。しかし実際には、まずApplicationがユーザー入力、System Instruction、会話履歴、検索結果、Tool定義を一つの文脈へ組み立てる。この段階で何を入れ、何を入れないかが、Modelが探索できる空間を決める。良いModelでも、必要な仕様やログが文脈に入っていなければ、それを根拠にした変換はできない。</p>
-          <p>次にOrchestratorが、検索、Tool実行、再試行、予算、承認を管理する。Agentらしさの多くはModel単体ではなく、この外側の制御ループから生まれる。たとえばCodexがファイルを探し、Testを走らせ、失敗ログを再び文脈へ戻すとき、Modelは世界を直接操作しているのではなく、Orchestratorが許した観測と行為を受け取って次の変換を行っている。</p>
-          <p>Model Server側では、リクエストをqueueへ入れ、複数ユーザーの異なる長さの処理をbatch化する。Prefillでは入力文脈全体を一気に処理してKV Cacheを作り、Decodeでは新しいTokenだけを追加しながら過去のKey / Valueを再利用する。つまり、長いプロンプトは最初に重く、長い出力はTokenごとに逐次的に重い。ここがlatency、cost、throughputの基本制約になる。</p>
-          <p>Tool呼び出しがある場合、ModelはJSONなどの構造化された呼び出しを出し、Orchestratorがschemaと権限を確認してから実行する。Tool結果は新しい観測として文脈へ戻り、再びPrefill / Decodeが行われる。だからTool useは「Modelが外界を知っている」ことではなく、「外界を観測するループをシステムがModelへ接続している」ことだと見るべきである。</p>
-
-          <h3>Transformer Blockの内側</h3>
-          <p>以下は代表的なdecoder-only構成であり、正確な順序と部品はModelごとに異なる。</p>
-        </div>
-        <figure class="diagram reading">
-          <div class="block-stack">
-            <div class="block-layer"><b>Embedding + RoPE</b><span>Token IDをベクトルへ変え、位置関係を符号化する</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>RMSNorm / LayerNorm</b><span>活性値のscaleを整える</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>Q / K / V Projection</b><span>hidden stateからAttention用のQuery、Key、Valueを作る</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>Masked Self-Attention</b><span>過去文脈のValueを関連度に応じて混合する</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>Residual Connection</b><span>Block入力を変換後の出力へ足す</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>MLP / MoE</b><span>特徴を非線形に変換する。MoEではRouterがExpertを選ぶ</span></div><div class="block-arrow"></div>
-            <div class="block-layer"><b>LM Head</b><span>最後のhidden stateを語彙ごとのLogitへ写す</span></div>
-          </div>
-          <figcaption class="caption">上から下が一つのToken表現の更新方向。黄は表現変換を表す。</figcaption>
-        </figure>
-
-        <div class="reading">
-          <h3>Attentionは「記憶」ではなく、現在のTokenから見た読み直しである</h3>
-          <p>EmbeddingはToken IDを連続ベクトルへ変える。ここで得られるのは単語の辞書的意味ではなく、学習を通じて使いやすくなった数値表現である。RoPEなどの位置表現は、そのTokenが系列のどこにあるかをAttentionが扱えるようにする。これがないと、同じTokenが先頭にある場合と直前にある場合を区別しにくい。</p>
-          <p>Q / K / V Projectionでは、同じhidden stateから三種類の見方を作る。Queryは「今のTokenが何を探しているか」、Keyは「過去の各Tokenが何の手がかりを持つか」、Valueは「参照されたときに渡す情報」と考えるとよい。AttentionはQueryとKeyの類似度から重みを作り、その重みに従ってValueを混ぜる。これはデータベース検索ではなく、文脈内の表現をその場で重みづけして読み直す演算である。</p>
-          <p>Masked Self-Attentionは未来のTokenを見ない。左から右へ生成するModelでは、次Tokenを予測するときに未来を参照できないようmaskをかける。Prefillでは入力文脈内の各位置についてこの計算をまとめて行えるが、Decodeでは新しいTokenが前のTokenに依存するため、出力Tokenを完全に並列には作れない。</p>
-          <p>MLPは、Attentionで混ぜた情報を各位置ごとに非線形変換する。Attentionが「どの文脈を見るか」を担うなら、MLPは「見た情報をどう特徴へ変えるか」を担う。Residual Connectionは変換前の情報を足し戻し、深いlayerでも情報と勾配が流れやすいようにする。最後にLM Headがhidden stateを語彙ごとのLogitへ写し、Samplingが次Tokenを選ぶ。</p>
-          <p>この一連の処理から見えるのは、LLMが内部で記号規則を逐語的に実行しているのではなく、文脈内探索と表現変換をlayerごとに繰り返しているということだ。だから、長い文脈に情報が入っているだけでは足りない。必要な箇所がAttentionで使われ、MLPで有効な特徴へ変換され、最後のLogitに反映されなければならない。</p>
-
-          <h3>主流構成と配信技術: ボトルネックごとに読む</h3>
-          <p>推論を速く安くする研究は、単に「Modelを小さくする」だけではない。大きな制約は、AttentionのKV Cache、重みの読み込み、GPUメモリ帯域、GPU間通信、Decodeの逐次性、リクエストのばらつきである。各技術は、このどこかの制約を狙っている。</p>
-
-          <h4>MHA、GQA、MLA: KV Cacheをどう持つか</h4>
-          <p>MHAでは、複数のAttention headがそれぞれ独立したKey / Valueを持つ。表現力は高いが、Decode時には過去TokenすべてのKey / Valueを保存し続ける必要があるため、文脈が長くなるほどKV Cacheが膨らむ。長文脈や多数同時リクエストでは、計算量だけでなくメモリ容量とメモリ帯域が制約になる。</p>
-          <p>GQAは、複数のQuery headでKey / Value headを共有する。これにより、Query側の表現の多様性をある程度残しつつ、KV Cacheを減らせる。効くのは推論時のメモリ使用量と帯域であり、特に長文脈や高throughput servingで重要になる。代わりに、Key / Valueを共有するぶん、設計と品質のbalanceが必要になる。</p>
-          <p>MLAは、Key / Value表現をそのまま大きく保持する代わりに、より小さいlatent representationへ圧縮して扱う方向である。狙いは、KV Cacheの容量と読み書き帯域をさらに下げることにある。これはModel architectureとserving implementationが強く結びつくため、単なる後付け最適化ではなく、Model設計そのものの一部として読む必要がある。</p>
-
-          <h4>MoE: 全parameterを毎回使わず、必要なExpertだけ動かす</h4>
-          <p>Dense Modelでは、各Tokenがほぼ同じparameter群を通る。Modelを大きくすると能力は上がりやすいが、毎Tokenの計算も重くなる。MoEは、多数のExpertを持ちながら、各Tokenに対してRouterが少数のExpertだけを選ぶ構成である。総parameter数は大きく、active computeは相対的に小さくできる。</p>
-          <p>効くのは、Model容量と推論コストの分離である。ただしRouterが特定Expertへ偏るとload balanceが崩れる。Expertを複数GPUに分散すると通信が増える。つまりMoEは「無料で大きくする技術」ではなく、容量、routing、通信、batchingをまとめて設計する技術である。</p>
-
-          <h4>FlashAttention: Attentionを速くする鍵は計算回数だけでなくメモリIO</h4>
-          <p>Attentionは数式だけ見ると行列積とSoftmaxだが、実装上はGPUのHBMとon-chip SRAMの間で大量の読み書きが発生する。FlashAttentionは、Attentionの結果を数学的には同じまま、tilingによりSRAM上で処理できる単位へ分け、中間行列をHBMへ大量に書き出さないようにする。</p>
-          <p>効くのは、特に長いsequenceや大きなbatchでのメモリIO削減である。これはModelの能力を変える技術ではなく、同じAttentionをより効率よく計算する実装技術である。したがって「FlashAttentionだから賢い」のではなく、「同じ計算をより現実的な時間とコストで回せる」と読む。</p>
-
-          <h4>PagedAttention: servingではKV Cacheの断片化が問題になる</h4>
-          <p>実運用では、リクエストごとに入力長も出力長も違う。あるユーザーは短い回答で終わり、別のユーザーは長く生成する。KV Cacheを単純な連続領域として確保すると、メモリの空きが細かく分断され、実際には空き容量があるのに使いにくい状態が起きる。</p>
-          <p>PagedAttentionは、OSのpagingに似た発想でKV Cacheをblock単位に管理する。これにより、リクエストごとの伸び縮みに合わせてblockを割り当て、断片化や重複を減らす。効くのはModelの推論能力ではなく、同時接続、throughput、メモリ利用率である。</p>
-
-          <h4>Speculative Decoding: Decodeの逐次性を別Modelで先読みする</h4>
-          <p>autoregressiveなDecodeでは、次Tokenが決まらないと次のTokenを確定できない。この逐次性がlatencyの根本制約になる。Speculative Decodingは、小さく速いdraft Modelに数Token先まで候補を出させ、大きなtarget Modelがそれらをまとめて検証する。受け入れられたTokenは一気に進み、外れたところから通常Decodeへ戻る。</p>
-          <p>重要なのは、target Modelの分布を保ったまま高速化できる設計である。効くかどうかはdraft Modelがどれだけtarget Modelと同じ候補を出せるかに依存する。draftが外れ続けるタスクでは検証overheadが増え、速度メリットは小さくなる。</p>
-
-          <h4>Quantization: 数値を粗くして、メモリと帯域を減らす</h4>
-          <p>大きなModelでは、重みを読むだけでも膨大なメモリ帯域を使う。Quantizationは、重みやactivationをFP16やBF16より少ないbit幅で表現し、メモリ容量と読み書きを減らす技術である。うまくいけば、Modelを小さなGPUへ載せたり、同じGPUでより高いthroughputを出したりできる。</p>
-          <p>ただし数値を粗くすれば、当然情報は失われうる。どのlayerを何bitにするか、calibration dataをどう選ぶか、kernelがその形式を速く処理できるかが効く。Quantizationは品質、速度、実装対応の三者を調整する技術であり、単にbitを下げればよいわけではない。</p>
-        </div>
-
-        <figure class="diagram wrap">
-          <p class="diagram-title">計算資源からApplicationまでの推論stack</p>
-          <div class="stack-wrap">
-            <div class="system-stack">
-              <div class="stack-layer application"><b>Application</b><span>UI、System Instruction、出力表示、ユーザー承認</span></div>
-              <div class="stack-layer application"><b>Orchestrator</b><span>Retrieval、Tool、memory、再試行、予算、権限</span></div>
-              <div class="stack-layer"><b>API / Model Server</b><span>認証、queue、Continuous Batching、KV Cache、streaming</span></div>
-              <div class="stack-layer model"><b>Model Runtime</b><span>Tensor Parallel、Pipeline Parallel、Expert Parallel、kernel dispatch</span></div>
-              <div class="stack-layer model"><b>Transformer Weights</b><span>Embedding、Attention、MLP / MoE、LM Head</span></div>
-              <div class="stack-layer hardware"><b>Accelerator Cluster</b><span>GPU / TPU、HBM、NVLink / InfiniBand、collective communication</span></div>
-              <div class="stack-layer hardware"><b>Silicon & System</b><span>Tensor Core、SRAM、memory controller、network、電力、冷却</span></div>
+          <div class="sim-panel">
+            <h4>Query bias</h4>
+            <div class="sim-controls">
+              <label><input type="radio" name="qbias" value="a" checked> 事実A寄り</label>
+              <label><input type="radio" name="qbias" value="d"> distractor寄り</label>
             </div>
-            <div class="bi-flow" aria-label="requestは下向き、Tokenは上向きに流れる">
-              <div class="flow-down"><span class="flow-label">リクエスト / 命令</span></div>
-              <div class="flow-up"><span class="flow-label">Token / 結果</span></div>
-            </div>
+            <h4>Contribution（正規化後）</h4>
+            <div class="contrib-row"><span>Fact A</span><div class="contrib-track"><div class="contrib-bar" id="barA" style="width:70%"></div></div><span id="pctA">70%</span></div>
+            <div class="contrib-row"><span>Fact B</span><div class="contrib-track"><div class="contrib-bar gold" id="barB" style="width:20%"></div></div><span id="pctB">20%</span></div>
+            <div class="contrib-row"><span>Distractor</span><div class="contrib-track"><div class="contrib-bar red" id="barD" style="width:10%"></div></div><span id="pctD">10%</span></div>
+            <div class="sim-status" id="attnStatus">事実Aに寄与が集まりやすい。正しい焦点は「入った」ことと別。</div>
           </div>
-          <figcaption class="caption">下から上ほど抽象度が高い。緑のリクエストは下へ、青のToken / Tool結果は上へ流れる。モバイルではstackだけを表示し、本文の順序で流れを補う。</figcaption>
-        </figure>
-
-        <div class="reading">
-          <h3>stackの各レイヤーで何が絡み合うか</h3>
-          <h4>Silicon & System: 計算は電力、熱、メモリ移動に制約される</h4>
-          <p>最下層では、Tensor Coreや行列演算器が積和演算を高速に実行する。ただしLLM推論は演算器だけで決まらない。重み、activation、KV CacheをHBMから読み、必要に応じてSRAMへ載せ、GPU間で通信する。電力と冷却が足りなければclockは上げられず、メモリ帯域が詰まれば演算器は待たされる。だから「GPUが速い」とは、演算、メモリ、通信、電力のbalanceが取れているという意味である。</p>
-
-          <h4>Accelerator Cluster: 一枚のGPUに入らないModelを分けて動かす</h4>
-          <p>大きなModelは一枚のGPUのメモリに収まらないことがある。Tensor Parallelは一つの行列演算を複数GPUへ分け、Pipeline Parallelはlayerのまとまりをstageに分け、Expert ParallelはMoEのExpertを分散する。分ければ大きなModelを動かせるが、GPU間通信が増える。NVLinkやInfiniBandの帯域とlatencyが、Modelの理論性能を実運用性能へ変える関門になる。</p>
-
-          <h4>Model Runtime: graphをkernelへ落とし、batchを実行する</h4>
-          <p>Runtimeは、Transformerの計算をGPU kernelの列へ変換し、どのtensorをどのdeviceに置くか、どの順序で実行するかを管理する。ここでFlashAttention、Quantization kernel、MoE routing、parallel strategyが実際の処理になる。Model architectureの論文だけでは速くならない。Runtimeがhardwareの形に合わせて計算を並べ替え、メモリ移動を減らして初めて速度になる。</p>
-
-          <h4>Model Server: 多数ユーザーの不揃いな生成をさばく</h4>
-          <p>Model Serverは、単一リクエストを処理するだけでなく、同時に来る多くのリクエストをqueueし、batch化し、KV Cacheを管理し、streamingで返す。Continuous Batchingでは、生成が終わったリクエストをbatchから抜き、新しいリクエストを途中から入れる。これによりGPU使用率を上げるが、長い出力や遅いTool待ちが混ざるとscheduleは難しくなる。</p>
-
-          <h4>Orchestrator: Modelの外側で仕事の状態を持つ</h4>
-          <p>Orchestratorは、Modelが何を見てよいか、どのToolを使ってよいか、何回再試行するか、いつ人間の承認を求めるかを管理する。RAGでは検索queryを作り、取得文書を整形して文脈へ入れる。Coding Agentではファイル探索、patch適用、Test実行、差分確認をloopにする。この層があるため、LLMは単なるText generatorから、状態を持つworkflowの一部になる。</p>
-
-          <h4>Application: 最終的な意味と責任を決める</h4>
-          <p>Applicationは、ユーザーに何を見せ、どの操作を許し、どの出力を保存し、どこで承認を求めるかを決める。ここで出力schema、UI、ログ、監査、rollbackが設計される。Modelが同じでも、Applicationが証拠を表示するか、差分を見せるか、危険操作を止めるかで、システムの信頼性は大きく変わる。</p>
-
-          <h3>推論設定を動かして意味を確認する</h3>
-          <div class="settings-lab">
-            <div class="settings-head"><h3>推論設定ラボ</h3><span id="modeLabel" class="mode-label">均衡寄り</span></div>
-            <div class="settings-body">
-              <div class="controls">
-                <div class="control"><label for="temperature"><span>Temperature</span><output id="temperatureValue">0.7</output></label><input id="temperature" type="range" min="0" max="1.5" step="0.1" value="0.7"></div>
-                <div class="control"><label for="topP"><span>Top-p</span><output id="topPValue">0.9</output></label><input id="topP" type="range" min="0.1" max="1" step="0.05" value="0.9"></div>
-                <div class="control"><label for="maxTokens"><span>最大出力Token</span><output id="maxTokensValue">2048</output></label><input id="maxTokens" type="range" min="256" max="8192" step="256" value="2048"></div>
-                <fieldset><legend>Attention / Cache strategy</legend><div class="segments"><label><input type="radio" name="attention" value="MHA">MHA</label><label><input type="radio" name="attention" value="GQA" checked>GQA</label><label><input type="radio" name="attention" value="MLA">MLA</label></div></fieldset>
-              </div>
-              <div class="settings-output" aria-live="polite">
-                <h4>変わるもの / 変わらないもの</h4>
-                <div class="effect"><b>Sampling</b><span id="samplingEffect">多様性と安定性の中間。candidate setは高確率領域へ絞る。</span></div>
-                <div class="effect"><b>資源上限</b><span id="tokenEffect">最大2,048 Token。長い出力はlatencyとKV Cacheを増やす。</span></div>
-                <div class="effect"><b>KV Cache</b><span id="attentionEffect">GQAはKey / Value headを共有し、MHAよりcacheを抑える。</span></div>
-                <div class="effect"><b>保証</b><span>どの設定も真偽、因果、安全性を保証しない。設定は分布と資源使用を変える。</span></div>
-              </div>
-            </div>
-          </div>
-          <p class="caption">このラボは実測benchmarkではない。設定が変える対象を概念的に示す。</p>
         </div>
-      </section>
+        <p class="sim-caption">Lesson: Attention は位置を混ぜる。長い文脈を貼った＝全部正しく読んだ、ではない（P4）。</p>
+        <p class="sim-fallback"><strong>静的フォールバック:</strong> Query が distractor 側へ向くと、正しい Fact A があっても寄与が噂側へ流れ、流暢な誤答が出うる。</p>
+      </div>
 
-      <section id="causality" class="section">
-        <div class="reading">
-          <h2>4. 因果: 構造上の弱さを正確に言う</h2>
-          <p class="lead">LLMが因果らしい文章を生成できることと、データから因果関係を同定できることは別である。</p>
-          <p>通常のnext-Token Pre-trainingが直接最適化するのは、観測されたToken列の尤度である。学習テキストに「Aの後にB」「AとBが一緒に語られる」という相関があっても、交絡、逆因果、選択バイアスを取り除く実験が含まれるとは限らない。</p>
-          <div class="callout warning"><p><strong>限定された主張:</strong> Transformerが因果表現を絶対に持てないという意味ではない。観測データだけに基づくnext-Token目的関数では、causal graph、Intervention、Counterfactualを一意に正しく学ぶことが強制されない、という意味である。</p></div>
+      <div class="callout">
+        <p>ここでP4が回収される: 長い文脈を入れても重要な箇所を見落とす現象は、Attention 混合の失敗モードとして理解できる。入ったことと、必要箇所へ十分な重みが乗ることは別である。</p>
+      </div>
+      <h3>worked example</h3>
+      <p>プロンプトに (1) 正しい現行仕様の一文、(2) 古い仕様の長い引用、(3) 無関係な社内噂、をこの順で入れる。ユーザー問いが古い用語を使うと、Query が (2) 側の Key に寄り、答えが古いまま流暢に出ることがある。これは「意図的な嘘」ではなく、文脈混合の結果である。対策は「もっと丁寧に頼む」だけではなく、正しい正本を前に置き、古い引用を減らす、検索で現行だけを入れる、など探索側の設計になる。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「Attention＝記憶検索」→ 現在文脈内の表現へのアクセスである。重みに圧縮されたパターンの活性化（重み内探索）とは層が違う。</li>
+        <li>「head が多いほど常に賢い」→ 表現力と KV コストのトレードオフがある<a class="fn-ref" id="fnref-12c" href="#ref-12">(*12)</a>。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>ブロックがロジットまで出しても、まだ「どの一トークンを採用し、系列をどう伸ばすか」が残る。次節がサンプリングである。</p>
+    </section>
+
+    <section class="section reading" id="n8">
+      <h2>8. N8 — 自己回帰サンプリング：分布から一つの続きを選ぶ</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N7 までで、最終隠れ状態から語彙上のロジットが得られるところまで来た。しかし応答はロジットそのものではなく、選ばれたトークンの連鎖である。温度や Top-p は分布の形を変え、正しさを保証しない——これが N8 の hard claim である。自己回帰依存のため、誤りは後続文脈へ伝播しやすい。</p>
+      <h3>仕組み</h3>
+      <p><strong>LM Head</strong> が最終表現を語彙サイズのロジットへ射影する。代表的な選択規則は次である。</p>
+      <ul>
+        <li><strong>Greedy</strong>: 最大確率トークンを毎回選ぶ</li>
+        <li><strong>Temperature</strong>: ロジットを温度で割ってから Softmax。低いほど高確率側へ尖る</li>
+        <li><strong>Top-p（Nucleus）</strong>: 累積確率が <code>p</code> に達する最小候補集合からサンプリング</li>
+        <li><strong>Max tokens / stop sequence</strong>: 正しさではなく資源と停止条件</li>
+      </ul>
+      <p>学習時は教師トークンへの当てはまりを上げ、推論時は上の規則で一つのサンプル経路を歩む。決定的に寄せても、重みや文脈にある誤りは消えない。</p>
+      <p>推論の時間構造は二相に分かれる。<strong>Prefill</strong> は入力系列をまとめて通し、各層の Key/Value を <strong>KV Cache</strong> へ書く。<strong>Decode</strong> は新しいトークンだけを通し、過去 KV を再利用する。K トークンの出力には原理的に K 回の逐次ステップが要る。</p>
+      <div class="callout">
+        <p>ここでP2が回収される: Temperature を下げても嘘が消えない。温度は尖りを変えるノブであり、真理ノブではない。低温度は「同じ高確率の誤り」を安定して出しやすくすることすらある。</p>
+      </div>
+      <div class="callout">
+        <p>P1 の再確認: 自信ありげな誤答は、尖った分布のモードとして現れうる。確率の高さと検証済みは別である。</p>
+      </div>
+
+      <h3>Lab B — Sampling（教育用トイ）</h3>
+      <div class="sim-embed sim-root" id="sim-sample">
+        <p class="sim-title">Next-Token Sampling Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> Temperature / Top-p は出力分布の形を変える操作であり、正しいトークンへの保証を追加しない。</p>
+        <p class="sim-caption" style="margin-top:0;">架空ロジットの教育用トイ。製品品質・遅延・コストは測りません。</p>
+        <div class="sim-controls">
+          <label>Temperature <input type="range" id="temp" min="0.1" max="2" step="0.1" value="1"> <span id="tempVal">1.0</span></label>
+          <label>Top-p <input type="range" id="topp" min="0.1" max="1" step="0.05" value="1"> <span id="toppVal">1.00</span></label>
+          <button type="button" class="sim-btn" id="btnSample">Sample</button>
+          <button type="button" class="sim-btn" id="btnSampleReset">Reset</button>
         </div>
+        <p style="font-size:13px;color:var(--mm-muted);margin:0 0 8px;">Toy logits（WRONG が高、CORRECT がやや低）</p>
+        <div id="logitBars"></div>
+        <p style="font-size:13px;margin:10px 0 4px;">Temperature 後の正規化確率 / Top-p 候補</p>
+        <div id="probBars"></div>
+        <div class="sim-status" id="sampleStatus">Sample で1トークンを選びます。誤りが高ロジットなら低温度でも残りえます。</div>
+        <p class="sim-caption">Lesson: temp/top-p は分布の形を変える。真理は変えない（P2）。</p>
+        <p class="sim-fallback"><strong>静的フォールバック:</strong> logits = {WRONG: 3.2, CORRECT: 2.4, OTHER: 0.5, NOISE: -0.2}。T→0 で WRONG が確定採用されうる。</p>
+      </div>
 
-        <figure class="diagram reading">
-          <p class="diagram-title">Causal Ladder</p>
-          <div class="causal-ladder">
-            <div class="rung counterfactual"><b>Counterfactual</b><span>同じ事例で、もしX'だったらYはどうなったか</span></div>
-            <div class="uncertain">LLM単体では保証されない</div>
-            <div class="bridge">SCM、領域制約、同定されたModel</div>
-            <div class="rung intervention"><b>Intervention</b><span>外からXを変えたらYはどう変わるか: P(Y | do(X))</span></div>
-            <div class="bridge">実験、A/B Test、制御された変更</div>
-            <div class="rung association"><b>Association</b><span>Xを観測したときYが起こりやすいか: P(Y | X)</span></div>
-          </div>
-          <figcaption class="caption">下から上ほど必要な仮定が増える。学習テキストは主に観測されたAssociationを与える。緑のbridgeが上段へ進む追加証拠で、赤の関係はnative guaranteeがないことを表す。</figcaption>
-        </figure>
+      <h3>worked example</h3>
+      <p>事実質問で、正しい答えのロジットが二番手、流暢な誤りのロジットが一番手、という状況を想像する。Temperature=0（greedy）はその誤りを確定採用する。Temperature を上げて多様性を増やしても、正しさの期待値が自動で上がるわけではない。検証が要る理由はここにある。コード生成では、低温度で「いつも同じ微妙なバグ」が再現する、という現場感とも一致する。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「決定的＝正確」→ 再現性の話と正確性の話を混ぜない。</li>
+        <li>「サンプリングがランダムだから信用できない」→ 問題の本体は乱数ではなく、分布が何を高確率にしているかである。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>理論上の Decode ループは分かった。実サービスではメモリ帯域とバッチが支配する。次節がサービングである。</p>
+    </section>
 
-        <div class="reading">
-          <h3>論文から分かること</h3>
-          <ul>
-            <li><strong>Causal Parrots</strong>は、因果事実を語る成功が学習テキスト内の因果事実同士の相関で説明できる可能性を論じた。著者のconjectureを含む。</li>
-            <li><strong>CLadder</strong>はAssociation、Intervention、Counterfactualを含む形式的な因果問題がLLMに難しい一方、CausalCoTで改善することを示した。</li>
-            <li><strong>Joshi et al. (EMNLP 2024)</strong>は、言及順序や時間順序から因果を誤推定するpost hoc fallacyを報告した。</li>
-            <li><strong>Kasetty et al.</strong>は、制御されたIntervention benchmarkでGPT系Modelに有望なperformanceも報告した。</li>
-          </ul>
-          <p>結論は「LLMはcausal reasoning不可能」ではない。明示的な因果構造、実験、Tool、Verifierを与えれば改善できるが、native guaranteeはない。</p>
-          <div class="callout"><p><strong>Codexでの読み替え:</strong> 「この変更でバグが直る」は仮説である。失敗するTestを再現し、単一の変更をInterventionとして実行し、失敗が消えるか再測定することで因果証拠へ近づく。</p></div>
+    <section class="section reading" id="n9">
+      <h2>9. N9 — Serving と KV：Prefill/Decode が現実の制約になる</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N8 の Decode を「GPUに入れて答えが返る」とまとめると、なぜ長いプロンプトが重いのか、なぜ出力トークンごとにレイテンシが乗るのか、なぜ同時ユーザー数が KV で決まるのかが見えない。実サービスはメモリ帯域と逐次 Decode に縛られる。Prefill で KV を作り Decode で再利用する。最適化の多くは近似や IO 削減である<a class="fn-ref" id="fnref-6" href="#ref-6">(*6)</a><a class="fn-ref" id="fnref-7" href="#ref-7">(*7)</a><a class="fn-ref" id="fnref-8" href="#ref-8">(*8)</a>。これが N9 の hard claim である。</p>
+      <h3>仕組み</h3>
+      <p>Application が System Instruction・履歴・取得文書・Tool schema を組み立てる段階で、探索可能な空間が決まる。Orchestrator は検索・再試行・予算・承認・停止を外側で制御する。Agent らしさの多くはこの外側ループから生まれる（詳細は N11）。Model Server では認証・レート制限のあと、Scheduler がリクエストをバッチへ載せる。<strong>Continuous Batching</strong> は、到着時刻と長さの違う要求を Decode ステップごとに出し入れし、スループットを上げる。</p>
+      <ul>
+        <li><strong>Prefill</strong>: 入力系列をまとめて通し、各層の Key/Value を KV Cache へ書く。長い入力はここが重い。</li>
+        <li><strong>Decode</strong>: 新トークンだけを通し、過去 KV を再利用する。長い出力はステップ数が増える。</li>
+      </ul>
+      <figure class="diagram" aria-label="推論スタック">
+        <p class="diagram-title">下から上へ：Hardware → Runtime → Model Server → Orchestrator → Application</p>
+        <div class="layer-grid" style="grid-template-columns:1fr;">
+          <div class="layer-card blue"><b>Application / Orchestrator</b><span>文脈組み立て・Tool・再試行・承認・停止条件（N11へ接続）</span></div>
+          <div class="layer-card gold"><b>Model Server — Prefill → KV Cache → Decode</b><span>入力を並列処理してキャッシュし、新トークンごとに逐次生成<a class="fn-ref" id="fnref-7stack" href="#ref-7">(*7)</a></span></div>
+          <div class="layer-card" style="border-top:4px solid var(--mm-gray);background:var(--mm-gray-soft);"><b>Runtime / Hardware</b><span>行列積・メモリ帯域・通信。重いのは「考える神秘」ではなく資源移動<a class="fn-ref" id="fnref-18stack" href="#ref-18">(*18)</a></span></div>
         </div>
-      </section>
+        <figcaption class="caption">Lesson: 応答の速さはモデル名だけで決まらない。Prefill/Decode/KV と外側 Orchestrator が共同で作る<a class="fn-ref" id="fnref-6stack" href="#ref-6">(*6)</a><a class="fn-ref" id="fnref-7stackb" href="#ref-7">(*7)</a>。</figcaption>
+      </figure>
+      <p>KV Cache は「過去を覚えている脳」のロマンではなく、自己回帰のための具体メモリである。要求長が動的だと、素朴な連続確保はない断片化が同時処理数を落とす。<strong>PagedAttention</strong> は OS のページングに似せ、KV をブロック単位で非連続管理し、断片化を抑える<a class="fn-ref" id="fnref-7b" href="#ref-7">(*7)</a>。</p>
+      <p><strong>FlashAttention</strong> は注意の数学的結果を保ちつつ、タイル化と再計算で HBM–SRAM 間の IO を減らす<a class="fn-ref" id="fnref-6b" href="#ref-6">(*6)</a>。ボトルネックが帯域なら、演算器を増やしても効果は薄い。</p>
+      <p><strong>Speculative Decoding</strong> は小さな draft が複数トークンを提案し、target がまとめて受理／拒否することで、出力分布を保ちつつ逐次性を緩和しうる<a class="fn-ref" id="fnref-8b" href="#ref-8">(*8)</a>。受理率が低いと恩恵は薄い。</p>
+      <p><strong>量子化</strong> はビット幅を下げて容量と帯域を減らすが、品質・校正・カーネル対応とのトレードオフがある。Tensor Parallel / Pipeline Parallel / Expert Parallel は、巨大行列や層や Expert を複数デバイスへ割り振る。通信が支配すると、見た目のGPU台数は線形に効かない。</p>
+      <div class="callout">
+        <p>ここでP4がさらに回収される: 長い文脈は Prefill 計算と KV 容量・帯域を直接押し上げる。入る上限（context window）と、サービング上「載せる価値があるか」「注目されるか」は別問題である。無関係な長文を貼ることは、見落とし（N7）とコスト（N9）の両方を悪化させうる。</p>
+      </div>
+      <h3>worked example</h3>
+      <p>同じモデルで、(A) 必要な関数だけを添付した短いプロンプト、(B) リポジトリ半分を貼った長いプロンプト、を比べる。B は Prefill が重く、KV が大きく、バッチに載りにくく、かつ Attention 上の distractor が増える。ユーザー体験としては「丁寧に全部入れたのに遅いし的外れ」になりうる。改善は「もっと大きい context の機種へ」だけではなく、探索を絞ることである。</p>
+      <p>もう一つの例はストリーミング応答である。トークンが順に届く感覚は、Decode の逐次性のUI表現である。途中で止めても「思考の一部」が残るわけではなく、採用済みトークンまでのサンプル経路が残る。ログに残すべきは、流暢な感想ではなく、request ID・レイテンシ・トークン数・Tool call・承認結果である。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「FlashAttention＝近似Attentionで品質低下」→ 代表的な FlashAttention は同一計算の IO 最適実装である<a class="fn-ref" id="fnref-6c" href="#ref-6">(*6)</a>。近似注意は別系統。</li>
+        <li>「serving最適化＝モデルが賢くなった」→ 多くの場合、同じ方策をより安く早く運ぶ工学である<a class="fn-ref" id="fnref-7c" href="#ref-7">(*7)</a><a class="fn-ref" id="fnref-8c" href="#ref-8">(*8)</a>。</li>
+        <li>「context windowの数字＝その長さで常に高精度」→ 上限と品質曲線は別；P4と混同しない。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>KV と行列演算は、最終的に加速器上の物理制約になる。次節はハードへの写像である。</p>
+    </section>
 
-      <section id="research" class="section">
-        <div class="reading">
-          <h2>5. 研究動向: どの制約を攻めているのか</h2>
-          <p class="lead">frontier Modelの順位ではなく、どのボトルネックを、どの証拠で改善したかを見る。</p>
+    <section class="section reading" id="n10">
+      <h2>10. N10 — Hardware mapping：行列積とメモリが支配する</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N9 までで「何が重い演算か」は見えたが、なぜ GPU がその形の計算に向くか、学習と Decode でボトルネック感が違うかが抽象のままだと、性能予言と性質がまた混ざる。行列積が加速器上の現実制約になり、GPU は重み／活性の読みと行列積が支配する——N10 の hard claim である<a class="fn-ref" id="fnref-18b" href="#ref-18">(*18)</a>。ここでも、特定チップのランキング予言はしない。再構築するのは資源の種類である。</p>
+      <h3>仕組み</h3>
+      <p>深層学習の支配的カーネルは、しばしば巨大な行列乗累算である。GPU は同種の並列演算を大量にこなし、Tensor Core のような経路が低精度行列積を加速する<a class="fn-ref" id="fnref-18c" href="#ref-18">(*18)</a>。実行性能は演算だけでなくメモリ階層・帯域・カーネル融合に制約される。演算強度（どれだけデータを再利用できるか）が低いと、どれだけ理論FLOPがあっても帯域に頭打ちされる。</p>
+      <p>学習と推論で資源プロファイルは違う。学習は大きなバッチで並列性が出やすく、勾配同期の通信が壁になりうる。自己回帰 Decode はトークン方向の直列が残り、ステップごとに巨大な重みと成長する KV を読む。だから「同じモデルを学習できるクラスタ」と「低レイテンシで会話できる serving」は、資源の使い方が違う。MoE ではさらに Expert 間の通信が絡む（N13）。</p>
+      <p>低精度（FP8 等）は、同一アルゴリズムでも実効スループットとエネルギーを変える実装レバーである<a class="fn-ref" id="fnref-18d" href="#ref-18">(*18)</a>。これは「モデルが賢くなった」ではなく、「同じ型の計算をより安い数値表現で運ぶ」話として読む。</p>
+      <p>ハードウェア層で性質として固定してよいことと、予言してはいけないことを分ける。固定してよいのは、巨大テンソルの移動と行列積が支配的であるという型である。予言してはいけないのは、来四半期のチップ世代がどれだけ安く速くなるか、どのクラウドが最安か、といった外部性能物語である。</p>
+      <h3>worked example</h3>
+      <p>長い出力を待つ対話で、ユーザーは「考えている時間」に見える待ちを体験する。内側では、各デコードステップで巨大な重みテンソルと KV を読み、小さなバッチの行列積を繰り返している、と再記述できる。待ちを減らす手段は「もっとお願いする」ではなく、出力長の上限、draft/検証（投機）<a class="fn-ref" id="fnref-8d" href="#ref-8">(*8)</a>、量子化、バッチ効率、あるいは問題自体を Tool 側へ移すことである。</p>
+      <p>学習ジョブの例では、GPU利用率が高く見えても通信待ちで実効が低いことがある。一方、対話APIではGPUが「暇そう」でも、個々のユーザーにとっては Decode 直列が支配する。同じハードウェアが、違う仕事では違うボトルネックになる。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「FLOPが多いほど常に速い」→ 帯域や通信が飽和すれば実効は落ちる<a class="fn-ref" id="fnref-18e" href="#ref-18">(*18)</a>。</li>
+        <li>「ローカルGPU＝全権限で安全」→ ハードウェア所有と権限境界は別（N14）。</li>
+        <li>「ハードを買えば検証が不要」→ 検証は受け入れ条件の話であり、アクセラレータの話ではない。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>重みと文脈だけでは「今のリポジトリ状態」「今のテスト結果」は足りない。次節が Tool / Agent ループである。</p>
+    </section>
+
+    <section class="section reading" id="n11">
+      <h2>11. N11 — Tool / Agent ループ：外部探索は権威を自動付与しない</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N3 で外部探索の役割を定義したが、機構としては、Tool呼び出しもまた生成トークン（しばしば JSON 等の構造化出力）である。重みにない現在状態は外から足す必要がある。Tool は観測と行為を増やすが、権威を自動付与しない——N11 の hard claim である<a class="fn-ref" id="fnref-16c" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17c" href="#ref-17">(*17)</a>。</p>
+      <h3>仕組み</h3>
+      <p>典型ループは次である。</p>
+      <ol>
+        <li>Application / Orchestrator が Tool schema と権限ポリシーを文脈へ載せる</li>
+        <li>モデルが Tool call を生成する（変換）</li>
+        <li>Orchestrator が schema 検証と permission check を行う</li>
+        <li>Tool adapter が Web / ファイル / shell / DB 等を実行する（外部探索または行為）</li>
+        <li>結果を新しい観測として文脈へ戻す</li>
+        <li>再度 Prefill/Decode へ入る</li>
+      </ol>
+      <p>モデルが「世界へ直接触れている」わけではない。credential・sandbox・approval・監査ログが実際の authority を持つ<a class="fn-ref" id="fnref-17d" href="#ref-17">(*17)</a>。Agentらしさの多くは、モデル単体の知性というより、この外側の制御ループから生まれる。失敗モードも増える。wrong query、悪い出典、prompt injection、結果の誤読、副作用、長ホライズンの累積誤差である。NIST の生成AIリスクプロファイルが強調するように、リスクはモデル能力だけでなく用途・文脈・人間の役割・ガバナンスに依存する<a class="fn-ref" id="fnref-16d" href="#ref-16">(*16)</a>。</p>
+      <div class="callout warning">
+        <p>ここでP5が回収され始める: Agent が自信を持って危険な変更を提案する現象は、「悪い心」ではなく、探索・変換が強力なまま、検証と権限が弱いときに起きる。提案の流暢さを承認の代理変数にしてはならない。</p>
+      </div>
+      <h3>worked example</h3>
+      <p>Codex 系のコーディングエージェントが bug を直す流れを、四役割で読む<a class="fn-ref" id="fnref-17e" href="#ref-17">(*17)</a>。</p>
+      <ol>
+        <li>issue を受け取る（目的）</li>
+        <li>リポジトリ内の関連ファイルを外部探索する</li>
+        <li>コードと Test を文脈内で関連づける</li>
+        <li>失敗仮説をパッチへ変換する</li>
+        <li>Test を Tool で実行し、介入証拠を得る（ここが検証チャネル）</li>
+        <li>失敗ログを戻して再変換する</li>
+        <li>diff と Test 結果を人間へ提示し、破壊的操作は承認を待つ</li>
+      </ol>
+      <p>「直しました」という自然文だけでは、5と7が欠けていれば証拠は弱い。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「Tool結果は常に真実」→ 取得チャネルの信頼性は別問題。Retrieval と Verification は別工程である。</li>
+        <li>「エージェント＝自律した責任主体」→ 責任と権限は制度・運用側に残る<a class="fn-ref" id="fnref-16e" href="#ref-16">(*16)</a>。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>探索と変換が強くなっても、「原因はこれだ」と語れることと、因果を同定できることは別である。次節が因果の階梯である。</p>
+    </section>
+
+    <section class="section reading" id="n12">
+      <h2>12. N12 — 因果の限界：語ることと同定することは別</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>LLM は「AがBを引き起こす」と流暢に書ける。N2 の観測目的と、N6 の説明文最適化が揃うと、因果語彙は特にそうらしく見える。しかし observational next-token だけでは、因果グラフ・介入・反事実を一意に正しく学ぶことが強制されない<a class="fn-ref" id="fnref-9c" href="#ref-9">(*9)</a>。「原因」と語れることと同定は別——N12 の hard claim である。</p>
+      <p>N11 で Tool を足しても、この限界は自動では消えない。Test Tool を持っていても、「何を介入として固定し、何を成功とするか」を設計しなければ、モデルは再び因果語彙の流暢な再生産へ戻りうる。</p>
+      <h3>仕組み — Causal ladder</h3>
+      <figure class="diagram" aria-label="Causal ladder">
+        <p class="diagram-title">因果の階梯と学習目的の届く範囲</p>
+        <div class="causal-ladder">
+          <div class="causal-rung l1"><b>1. Association</b><span>X を観測したとき Y が起きやすいか。P(Y|X) — next-token が直接触りやすい階</span></div>
+          <div class="causal-rung l2"><b>2. Intervention</b><span>外から X を設定したとき Y がどう変わるか。P(Y|do(X)) — Test / 実験が橋になる</span></div>
+          <div class="causal-rung l3"><b>3. Counterfactual</b><span>同一事例で、実際と違う X′ だったなら Y はどうなったか — さらに強い同定条件</span></div>
         </div>
-        <div class="reading">
-          <h3>研究は一つのAGI coreではなく、複数の制約を別々に攻めている</h3>
-          <p>LLMの進歩を「どのModelが一位か」だけで見ると、何が改善されたのかを見失う。実際の研究は、計算効率、推論時の探索、Tool利用、マルチモーダル化、因果、解釈可能性、評価と安全性という別々のボトルネックを攻めている。能力の伸びは、これらが積み重なった結果であり、一つの魔法の中核が突然現れたわけではない。</p>
+        <figcaption class="caption">Lesson: 流暢な因果語は Association 階でも書ける。介入・反事実の保証は外側の証拠設計が要る<a class="fn-ref" id="fnref-9cap" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10cap" href="#ref-10">(*10)</a>。</figcaption>
+      </figure>
+      <p>訓練テキストに「Aの後にB」「AとBが一緒に語られる」があっても、交絡・逆因果・選択バイアスを除く実験が含まれるとは限らない。</p>
+      <div class="callout">
+        <p>Transformer が因果表現を絶対に持てない、ではない。observational next-token objective だけでは、因果グラフ・介入・反事実を一意に正しく学ぶことが強制されない。</p>
+      </div>
+      <p>Causal Parrots は、因果事実を語る成功が、訓練テキスト内の因果言説同士の相関で説明されうる可能性を論じた<a class="fn-ref" id="fnref-9d" href="#ref-9">(*9)</a>。CLadder は形式的因果ルールから大量の問を作り、連想的ヒューリスティックと真正の手順を切り離して評価しようとする<a class="fn-ref" id="fnref-10b" href="#ref-10">(*10)</a>。Joshi et al. は、言及順や時間順を因果と誤認する post hoc fallacy を報告した<a class="fn-ref" id="fnref-11" href="#ref-11">(*11)</a>。</p>
+      <p>結論は「LLMは因果不可能」の全面否定ではない。<strong>native guarantee がなく、明示構造・実験・Tool・Verifier が必要</strong>である。外付けの因果モジュールや実験設計を置けば LLM は仮説生成器として有用になりうる——だがそのとき同定の根拠は外付け側にある。</p>
+      <div class="callout">
+        <p>ここでP3が再回収される: 因果めいた CoT は、Association 階の仮説生成として読む。証明ではない。</p>
+        <p>ここでP6が深まる: 「学習済みだから因果を理解している」「推論したから原因が確定」は絶対語である。</p>
+      </div>
+      <h3>worked example</h3>
+      <p>Coding Agent が「この race は lock 不足が原因」と言う。それは Association 階の仮説である。該当タイミングを再現する Test を作り、lock 追加だけを Intervention として failure が消えるか確認し、別説明を除くことで因果証拠が強くなる。説明文の自然さは、この実験の代替にならない<a class="fn-ref" id="fnref-9e" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10c" href="#ref-10">(*10)</a>。</p>
+      <p>ビジネス文脈でも同じである。「施策Xのあと売上が上がった」とモデルがまとめても、それは時間順の連想かもしれない<a class="fn-ref" id="fnref-11b" href="#ref-11">(*11)</a>。対照や段階的導入、交絡の検討なしに施策の因果効果を確定したことにしてはならない。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「Transformerに行動因果がないから因果不能」→ 制約の主座はデータ・目的・識別条件である<a class="fn-ref" id="fnref-9f" href="#ref-9">(*9)</a>。</li>
+        <li>「ベンチで因果問に正解した＝現場の原因同定ができる」→ スキャフォールドと分布に依存しうる<a class="fn-ref" id="fnref-10d" href="#ref-10">(*10)</a><a class="fn-ref" id="fnref-11c" href="#ref-11">(*11)</a>。</li>
+        <li>「因果グラフをプロンプトに書けば同定完了」→ グラフを仮定した推論はできても、グラフ自体の正しさは別証拠が要る。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>限界が見えたうえで、研究が単一のAGI核心ではなく複数ボトルネックを攻める地図へ進む。</p>
+    </section>
 
-          <h4>計算効率: 大きくするだけでは使えない</h4>
-          <p>MoE、MLA、FP8、FlashAttention、PagedAttentionは、いずれも「大きなModelを現実のコストで動かす」ための技術である。MoEは毎Tokenで使うExpertを絞り、MLAやGQAはKV Cacheを圧縮し、FP8やQuantizationは数値表現を軽くし、FlashAttentionやPagedAttentionはメモリIOとKV管理を改善する。これらはModelを賢くする魔法というより、賢いModelを訓練・配信可能にする土台である。</p>
+    <section class="section reading" id="n13">
+      <h2>13. N13 — 研究方向：複数制約への攻撃として読む</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N6・N9・N12 まで来ると、「次の一位モデル」だけを追う読み方では、何が進歩したのか分からない。進歩は単一AGI核心ではなく、複数制約への攻撃である——N13 の hard claim である。ここは lineage 層であり、性能予言ではなくレバーの地図を渡す。</p>
+      <h3>仕組み — Research map</h3>
+      <p>研究方向を読むときの軸は二つある。(1) モデル内部の表現・計算を触るか、システム外部（Tool・sandbox・評価）を触るか。(2) 学習時の更新か、推論時の追加計算か。同じ「能力が上がった」という語でも、セルが違えば証拠の種類が違う。</p>
+      <table class="ladder research-map">
+        <thead><tr><th>Direction</th><th>何を改善するか</th><th>公開例・技術</th><th>残る問題</th></tr></thead>
+        <tbody>
+          <tr><td>Compute efficiency</td><td>active compute・メモリ・帯域</td><td>MoE, MLA, FP8, FlashAttention, PagedAttention<a class="fn-ref" id="fnref-6d" href="#ref-6">(*6)</a><a class="fn-ref" id="fnref-7d" href="#ref-7">(*7)</a><a class="fn-ref" id="fnref-12d" href="#ref-12">(*12)</a></td><td>通信、品質、ハード依存</td></tr>
+          <tr><td>Test-time compute</td><td>難題へ追加計算を配る</td><td>Reasoning RL, thinking budget, Verifier<a class="fn-ref" id="fnref-13d" href="#ref-13">(*13)</a><a class="fn-ref" id="fnref-14d" href="#ref-14">(*14)</a></td><td>遅延、コスト、reward hacking</td></tr>
+          <tr><td>Tool-using Agent</td><td>現在観測と行為</td><td>Search, code exec, memory</td><td>injection、権限、長ホライズン</td></tr>
+          <tr><td>Multimodality</td><td>text外を共通表現へ</td><td>画像/音声エンコーダ等</td><td>grounding、評価</td></tr>
+          <tr><td>Causal learning</td><td>Association超え</td><td>SCM、介入データ、因果ベンチ<a class="fn-ref" id="fnref-10e" href="#ref-10">(*10)</a></td><td>識別可能性、導入コスト</td></tr>
+          <tr><td>Interpretability</td><td>内部特徴と回路</td><td>circuit tracing 等<a class="fn-ref" id="fnref-15" href="#ref-15">(*15)</a></td><td>被覆、解釈者依存、スケール</td></tr>
+          <tr><td>Evaluation &amp; safety</td><td>配備失敗を測る</td><td>red team、sandbox、監視<a class="fn-ref" id="fnref-16f" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17f" href="#ref-17">(*17)</a></td><td>ベンチゲーム、分布シフト</td></tr>
+        </tbody>
+      </table>
+      <p>DeepSeek-V3 は MoE・MLA・FP8 等で、総パラメータを大きく保ちつつトークンあたりの計算と KV を抑える方向を報告した<a class="fn-ref" id="fnref-12e" href="#ref-12">(*12)</a>。DeepSeek-R1 は検証可能な報酬を軸に長い推論方策を強化した<a class="fn-ref" id="fnref-13e" href="#ref-13">(*13)</a>。Qwen3 は thinking / non-thinking と thinking budget を前面にし、推論時計算をタスクごとに配分する制御を示した<a class="fn-ref" id="fnref-14e" href="#ref-14">(*14)</a>。読むべきは国籍ラベルではなく、どの制約をどの証拠で触ったかである。</p>
+      <p>Anthropic の circuit tracing 系は、入出力会話だけでは内部計算を特定しきれない、という動機から、帰属グラフ等で寄与の一部を追跡・介入する<a class="fn-ref" id="fnref-15b" href="#ref-15">(*15)</a>。これは「中身は単純検索だけ」という極端への反証になりうる一方、部分回路から全体理解や意識は結論できない。部分回路の観測が進んでも、運用上の検証と権限（N14）が不要になることはない。</p>
+      <h3>worked example</h3>
+      <p>「A社のモデルが考えが深い」「B社は効率が良い」という雑談を、地図のセルへ落とす。thinking budget の有無<a class="fn-ref" id="fnref-14f" href="#ref-14">(*14)</a>、MoE/MLA の有無<a class="fn-ref" id="fnref-12f" href="#ref-12">(*12)</a>、Tool ループの有無、sandbox の有無<a class="fn-ref" id="fnref-17g" href="#ref-17">(*17)</a>、因果ベンチでの評価<a class="fn-ref" id="fnref-10f" href="#ref-10">(*10)</a>——比較軸が違うのに一位表だけを見ると、性質と性能予言が混線する。</p>
+      <p>もう一つの読み方は失敗談である。reward hacking で長いが空虚な tracing が増えた、sandbox なしで Agent が広い権限を得た、interpretability のデモ図だけ見て配備を急いだ——それぞれ別セルの失敗であり、単一の「AIが暴走した」物語に潰さない。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「interpretabilityが進んだ＝部署で内部を信用してよい」→ 部分観測である<a class="fn-ref" id="fnref-15c" href="#ref-15">(*15)</a>。</li>
+        <li>「open-weight＝完全再現可能」→ 重みがあってもデータや完全レシピが揃うとは限らない。</li>
+        <li>「test-time computeを増やせば因果も同定される」→ 追加計算は探索を伸ばしうるが、識別条件そのものは別（N12）。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>地図を読めても、利用者が今日どう判断するかの規則がまだない。次節が実践の証拠梯子である。</p>
+    </section>
 
-          <h4>推論時の追加計算: 難しい問題にだけ計算を多く使う</h4>
-          <p>Reasoning RL、Verifier、search、thinking budgetは、難しい問題に対して生成前後の探索を増やす方向である。単純な質問には短く答え、数学やコードのように検証できる問題には長く探索する。ここで重要なのは、追加計算が常に正しさを生むわけではないことだ。Verifierがある領域では強いが、現実世界の曖昧な判断では、何を報酬にするか自体が難しい。</p>
+    <section class="section reading" id="n14">
+      <h2>14. N14 — 実践：検証と権限 — 証拠梯子を上がる</h2>
+      <h3>前層の限界 / why_exists</h3>
+      <p>N11 と N12 までで、Agent は危険な提案ができ、因果語は仮説にすぎないことが分かった。欠けているのは、利用者が操作する判断規則である。未検証出力 → 出典 → 介入検証 → 承認行為、で証拠強度が上がる——N14 の hard claim である<a class="fn-ref" id="fnref-16g" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17h" href="#ref-17">(*17)</a>。</p>
+      <h3>仕組み</h3>
+      <p>同じ出力文言でも、置かれる段が違う。</p>
+      <ol>
+        <li><strong>未検証の出力</strong>: 「この関数が原因です」は、重みと文脈から作られた仮説である。</li>
+        <li><strong>出典つきの仮説</strong>: 該当コード・仕様・履歴・ログを示すと探索の根拠は強まる。因果は未確定。</li>
+        <li><strong>介入検証した変更</strong>: 失敗を再現し、単一変更を入れ、同じ Test が通るなら因果証拠へ近づく。</li>
+        <li><strong>承認された行為</strong>: diff・Test・残リスクを確認し、人間が権限境界を通したときだけ現実の変更とする。</li>
+      </ol>
+      <p>七つの実務規則：</p>
+      <ol>
+        <li>探索範囲（repo/URL/file）を先に狭める</li>
+        <li>変換契約（入力・出力・非目標・受け入れ条件）を書く</li>
+        <li>証拠チャネルを分ける（重み由来／取得出典／Tool実行）</li>
+        <li>因果主張は介入（Test・実験）で試す</li>
+        <li>権限は自信度で広げない（破壊的操作は別承認）</li>
+        <li>説明文ではなく diff・command・log を見る</li>
+        <li>成功／予算／停止条件を先に決める</li>
+      </ol>
+      <p>OpenAI の Codex sandbox 開示は、network を default で制限し、workspace 外 write を制限し、unsandboxed action へ approval を要求する設計を説明する<a class="fn-ref" id="fnref-17i" href="#ref-17">(*17)</a>。Sandbox は正しさを保証するのではなく、誤った行為の到達範囲を狭める。NIST のプロファイルは、過信・幻覚・注入などを用途文脈つきで管理する枠を与える<a class="fn-ref" id="fnref-16h" href="#ref-16">(*16)</a>。</p>
+      <p class="eq">目的 → 探索 → 仮説 → 修正 → Test → Diff Review → 承認 → 監視</p>
+      <div class="callout warning">
+        <p>ここでP5が回収される: 危険な変更提案への対処は、「もっと賢いモデル」以前に、証拠梯子と権限ゲートである。自信度メーターを承認に使うな。</p>
+      </div>
 
-          <h4>Toolを使うAgent: Modelの外側に観測と行為を足す</h4>
-          <p>Web Search、code execution、file system、GUI操作、memoryは、Modelの重みにない現在情報を観測し、現実へ作用する手段を増やす。Agent研究の核心は、Modelを巨大にすることだけではなく、観測、計画、行為、検証、承認をどうloopにするかである。Toolを与えるほど価値は増えるが、prompt injection、権限過多、長期タスクでの誤差蓄積も増える。</p>
-
-          <h4>マルチモーダル: 変換対象がtextから世界の信号へ広がる</h4>
-          <p>画像、音声、動画を扱うModelでは、各モダリティをTokenやembeddingへ写し、言語Modelの文脈へ接続する。これは「目を持った人間」になるというより、画像から説明、画面から操作、音声から指示、動画から状態変化という変換の範囲が広がることを意味する。Grounding、データ品質、評価方法が新しい制約になる。</p>
-
-          <h4>因果と解釈可能性: 流暢な説明を証拠へ近づける試み</h4>
-          <p>因果学習は、観測された相関だけでなく、InterventionやCounterfactualを扱う構造をModelや評価へ入れようとする。解釈可能性研究は、Sparse Autoencoder、attribution graph、activation interventionなどで、内部特徴や回路が出力へどう効くかを調べる。どちらも「Modelが言ったから信じる」から、「どの構造や内部状態がその出力を支えたか」へ近づける試みである。ただし、部分的な回路理解をModel全体の完全理解や意識の証明へ外挿してはいけない。</p>
-
-          <h3>中国と米国の公開動向</h3>
-          <h4>DeepSeek: 大容量Modelを低いactive computeで動かす方向</h4>
-          <p>DeepSeek-V3はMoE、MLA、FP8などを組み合わせ、総parameter数を大きくしながら、各Tokenで使う計算とKV Cacheを抑える方向を示した。DeepSeek-R1は、rule-based rewardを含むReasoning RLにより、検証可能な推論タスクで長い探索を強める方向を示した。読むべき点は「中国Modelが強い」という国籍ラベルではなく、容量、推論コスト、Verifier rewardをどう設計したかである。</p>
-
-          <h4>Qwen: open-weightで、思考モードと多言語・MoEを組み合わせる方向</h4>
-          <p>Qwen3はDense / MoE構成、thinking / non-thinking mode、thinking budget、多言語対応を前面に出した。これは、すべてのタスクで常に長く考えるのではなく、タスクに応じて推論時の計算量を調整する設計として読める。open-weightであることは、独立評価、fine-tuning、量子化、ローカル配備をしやすくするが、学習データや完全なrecipeがすべて分かることとは別である。</p>
-
-          <h4>OpenAI: closed Modelを、Toolと推論時計算を含むシステムとして提供する方向</h4>
-          <p>OpenAIのreasoning Modelは、large-scale RL、test-time reasoning、Tool use、画像推論などを組み合わせ、Model単体よりもシステムとしての問題解決力を前面に出している。公開情報から分かるのは、学習報酬と推論時計算を強く使っているという方向であり、正確なarchitecture、学習データ、内部回路は非公開である。したがって、公開benchmarkや公式説明は証拠だが、内部実装を知っているかのようには扱えない。</p>
-
-          <h4>Anthropic: 内部特徴を観測し、部分的に介入する方向</h4>
-          <p>AnthropicのCircuit TracingやGlobal Workspace研究は、Model出力だけでなく、内部のfeatureや情報の流れを調べる方向である。これは、LLMをblack boxとして扱うだけでは安全性や信頼性を評価しきれないという問題意識から来ている。ただし、ある回路や特徴が見つかったことは、Model全体を完全に理解したことではない。部分的な観測と介入の結果として読む必要がある。</p>
-
-          <h4>Metaなどのopen-weight ecosystem: 検証と改造の余地を広げる方向</h4>
-          <p>Open-weight Modelは、第三者が評価、fine-tuning、quantization、mechanistic interventionを行いやすい。これは研究と実装の速度を上げる。一方で、weightが公開されていても、学習データ、filtering、post-training recipe、評価環境まで完全に公開されるとは限らない。公開度は「重み」「データ」「コード」「recipe」「評価」のどれが開いているかに分けて見るべきである。</p>
-
-          <p>まとめると、DeepSeek-R1のlong reasoning、Qwen3のthinking budget、OpenAIのreasoning Modelは、「長く考える主体が突然生まれた」と読むより、学習報酬、推論時の計算配分、Verifier、Tool loopを変えたシステムとして読む方が比較しやすい。</p>
+      <h3>Lab C — Evidence Ladder（教育用トイ）</h3>
+      <div class="sim-embed sim-root" id="sim-evidence">
+        <p class="sim-title">Evidence Ladder Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> 同一文言でも、未検証／出典／介入検証／承認の段で証拠強度が異なる。流暢さは段を飛ばさない。</p>
+        <div class="claim-box">同一主張: 「この lock を削除すべき」</div>
+        <div class="stage-btns" role="group" aria-label="証拠の段">
+          <button type="button" class="sim-btn" data-stage="1" aria-pressed="true">未検証</button>
+          <button type="button" class="sim-btn" data-stage="2" aria-pressed="false">出典つき</button>
+          <button type="button" class="sim-btn" data-stage="3" aria-pressed="false">Test介入済み</button>
+          <button type="button" class="sim-btn" data-stage="4" aria-pressed="false">承認済み</button>
         </div>
-      </section>
+        <div class="sim-status reject" id="evStatus">実行してよいか: <strong>REJECT</strong> — 仮説のみ。流暢さは許可にならない。</div>
+        <p class="sim-caption">Lesson: fluency alone doesn't raise permission（P5）。</p>
+        <p class="sim-fallback"><strong>静的フォールバック:</strong> 段1=reject / 段2=caution（まだ削除不可）/ 段3=caution（本番適用は承認待ち）/ 段4=ok（ゲート通過後）。</p>
+      </div>
 
-      <section id="misconceptions" class="section">
-        <div class="reading">
-          <h2>6. LLMに対する誤解</h2>
-          <div class="misconception"><h3>「次Token予測だけだから単純」</h3><p>目的関数が短く書けても、内部に抽象特徴、algorithm-like circuit、planning behaviorが生じうる。仕組みの説明が短いことは、機能が単純であることを意味しない。</p></div>
-          <div class="misconception"><h3>「探索と変換だけなら新しいものを作れない」</h3><p>学習済み表現を制約の下で再構成すれば、新しいprogramやdesignが生じうる。新規性と正しさは別である。</p></div>
-          <div class="misconception"><h3>「Chain of Thoughtは内部思考の完全な記録」</h3><p>見えている推論文は出力チャンネルであり、読みやすく学習されうる。内部activationの完全な記録ではない。</p></div>
-          <div class="misconception"><h3>「Toolを使えばhallucinationは消える」</h3><p>間違ったquery、悪いsource、prompt injection、読み間違い、Toolの副作用が残る。RetrievalとVerificationは別工程である。</p></div>
-          <div class="misconception"><h3>「低いTemperatureなら正しい」</h3><p>同じ高確率出力を選びやすくするだけで、重みや文脈にある誤りは直らない。</p></div>
-          <div class="misconception"><h3>「長い文脈なら全て覚えて使える」</h3><p>Context Windowへ入ることと、必要箇所を正しく利用することは違う。distractor、位置、retrieval品質、KV Cache costが影響する。</p></div>
-          <div class="misconception"><h3>「因果説明が自然なら原因を理解している」</h3><p>因果らしい文章のretrievalかもしれない。Intervention、Counterfactual、alternative hypothesisのTestが必要である。</p></div>
-        </div>
-      </section>
+      <h3>worked example</h3>
+      <p>悪い依頼:「login bugを直して。本番も見て」。  
+良い依頼:「<code>auth</code> で再現する failing Test を先に追加し、public API を変えず最小パッチを作り、関連Testと full suite の結果・diff・残リスクを報告する。production credential と network は使わない」<a class="fn-ref" id="fnref-17j" href="#ref-17">(*17)</a>。</p>
+      <p>前者は探索範囲と権限が開いたまま変換が走る。後者は契約・検証・権限が先に固定されている。</p>
+      <h3>よくある混同（in-grain）</h3>
+      <ul>
+        <li>「人間が最後にYesを押した＝十分」→ 何を見てYesしたかが段を決める。説明だけを見て押すのは段1のまま。</li>
+        <li>「社内規程があるから機構理解は不要」→ 規程は権限の言語、機構はどこで失敗するかの地図である。両方要る<a class="fn-ref" id="fnref-16i" href="#ref-16">(*16)</a>。</li>
+      </ul>
+      <h3>次の限界</h3>
+      <p>地図と規則が揃ったところで、誤解・限界・現象の全回収・自分の立ち位置を固定する。</p>
+    </section>
 
-      <section id="codex" class="section">
-        <div class="reading">
-          <h2>7. Codex等を使う人の実践ルール</h2>
-          <p class="lead">これからのエンジニアリングは、AIに「考えてもらう」ことではなく、AIを探索と変換ができるシステムとして扱い、変換のルール、証拠の取り方、権限境界、ワークフローを設計することになっていく。</p>
-          <p>LLMは、仕様をコードへ、エラーログを仮説へ、仮説をpatchへ、Test結果を次の修正方針へ変換できる。価値はここにある。ただし、その変換が正しいか、実行してよいか、どこまで自動化してよいかは、Modelの流暢さでは決まらない。エンジニアが設計すべき対象は、Modelそのものだけでなく、入力の契約、探索範囲、検証方法、承認条件、失敗時の戻り方である。</p>
-          <ol>
-            <li><strong>範囲を狭くする:</strong> repository、directory、file、non-goalを指定する。</li>
-            <li><strong>成功条件を書く:</strong> Test名、期待する振る舞い、性能しきい値、browser状態などを観測可能にする。</li>
-            <li><strong>正本を指定する:</strong> spec、issue、schema、official documentation、既存Testの優先順位を決める。</li>
-            <li><strong>探索結果を信頼しすぎない:</strong> Web pageやrepository textには古いinstructionやprompt injectionがありうる。</li>
-            <li><strong>変換結果をdiffで確認する:</strong> 説明ではなくfile diff、command、dependency、artifactを見る。</li>
-            <li><strong>因果主張をTestする:</strong> 再現、単一変更、再測定で仮説を検証する。</li>
-            <li><strong>権限を分離する:</strong> network、secret、production、delete、payment、publishは必要時だけapproveする。</li>
-          </ol>
-        </div>
+    <section class="section reading" id="n15">
+      <h2>15. N15 — 誤解・限界・現象回収・立ち位置</h2>
+      <p>Coverage の最終ノードである。ここまでで再構築した鎖を、誤用防止と生活配置へ固定する。</p>
 
-        <figure class="diagram wrap">
-          <p class="diagram-title">Codexの検証ループ</p>
-          <div class="verify-loop">
-            <div class="verify-step"><b>1. 目的</b><span>範囲、非目標、成功条件を定義</span></div>
-            <div class="verify-step"><b>2. 探索</b><span>spec、code、Test、docs、historyを観測</span></div>
-            <div class="verify-step"><b>3. 仮説</b><span>失敗原因と変更方針を明示</span></div>
-            <div class="verify-step"><b>4. 修正</b><span>仕様からコード、エラーから修正案へ変換</span></div>
-            <div class="verify-step"><b>5. Test</b><span>Interventionとして実行し結果を測定</span></div>
-            <div class="verify-step"><b>6. Diff Review</b><span>範囲、副作用、dependencyを確認</span></div>
-            <div class="verify-step"><b>7. 承認</b><span>権限境界を人間が通す</span></div>
-            <div class="verify-step"><b>8. 監視</b><span>production distributionの失敗を観測</span></div>
-          </div>
-          <figcaption class="caption">青は探索、黄は変換、緑は検証、赤は権限と責任。Test failureは仮説へ戻し、別の説明を試す。</figcaption>
-        </figure>
+      <h3>よくある誤解</h3>
+      <ul>
+        <li>「次トークン予測だけだから単純である」→ 目的が単純でも内部に抽象特徴や circuit 様の計算が生じうる<a class="fn-ref" id="fnref-15d" href="#ref-15">(*15)</a>。</li>
+        <li>「探索と変換だけなら新しいものを作れない」→ 新規組合せは生じうるが、因果真理や correctness の保証とは別。</li>
+        <li>「Chain of Thought は内部思考の完全な記録である」→ 可視化された推論文は出力チャネル（P3）。</li>
+        <li>「Tool を使えば hallucination はなくなる」→ Retrieval と Verification は別工程（N11）。</li>
+        <li>「low Temperature なら正しい」→ 低温度は高確率出力を選びやすくするだけ（P2, N8 Lab）。</li>
+        <li>「long context なら全て覚えている」→ 入ること・重みが乗る・コストが払えるは別（P4, N7 Lab, N9）。</li>
+        <li>「benchmark が高いから仕事を自律化できる」→ production では permission・可観測性・rollback・説明責任が要る<a class="fn-ref" id="fnref-16j" href="#ref-16">(*16)</a>。</li>
+        <li>「causal explanation が自然なら cause を理解している」→ Intervention と対立仮説のテストが要る<a class="fn-ref" id="fnref-9g" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-11d" href="#ref-11">(*11)</a>。</li>
+        <li>「学習済み／推論済みだから改ざん不可・絶対確実」→ 観測尤度の性質を万能保証へ読み替える誤り（P6）。</li>
+      </ul>
 
-        <div class="reading">
-          <h3>AI workflowとは、変換を検証可能にする設計である</h3>
-          <p>従来のソフトウェア設計では、関数、型、API、テスト、権限、監視を設計してきた。AIを使う場合も本質は同じで、ただ関数の中身が確率的な変換器になる。だから「良いプロンプトを書く」だけでは足りない。入力をどう構造化するか、出力をどのschemaへ落とすか、どのTool結果を証拠として戻すか、どのTestで因果を試すか、どの操作に人間の承認を要求するかを設計する必要がある。</p>
-          <p>たとえば「バグを直して」は曖昧な自然文だが、「失敗Testを再現し、関連ファイルだけを探索し、public APIを変えず、最小patchを作り、Test結果とdiffと残るリスクを返す」は変換契約である。AIが強くなるほど、エンジニアの仕事は「手で全部書く」から、「どの変換を許し、どの証拠で止めるかを設計する」へ移る。</p>
+      <h3>反例・限界</h3>
+      <ul>
+        <li>このメンタルモデルは LLM 内部の全アルゴリズムを字義どおり記述しない。説明用抽象である。</li>
+        <li>「因果タスクを一切解けない」とは主張しない。明示構造・実験・Tool・Verifier で構成要素になりうる。同定根拠は外付け側にある<a class="fn-ref" id="fnref-9h" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10g" href="#ref-10">(*10)</a>。</li>
+        <li>意識や道徳的地位の結論は扱わない。機能的能力と現象的経験は別の問いである<a class="fn-ref" id="fnref-15e" href="#ref-15">(*15)</a>。</li>
+        <li>閉鎖 frontier の訓練データ・完全アーキテクチャ・内部回路は非公開部分が大きい。公開報告のみを用いる。</li>
+        <li>Lab は教育用トイであり、実モデルの品質・遅延・コストを実測しない。</li>
+        <li>研究地図は公開情報に基づき更新が必要である。特定時点の一位表を永久化する意図はない。</li>
+        <li>性能・価格・採用ROIの予言は、再構築する性質の外である。</li>
+      </ul>
 
-          <h3>同じ出力でも、証拠の強さは変わる</h3>
-          <div class="sequence">
-            <div class="sequence-step"><b>未検証の出力</b><span>「この関数が原因です」と自然に説明しても、それはまだ重みと文脈から作られた仮説である。</span></div>
-            <div class="sequence-step"><b>出典つきの仮説</b><span>該当コード、仕様、履歴、エラーログを示せると、探索の根拠は強くなる。ただし因果はまだ確定しない。</span></div>
-            <div class="sequence-step"><b>Testで試した変更</b><span>失敗を再現し、単一変更を入れ、同じTestが通るなら、仮説は因果証拠へ近づく。</span></div>
-            <div class="sequence-step"><b>承認された行為</b><span>diff、Test結果、残るリスクを確認し、人間が権限境界を通したときだけ現実の変更として扱う。</span></div>
-          </div>
-          <div class="callout"><p><strong>依頼例:</strong> 「login bugを直して」ではなく、「<code>auth</code> moduleで再現するfailing Testを先に追加し、public APIを変えず最小patchを作り、関連Testとfull suiteの結果、diff、残るリスクを報告する。production credentialとnetworkは使用しない」と依頼する。</p></div>
-          <p>OpenAIのCodex sandbox資料はnetworkをdefaultで制限し、workspace外writeを制限し、unsandboxed actionへapprovalを要求する設計を説明している。Sandboxは正しさの保証ではない。誤った行為の届く範囲を狭める境界である。</p>
-        </div>
-      </section>
+      <h3>現象の合成（Everyday phenomena 回収）</h3>
+      <table class="ladder">
+        <thead><tr><th>id</th><th>現象</th><th>機構での再記述</th><th>主に回収した節</th></tr></thead>
+        <tbody>
+          <tr><td>P1</td><td>自信ありげな誤答</td><td>観測尤度・尖った分布・文脈混合が「ありそう」を優先しうる</td><td>N4–N6, N8, N15</td></tr>
+          <tr><td>P2</td><td>低Temperatureでも嘘が残る</td><td>温度は分布の尖りであり真理ではない</td><td>N8 Lab</td></tr>
+          <tr><td>P3</td><td>CoTが証明に見える</td><td>見える推論は出力チャネル；後訓練で整形されうる</td><td>N6, N12</td></tr>
+          <tr><td>P4</td><td>長文脈の見落とし</td><td>Attention寄与とKV/Prefillコストの両面</td><td>N7 Lab, N9</td></tr>
+          <tr><td>P5</td><td>危険なAgent提案</td><td>探索・変換が強く、検証・権限が弱い</td><td>N11, N14 Lab</td></tr>
+          <tr><td>P6</td><td>絶対語でLLMを語る</td><td>観測目的・因果非保証を万能性へ読み替える</td><td>N2, N12, N15</td></tr>
+        </tbody>
+      </table>
+      <p>合成の一文: 日常の不気味さの多くは、「候補生成エンジンに、検証と権限の仕事まで一瞬で背負わせた」ときに起きる。</p>
 
-      <section id="model" class="section">
-        <div class="reading">
-          <h2>8. 最終メンタルモデル</h2>
-          <div class="final-model"><p>LLMは、三種類の探索と多段の変換を行う確率的なエンジンである。重み内探索は重みからパターンを取り出し、文脈内探索はAttentionで現在の入力の関連箇所を選び、外部探索はToolで世界を観測する。TransformerはそれらをTokenやTool呼び出しへ変換し続ける。しかし観測データに基づく学習は、因果、真偽、責任を直接保証しない。Toolを持つLLMを使うときは、Verifierで結果を確かめ、権限で行為を制限し、人間が最終責任を持つ。</p></div>
-          <div class="formula">有用なAIシステム = 探索 + 変換 + 検証 + 権限 + 人間の責任</div>
-          <p>LLMを理解するとは、答えを信じる方法を得ることではない。どこまでを機械に任せ、どこからを証拠、権限、責任として外側に残すかを見抜くことである。</p>
+      <h3>自分は今、地図のどこに立っているか</h3>
+      <p>読み終えたあなたの仕事は、モデルの順位を暗記することではない。次の問いに、自分の言葉で答えられることである。</p>
+      <ol>
+        <li><strong>今いじっているのはどの層か</strong> — プロンプト（文脈内探索）か、Tool（外部探索）か、サンプリングか、sandbox/承認か、Testか。</li>
+        <li><strong>機械に任せているのは探索と変換か</strong> — それとも、気づかぬうちに検証と権限まで流暢な吹き出しに委任していないか。</li>
+        <li><strong>手元の出力は証拠梯子の何段か</strong> — 未検証／出典／介入検証／承認済みのどれか。一段飛ばしをしていないか。</li>
+        <li><strong>因果の文を見たら</strong> — Association 仮説としてラベルし、Intervention（Test・実験）の設計に変換したか。</li>
+        <li><strong>破壊的操作の手前で</strong> — 自信度ではなく、権限ポリシーと人間の承認ゲートが仕事をしているか<a class="fn-ref" id="fnref-16k" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17k" href="#ref-17">(*17)</a>。</li>
+      </ol>
+      <p><strong>立ち位置の例:</strong></p>
+      <ul>
+        <li>「自分は今、リポジトリ探索の範囲を設計している（N11の入口）」</li>
+        <li>「自分は今、Temperatureを触っているが、それはP2の層であり真理層ではない（N8）」</li>
+        <li>「自分は今、段3のTest結果を見て段4の承認を拒んでいる（N14）」</li>
+      </ul>
+      <p>LLMを理解するとは、答えを信じる方法を得ることではない。どこまでを機械に任せ、どこからを証拠・権限・責任として外側に残すかを見抜くことである。</p>
+    </section>
 
-          <h3>このメンタルモデルの限界</h3>
-          <ul>
-            <li>LLM内部の全algorithmを文字どおりに記述するものではない。</li>
-            <li>LLMがcausal taskを一切解けないとは主張しない。明示的な構造、fine-tuning、実験で改善できる。</li>
-            <li>consciousnessやmoral statusは扱わない。機能的能力とは別の問いである。</li>
-            <li>closed frontier Modelの学習データ、正確なarchitecture、内部回路には非公開部分がある。</li>
-          </ul>
-
-          <h3>主要な出典</h3>
-          <ol class="source-list">
-            <li>Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, 2017.</li>
-            <li>Kudo and Richardson, <a href="https://arxiv.org/abs/1808.06226">SentencePiece</a>, 2018.</li>
-            <li>Hoffmann et al., <a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal Large Language Models</a>, 2022.</li>
-            <li>Ouyang et al., <a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a>, 2022.</li>
-            <li>Rafailov et al., <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a>, 2023.</li>
-            <li>Dao et al., <a href="https://arxiv.org/abs/2205.14135">FlashAttention</a>, 2022.</li>
-            <li>Kwon et al., <a href="https://arxiv.org/abs/2309.06180">PagedAttention / vLLM</a>, 2023.</li>
-            <li>Leviathan et al., <a href="https://arxiv.org/abs/2211.17192">Speculative Decoding</a>, 2022.</li>
-            <li>Fedus et al., <a href="https://arxiv.org/abs/2101.03961">Switch Transformers</a>, 2021.</li>
-            <li>Zečević et al., <a href="https://arxiv.org/abs/2308.13067">Causal Parrots</a>, 2023.</li>
-            <li>Jin et al., <a href="https://arxiv.org/abs/2312.04350">CLadder</a>, 2023.</li>
-            <li>Joshi et al., <a href="https://aclanthology.org/2024.emnlp-main.590/">LLMs Are Prone to Fallacies in Causal Inference</a>, 2024.</li>
-            <li>Kasetty et al., <a href="https://arxiv.org/abs/2404.05545">Evaluating Interventional Reasoning Capabilities of LLMs</a>, 2024.</li>
-            <li>DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3</a>, 2024; <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a>, 2025.</li>
-            <li>Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a>, 2025.</li>
-            <li>Anthropic, <a href="https://www.anthropic.com/news/tracing-thoughts-language-model">Tracing the thoughts of a large language model</a>, 2025; <a href="https://www.anthropic.com/research/global-workspace">A global workspace in language models</a>, 2026.</li>
-            <li>NIST, <a href="https://doi.org/10.6028/NIST.AI.600-1">AI Risk Management Framework: Generative AI Profile</a>, 2024.</li>
-            <li>OpenAI, <a href="https://openai.com/index/building-codex-windows-sandbox/">Building a safe, effective sandbox to enable Codex on Windows</a>, 2026.</li>
-          </ol>
-        </div>
-      </section>
-    </article>
+    <section class="section reading" id="references">
+      <h2>出典</h2>
+      <ol>
+        <li id="ref-1">Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, 2017. <a class="fn-back" href="#fnref-1">↩</a></li>
+        <li id="ref-2">Kudo and Richardson, <a href="https://arxiv.org/abs/1808.06226">SentencePiece</a>, 2018. <a class="fn-back" href="#fnref-2">↩</a></li>
+        <li id="ref-3">Hoffmann et al., <a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal Large Language Models</a>, 2022. <a class="fn-back" href="#fnref-3">↩</a></li>
+        <li id="ref-4">Ouyang et al., <a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a>, 2022. <a class="fn-back" href="#fnref-4">↩</a></li>
+        <li id="ref-5">Rafailov et al., <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a>, 2023. <a class="fn-back" href="#fnref-5">↩</a></li>
+        <li id="ref-6">Dao et al., <a href="https://arxiv.org/abs/2205.14135">FlashAttention</a>, 2022. <a class="fn-back" href="#fnref-6">↩</a></li>
+        <li id="ref-7">Kwon et al., <a href="https://arxiv.org/abs/2309.06180">PagedAttention</a>, 2023. <a class="fn-back" href="#fnref-7">↩</a></li>
+        <li id="ref-8">Leviathan et al., <a href="https://arxiv.org/abs/2211.17192">Speculative Decoding</a>, 2022. <a class="fn-back" href="#fnref-8">↩</a></li>
+        <li id="ref-9">Zečević et al., <a href="https://arxiv.org/abs/2308.13067">Causal Parrots</a>, 2023. <a class="fn-back" href="#fnref-9">↩</a></li>
+        <li id="ref-10">Jin et al., <a href="https://arxiv.org/abs/2312.04350">CLadder</a>, 2023. <a class="fn-back" href="#fnref-10">↩</a></li>
+        <li id="ref-11">Joshi et al., <a href="https://aclanthology.org/2024.emnlp-main.590/">LLMs Are Prone to Fallacies in Causal Inference</a>, 2024. <a class="fn-back" href="#fnref-11">↩</a></li>
+        <li id="ref-12">DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a>, 2024. <a class="fn-back" href="#fnref-12">↩</a></li>
+        <li id="ref-13">DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a>, 2025. <a class="fn-back" href="#fnref-13">↩</a></li>
+        <li id="ref-14">Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a>, 2025. <a class="fn-back" href="#fnref-14">↩</a></li>
+        <li id="ref-15">Anthropic, <a href="https://www.anthropic.com/news/tracing-thoughts-language-model">Tracing the thoughts of a large language model</a>, 2025. <a class="fn-back" href="#fnref-15">↩</a></li>
+        <li id="ref-16">NIST, <a href="https://doi.org/10.6028/NIST.AI.600-1">Generative Artificial Intelligence Profile (NIST AI.600-1)</a>, 2024. <a class="fn-back" href="#fnref-16">↩</a></li>
+        <li id="ref-17">OpenAI, <a href="https://openai.com/index/building-codex-windows-sandbox/">Building a safe, effective sandbox to enable Codex on Windows</a>, 2026. <a class="fn-back" href="#fnref-17">↩</a></li>
+        <li id="ref-18">NVIDIA, <a href="https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html">Deep Learning Performance: GPU Performance Background</a>. <a class="fn-back" href="#fnref-18">↩</a></li>
+      </ol>
+    </section>
   </main>
 
-  <footer><div class="wrap">Mental Model Studio ・ 研究上の主張は、引用した公開証拠と取得日の範囲に限定される。</div></footer>
-
+  <script src="./assets/js/site.js"></script>
   <script>
-    const temperature = document.getElementById('temperature');
-    const topP = document.getElementById('topP');
-    const maxTokens = document.getElementById('maxTokens');
-    const temperatureValue = document.getElementById('temperatureValue');
-    const topPValue = document.getElementById('topPValue');
-    const maxTokensValue = document.getElementById('maxTokensValue');
-    const samplingEffect = document.getElementById('samplingEffect');
-    const tokenEffect = document.getElementById('tokenEffect');
-    const attentionEffect = document.getElementById('attentionEffect');
-    const modeLabel = document.getElementById('modeLabel');
-
-    function renderSettings() {
-      const temp = Number(temperature.value);
-      const p = Number(topP.value);
-      const tokens = Number(maxTokens.value);
-      const attention = document.querySelector('input[name="attention"]:checked').value;
-      temperatureValue.textContent = temp.toFixed(1);
-      topPValue.textContent = p.toFixed(2);
-      maxTokensValue.textContent = tokens.toLocaleString('ja-JP');
-
-      if (temp <= 0.2) {
-        samplingEffect.textContent = '高確率Tokenへ強く集中。再現性は上がるが、誤った方向へ固定されることもある。';
-        modeLabel.textContent = '安定寄り';
-      } else if (temp >= 1.1) {
-        samplingEffect.textContent = '低確率Tokenも選びやすい。多様性と同時にばらつきも増える。';
-        modeLabel.textContent = '探索寄り';
-      } else {
-        samplingEffect.textContent = `多様性と安定性の中間。Top-p ${p.toFixed(2)} で候補集合を制限する。`;
-        modeLabel.textContent = '均衡寄り';
-      }
-
-      tokenEffect.textContent = `最大${tokens.toLocaleString('ja-JP')} Token。上限を増やすと長い応答を許すが、latency、cost、KV Cache使用量も増えうる。`;
-
-      const attentionText = {
-        MHA: 'MHAは各Query headが独立したKey / Valueを持ち、KV Cacheが最も大きくなりやすい。',
-        GQA: 'GQAは複数Query headでKey / Valueを共有し、MHAよりKV Cacheを抑える。',
-        MLA: 'MLAはKey / Value表現をlatent spaceへ圧縮し、推論時のcacheとbandwidthを抑える。'
-      };
-      attentionEffect.textContent = attentionText[attention];
+  (function () {
+    /* Lab A — Attention Mix */
+    function setContrib(a, b, d, msg, reject) {
+      document.getElementById("barA").style.width = a + "%";
+      document.getElementById("barB").style.width = b + "%";
+      document.getElementById("barD").style.width = d + "%";
+      document.getElementById("pctA").textContent = a + "%";
+      document.getElementById("pctB").textContent = b + "%";
+      document.getElementById("pctD").textContent = d + "%";
+      var st = document.getElementById("attnStatus");
+      st.textContent = msg;
+      st.className = "sim-status" + (reject ? " reject" : "");
     }
+    function renderAttn() {
+      var bias = (document.querySelector('input[name="qbias"]:checked') || {}).value || "a";
+      if (bias === "a") {
+        setContrib(70, 20, 10, "事実Aに寄与が集まりやすい。正しい焦点は「入った」ことと別。", false);
+      } else {
+        setContrib(15, 20, 65, "Query が distractor 寄り — 正しい Fact A があっても寄与が噂側へ流れる。", true);
+      }
+    }
+    document.querySelectorAll('input[name="qbias"]').forEach(function (el) {
+      el.addEventListener("change", renderAttn);
+    });
+    renderAttn();
 
-    [temperature, topP, maxTokens].forEach((input) => input.addEventListener('input', renderSettings));
-    document.querySelectorAll('input[name="attention"]').forEach((input) => input.addEventListener('change', renderSettings));
-    renderSettings();
+    /* Lab B — Sampling */
+    var TOY = [
+      { id: "WRONG", logit: 3.2, wrong: true },
+      { id: "CORRECT", logit: 2.4, correct: true },
+      { id: "OTHER", logit: 0.5 },
+      { id: "NOISE", logit: -0.2 }
+    ];
+    function softmax(logits, T) {
+      var m = -Infinity;
+      for (var i = 0; i < logits.length; i++) m = Math.max(m, logits[i] / T);
+      var exps = logits.map(function (x) { return Math.exp(x / T - m); });
+      var s = exps.reduce(function (a, b) { return a + b; }, 0);
+      return exps.map(function (e) { return e / s; });
+    }
+    function topPMask(probs, p) {
+      var idx = probs.map(function (pr, i) { return { i: i, p: pr }; })
+        .sort(function (a, b) { return b.p - a.p; });
+      var cum = 0, keep = {};
+      for (var k = 0; k < idx.length; k++) {
+        keep[idx[k].i] = true;
+        cum += idx[k].p;
+        if (cum >= p) break;
+      }
+      return keep;
+    }
+    function renderSample() {
+      var T = parseFloat(document.getElementById("temp").value);
+      var p = parseFloat(document.getElementById("topp").value);
+      document.getElementById("tempVal").textContent = T.toFixed(1);
+      document.getElementById("toppVal").textContent = p.toFixed(2);
+      var logits = TOY.map(function (t) { return t.logit; });
+      var maxL = Math.max.apply(null, logits);
+      var lb = document.getElementById("logitBars");
+      lb.innerHTML = "";
+      TOY.forEach(function (t) {
+        var row = document.createElement("div");
+        row.className = "logit-row";
+        var w = Math.max(4, Math.round(100 * (t.logit - (-1)) / (maxL - (-1))));
+        var barClass = t.wrong ? "logit-bar wrong" : (t.correct ? "logit-bar correct" : "logit-bar");
+        row.innerHTML = "<span>" + t.id + "</span><div class='logit-track'><div class='" + barClass + "' style='width:" + w + "%'></div></div><span>" + t.logit.toFixed(1) + "</span>";
+        lb.appendChild(row);
+      });
+      var probs = softmax(logits, T);
+      var keep = topPMask(probs, p);
+      var pb = document.getElementById("probBars");
+      pb.innerHTML = "";
+      TOY.forEach(function (t, i) {
+        var row = document.createElement("div");
+        row.className = "logit-row";
+        var pct = Math.round(probs[i] * 1000) / 10;
+        var barClass = t.wrong ? "logit-bar wrong" : (t.correct ? "logit-bar correct" : "logit-bar");
+        var label = t.id + (keep[i] ? "" : " (cut)");
+        row.innerHTML = "<span>" + label + "</span><div class='logit-track'><div class='" + barClass + "' style='width:" + (keep[i] ? pct : 0) + "%;opacity:" + (keep[i] ? 1 : 0.25) + "'></div></div><span>" + pct + "%</span>";
+        pb.appendChild(row);
+      });
+      var wrongIn = !!keep[0];
+      var st = document.getElementById("sampleStatus");
+      st.textContent = wrongIn
+        ? "Top-p 候補に WRONG が残る。低温度でも誤りは選択されうる（真理ノブではない）。"
+        : "Top-p が十分狭く WRONG を除外。それでも CORRECT の保証ではなく候補集合の話。";
+      st.className = "sim-status" + (wrongIn ? " caution" : "");
+      window.__sampleProbs = probs;
+      window.__sampleKeep = keep;
+    }
+    function doSample() {
+      renderSample();
+      var probs = window.__sampleProbs;
+      var keep = window.__sampleKeep;
+      var mass = 0;
+      var scaled = probs.map(function (pr, i) {
+        var v = keep[i] ? pr : 0;
+        mass += v;
+        return v;
+      });
+      if (mass <= 0) return;
+      var r = Math.random() * mass, acc = 0, pick = 0;
+      for (var i = 0; i < scaled.length; i++) {
+        acc += scaled[i];
+        if (r <= acc) { pick = i; break; }
+      }
+      var tok = TOY[pick];
+      var st = document.getElementById("sampleStatus");
+      st.textContent = "Sampled: " + tok.id + (tok.wrong ? " — 誤りの高ロジットが採用された" : tok.correct ? " — 正しい側を引いた（保証ではない）" : "");
+      st.className = "sim-status" + (tok.wrong ? " reject" : "");
+    }
+    document.getElementById("temp").addEventListener("input", renderSample);
+    document.getElementById("topp").addEventListener("input", renderSample);
+    document.getElementById("btnSample").onclick = doSample;
+    document.getElementById("btnSampleReset").onclick = function () {
+      document.getElementById("temp").value = "1";
+      document.getElementById("topp").value = "1";
+      renderSample();
+      document.getElementById("sampleStatus").textContent = "リセット。Sample で1トークンを選びます。";
+      document.getElementById("sampleStatus").className = "sim-status";
+    };
+    renderSample();
+
+    /* Lab C — Evidence Ladder */
+    var EV = {
+      1: { cls: "reject", text: "実行してよいか: REJECT — 仮説のみ。流暢さは許可にならない。" },
+      2: { cls: "caution", text: "実行してよいか: CAUTION — 出典で探索根拠は強いが、因果は未確定。削除はまだ危険。" },
+      3: { cls: "caution", text: "実行してよいか: CAUTION — Test介入で証拠は強まる。本番適用は承認ゲート待ち。" },
+      4: { cls: "", text: "実行してよいか: OK — diff・Test・残リスクを見て権限境界を通したときだけ現実の変更。" }
+    };
+    function setStage(n) {
+      document.querySelectorAll(".stage-btns button").forEach(function (b) {
+        b.setAttribute("aria-pressed", b.getAttribute("data-stage") === String(n) ? "true" : "false");
+      });
+      var e = EV[n];
+      var st = document.getElementById("evStatus");
+      st.className = "sim-status" + (e.cls ? " " + e.cls : "");
+      st.innerHTML = e.text;
+    }
+    document.querySelectorAll(".stage-btns button").forEach(function (b) {
+      b.addEventListener("click", function () { setStage(parseInt(b.getAttribute("data-stage"), 10)); });
+    });
+    setStage(1);
+  })();
   </script>
 </body>
 </html>
