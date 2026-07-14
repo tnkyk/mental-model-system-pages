@@ -37,8 +37,15 @@
     .ladder th { background:var(--mm-gray-soft); font-size:13px; }
     .sim-embed { margin:30px 0; border:1px solid var(--mm-line); background:#fff; padding:16px; }
     .sim-hard-claim { margin:0 0 10px; padding:8px 10px; background:var(--mm-gold-soft); border-left:3px solid var(--mm-gold); font-size:13px; }
-    .sim-canvas-wrap { margin:12px 0; background:#0f1a24; border:1px solid #243241; overflow:hidden; }
-    .sim-canvas-wrap canvas { display:block; width:100%; height:auto; }
+    .sim-canvas-wrap {
+      margin:12px 0; background:#0f1a24; border:1px solid #243241;
+      overflow:hidden; line-height:0; max-height:360px;
+    }
+    .sim-canvas-wrap canvas {
+      display:block; width:100%; max-width:100%;
+      /* height is set from the canvas height attribute via JS; never use height:auto */
+      vertical-align:top;
+    }
     .chains { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
     .chain { padding:12px; border:1px solid var(--mm-line); background:#fff; transition:outline .2s, opacity .2s; }
     .chain.tip { outline:2px solid var(--mm-green); }
@@ -716,13 +723,24 @@
     }
     function fitCanvas(c) {
       if (!c) return null;
-      var rect = c.getBoundingClientRect();
-      var dpr = window.devicePixelRatio || 1;
-      var w = Math.max(300, Math.floor(rect.width || c.width));
-      var h = c.height;
-      c.width = Math.floor(w * dpr);
-      c.height = Math.floor(h * dpr);
-      c.style.width = w + "px";
+      // Lock logical CSS height from the original height attribute.
+      // Reading c.height after DPR scaling would multiply on every resize
+      // and grow the black lab area without bound (mobile Safari especially).
+      if (!c.dataset.logicH) {
+        c.dataset.logicH = c.getAttribute("height") || "220";
+      }
+      var parent = c.parentElement || c;
+      var rect = parent.getBoundingClientRect();
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var w = Math.max(280, Math.floor(rect.width || 300));
+      var h = parseInt(c.dataset.logicH, 10) || 220;
+      var bw = Math.floor(w * dpr);
+      var bh = Math.floor(h * dpr);
+      if (c.width !== bw || c.height !== bh) {
+        c.width = bw;
+        c.height = bh;
+      }
+      c.style.width = "100%";
       c.style.height = h + "px";
       var ctx = c.getContext("2d");
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
