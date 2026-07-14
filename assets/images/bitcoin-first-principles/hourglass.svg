@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 260" role="img">
+  <rect width="820" height="260" fill="#fff"/>
+  <text x="410" y="36" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="14" font-weight="700" fill="#263d59">信頼の移動：社内帳簿から公開コストへ</text>
+  <rect x="60" y="70" width="220" height="140" fill="#fceeee" stroke="#b54749"/>
+  <text x="170" y="110" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#b54749">中央の台帳係</text>
+  <text x="170" y="140" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">誰が残高を直すか</text>
+  <text x="170" y="160" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">を企業が決める</text>
+  <path d="M300 140 H360" stroke="#677786" stroke-width="2" marker-end="url(#d)"/>
+  <polygon points="410,70 470,140 410,210 350,140" fill="#e9f7f3" stroke="#16836f" stroke-width="2"/>
+  <text x="410" y="138" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="700" fill="#16836f">規則</text>
+  <text x="410" y="156" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="700" fill="#16836f">+ コスト</text>
+  <path d="M480 140 H540" stroke="#677786" stroke-width="2" marker-end="url(#d)"/>
+  <rect x="560" y="70" width="200" height="140" fill="#eaf4fb" stroke="#1677b8"/>
+  <text x="660" y="110" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#1677b8">フルノード群</text>
+  <text x="660" y="140" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">同じ規則で検証</text>
+  <text x="660" y="160" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">累積PoWで履歴選択</text>
+  <defs>
+    <marker id="d" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#677786"/></marker>
+  </defs>
+</svg>
