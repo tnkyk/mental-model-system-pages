@@ -1,38 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" role="img">
   <rect width="920" height="300" fill="#fff"/>
-  <text x="460" y="34" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="14" font-weight="700" fill="#263d59">�$�Xn<����� � �< � �τ՚� � l��f6</text>
+  <text x="460" y="34" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="14" font-weight="700" fill="#263d59">価値保存の検証コスト：モノ → 引換証 → 裁量的法定通貨 → 公開供給制約</text>
 
   <rect x="28" y="70" width="200" height="170" fill="#eaf4fb" stroke="#1677b8"/>
-  <text x="128" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#1677b8">` �쯷����^</text>
-  <text x="128" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">� ������L</text>
-  <text x="128" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">�f�5��H�</text>
-  <text x="128" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786"><P��'</text>
+  <text x="128" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#1677b8">① コレクション／貴金属</text>
+  <text x="128" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">製造・採掘コストが</text>
+  <text x="128" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">供給膨張を抑える</text>
+  <text x="128" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786">検証＝材質・希少性</text>
 
   <path d="M236 155 H268" stroke="#677786" stroke-width="2" marker-end="url(#arr)"/>
 
   <rect x="276" y="70" width="200" height="170" fill="#e9f7f3" stroke="#16836f"/>
-  <text x="376" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#16836f">a L�c</text>
-  <text x="376" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">aKsog</text>
-  <text x="376" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">(o�jix��</text>
-  <text x="376" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786"><zLSL�</text>
+  <text x="376" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#16836f">② 兌換紙幣</text>
+  <text x="376" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">持ち運びは紙で</text>
+  <text x="376" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">錨は金などへ残る</text>
+  <text x="376" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786">検証＝発行体＋兌換</text>
 
   <path d="M484 155 H516" stroke="#677786" stroke-width="2" marker-end="url(#arr)"/>
 
   <rect x="524" y="70" width="180" height="170" fill="#fceeee" stroke="#b54749"/>
-  <text x="614" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#b54749">b �τ՚�</text>
-  <text x="614" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">���XMo7�</text>
-  <text x="614" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">�fo?Vk�X</text>
-  <text x="614" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786"><6��<</text>
+  <text x="614" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#b54749">③ 裁量的法定通貨</text>
+  <text x="614" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">交換・単位は強力</text>
+  <text x="614" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">供給は政策に依存</text>
+  <text x="614" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786">検証＝制度信頼</text>
 
   <path d="M712 155 H744" stroke="#677786" stroke-width="2" marker-end="url(#arr)"/>
 
   <rect x="752" y="70" width="148" height="170" fill="#fff7e8" stroke="#b77912"/>
-  <text x="826" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#b77912">c l�6</text>
-  <text x="826" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">zLh9���</text>
-  <text x="826" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">��g��</text>
-  <text x="826" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786"><�GPoW</text>
+  <text x="826" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#b77912">④ 公開制約</text>
+  <text x="826" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">発行と改訂コスト</text>
+  <text x="826" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">を誰でも検査</text>
+  <text x="826" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786">検証＝規則＋PoW</text>
 
-  <text x="460" y="275" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#677786">�)Uo�x�H�YD�$�Xn�k�9V�U�jD'o<nnM4L��</text>
+  <text x="460" y="275" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#677786">便利さは右へ増えやすい。価値保存の「誰にも改ざんされない希少性」は、検証の置き場が移る。</text>
 
   <defs>
     <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#677786"/></marker>
