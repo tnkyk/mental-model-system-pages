@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" role="img">
+  <rect width="920" height="300" fill="#fbfcfd"/>
+  <text x="460" y="34" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="15" font-weight="700" fill="#263d59">安い身分 vs 高い提案：なぜ票を計算コストに置換するか</text>
+  <rect x="40" y="60" width="400" height="200" fill="#fceeee" stroke="#b54749"/>
+  <text x="240" y="95" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="14" font-weight="700" fill="#b54749">無料の多数決</text>
+  <g fill="#b54749" opacity="0.75">
+    <circle cx="100" cy="160" r="14"/><circle cx="140" cy="150" r="14"/><circle cx="180" cy="165" r="14"/>
+    <circle cx="220" cy="145" r="14"/><circle cx="260" cy="170" r="14"/><circle cx="300" cy="155" r="14"/>
+    <circle cx="340" cy="160" r="14"/><circle cx="120" cy="200" r="14"/><circle cx="160" cy="210" r="14"/>
+    <circle cx="200" cy="195" r="14"/><circle cx="240" cy="205" r="14"/><circle cx="280" cy="200" r="14"/>
+  </g>
+  <text x="240" y="245" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">偽アカウントを量産できる</text>
+  <rect x="480" y="60" width="400" height="200" fill="#e9f7f3" stroke="#16836f"/>
+  <text x="680" y="95" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="14" font-weight="700" fill="#16836f">検証可能な作業量</text>
+  <rect x="540" y="130" width="70" height="70" fill="#16836f" opacity="0.85"/>
+  <rect x="630" y="110" width="90" height="90" fill="#16836f" opacity="0.7"/>
+  <rect x="740" y="145" width="60" height="55" fill="#16836f" opacity="0.9"/>
+  <text x="680" y="245" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">提案1つごとに実コストが要る</text>
+</svg>

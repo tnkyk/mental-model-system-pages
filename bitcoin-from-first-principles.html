@@ -3,43 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Bitcoin v3 — コピーがほぼ無料な世界で、なぜ銀行なしに現金を『渡せる』のかを、二重支払い・署名・UTXO・Proof-of-Work・フルノード検証から再構築する長編ファーストプリンシパル・エッセイ。">
-  <title>Bitcoin from First Principles v3 | コストのかかる共有履歴</title>
+  <meta name="description" content="Bitcoin v4 — コピーがほぼ無料な世界で、なぜ現金を『渡せる』のかを、歴史・仕組み・過程可視化Labから再構築するFaza風長編ファーストプリンシパル・エッセイ。">
+  <title>Bitcoin from First Principles v4 | コストのかかる共有履歴</title>
   <link rel="stylesheet" href="./assets/css/site.css">
   <link rel="stylesheet" href="./assets/css/sim-kit.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    .article-head { background: linear-gradient(180deg, #e8f1f4 0%, #f1f6f7 55%, #fbfcfd 100%); }
-    .pull-quote {
-      margin: 36px 0;
-      padding: 8px 0 8px 22px;
-      border-left: 3px solid var(--mm-navy);
-      font-size: 22px;
-      line-height: 1.55;
-      font-weight: 600;
-      color: var(--mm-navy);
-    }
-    .pull-quote cite { display:block; margin-top:10px; font-size:13px; font-weight:500; color:var(--mm-muted); font-style:normal; }
-    .sourced { margin: 28px 0; }
+    .article-head { background: linear-gradient(180deg, #dfeaf0 0%, #eef4f6 45%, #fbfcfd 100%); }
+    .pull-quote { margin:36px 0; padding:8px 0 8px 22px; border-left:3px solid var(--mm-navy); font-size:22px; line-height:1.55; font-weight:600; color:var(--mm-navy); }
+    .sourced { margin:32px 0; }
     .sourced img { display:block; width:100%; height:auto; border:1px solid var(--mm-line); background:#fff; }
-    .sourced figcaption { margin-top:10px; color:var(--mm-muted); font-size:13px; line-height:1.6; }
-    .newspaper {
-      margin: 28px 0;
-      padding: 28px 30px;
-      border: 2px solid var(--mm-ink);
-      background: #fffef8;
-    }
-    .newspaper .masthead {
-      text-align:center; font-family: Georgia, "Times New Roman", serif;
-      font-size:28px; font-weight:700; letter-spacing:0.04em; margin:0 0 6px;
-    }
+    .sourced figcaption { margin-top:10px; color:var(--mm-muted); font-size:13px; line-height:1.65; }
+    .photo-bleed { margin:36px calc(50% - 50vw); width:100vw; max-width:100vw; }
+    .photo-bleed img { width:100%; max-height:520px; object-fit:cover; border:0; display:block; }
+    .photo-bleed figcaption { width:min(820px, calc(100% - 48px)); margin:12px auto 0; color:var(--mm-muted); font-size:13px; }
+    .newspaper { margin:28px 0; padding:28px 30px; border:2px solid var(--mm-ink); background:#fffef8; }
+    .newspaper .masthead { text-align:center; font-family:Georgia,"Times New Roman",serif; font-size:28px; font-weight:700; letter-spacing:.04em; margin:0 0 6px; }
     .newspaper .dateline { text-align:center; font-size:12px; color:var(--mm-muted); margin:0 0 18px; }
-    .newspaper .headline {
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(22px, 3.2vw, 30px); font-weight:700; line-height:1.25; margin:0 0 12px;
-    }
+    .newspaper .headline { font-family:Georgia,"Times New Roman",serif; font-size:clamp(22px,3.2vw,30px); font-weight:700; line-height:1.25; margin:0 0 12px; }
     .newspaper .body { font-size:14px; color:#3e4d5a; margin:0; }
     .layer-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
     .layer-card { border:1px solid var(--mm-line); padding:14px; min-height:120px; background:#fff; }
@@ -50,12 +33,14 @@
     .layer-card.red { border-top:4px solid var(--mm-red); background:var(--mm-red-soft); }
     .layer-card.green { border-top:4px solid var(--mm-green); background:var(--mm-green-soft); }
     .ladder { width:100%; border-collapse:collapse; font-size:14px; margin:18px 0; }
-    .ladder th, .ladder td { border-bottom:1px solid var(--mm-line); padding:10px 8px; text-align:left; vertical-align:top; }
+    .ladder th,.ladder td { border-bottom:1px solid var(--mm-line); padding:10px 8px; text-align:left; vertical-align:top; }
     .ladder th { background:var(--mm-gray-soft); font-size:13px; }
-    .sim-embed { margin:28px 0; }
+    .sim-embed { margin:30px 0; border:1px solid var(--mm-line); background:#fff; padding:16px; }
     .sim-hard-claim { margin:0 0 10px; padding:8px 10px; background:var(--mm-gold-soft); border-left:3px solid var(--mm-gold); font-size:13px; }
+    .sim-canvas-wrap { margin:12px 0; background:#0f1a24; border:1px solid #243241; overflow:hidden; }
+    .sim-canvas-wrap canvas { display:block; width:100%; height:auto; }
     .chains { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px; }
-    .chain { padding:12px; border:1px solid var(--mm-line); background:#fff; transition: outline .2s, opacity .2s; }
+    .chain { padding:12px; border:1px solid var(--mm-line); background:#fff; transition:outline .2s, opacity .2s; }
     .chain.tip { outline:2px solid var(--mm-green); }
     .chain.orphaned { opacity:.55; }
     .chain h4 { margin:0 0 6px; font-size:14px; }
@@ -85,20 +70,20 @@
     .mempool-row { display:grid; grid-template-columns:90px 1fr 70px; gap:8px; align-items:center; font-size:13px; }
     .mempool-row .bar { height:18px; background:linear-gradient(90deg, var(--mm-gold), var(--mm-red)); transform-origin:left; }
     .timeline { border-left:2px solid var(--mm-line); margin:24px 0 24px 8px; padding-left:18px; }
-    .timeline-item { position:relative; margin:0 0 22px; }
-    .timeline-item::before {
-      content:""; position:absolute; left:-24px; top:6px; width:10px; height:10px;
-      border-radius:50%; background:var(--mm-green); border:2px solid #fff; box-shadow:0 0 0 1px var(--mm-green);
-    }
+    .timeline-item { position:relative; margin:0 0 28px; }
+    .timeline-item::before { content:""; position:absolute; left:-24px; top:6px; width:10px; height:10px; border-radius:50%; background:var(--mm-green); border:2px solid #fff; box-shadow:0 0 0 1px var(--mm-green); }
     .timeline-item .year { font-size:13px; font-weight:800; color:var(--mm-green); margin:0 0 4px; }
-    .section h2 { font-size: clamp(26px, 3.5vw, 34px); }
+    .section h2 { font-size:clamp(26px,3.5vw,34px); }
     .lead-para { font-size:18px; color:#334656; }
+    .dwell { font-size:17px; }
+    .aside-note { margin:22px 0; padding:14px 16px; background:var(--mm-gray-soft); border-left:3px solid var(--mm-gray); font-size:14px; color:#3e4d5a; }
     @media (max-width:720px) {
-      .layer-grid, .chains, .sim-grid-2 { grid-template-columns:1fr; }
+      .layer-grid,.chains,.sim-grid-2 { grid-template-columns:1fr; }
       .ladder { display:block; overflow-x:auto; }
       .pull-quote { font-size:19px; }
+      .photo-bleed img { max-height:320px; }
     }
-  </style>
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -108,8 +93,8 @@
         <a class="nav-index" href="./index.html">記事一覧</a>
         <a class="toc-only" href="#wonder">序</a>
         <a class="toc-only" href="#history">履歴</a>
-        <a class="toc-only" href="#mechanics">仕組み</a>
-        <a class="toc-only" href="#sim">Lab</a>
+        <a class="toc-only" href="#doublespend">二重支払い</a>
+        <a class="toc-only" href="#pow">PoW</a>
         <a class="toc-only" href="#agency">実践</a>
         <a class="toc-only" href="#references">出典</a>
       </nav>
@@ -118,10 +103,10 @@
 
   <header class="article-head">
     <div class="wrap">
-      <p class="kicker">Monetary technology · Distributed systems · Essay v3</p>
+      <p class="kicker">Monetary technology · Distributed systems · Essay v4</p>
       <h1>Bitcoin, from First Principles</h1>
-      <p class="dek">コピーがほぼ無料な世界で、なぜ画面上の数字の移動が「現金を渡した」ことになりうるのか——二重支払いを止めに行く発明の鎖を、歴史と仕組みと手を動かす Lab から組み立てる長編。</p>
-      <p class="meta">Mental Model Studio · 2026-07-14 · v3 essay · 投資助言ではない</p>
+      <p class="dek">コピーがほぼ無料な世界で、なぜ画面上の数字の移動が「現金を渡した」ことになりうるのか——二重支払いを止めに行く発明の鎖を、危機の文脈・部品の歴史・過程が見える Lab から、長く滞留しながら組み立てる。</p>
+      <p class="meta">Mental Model Studio · 2026-07-14 · v4 gap-fill essay · 投資助言ではない</p>
     </div>
   </header>
 
@@ -136,32 +121,41 @@
 
     <section class="section reading" id="wonder">
       <h2>コピーがほぼ無料な世界で、何かが「減る」ように見せる</h2>
-      <p class="lead-para">スマートフォンで友人に写真を送るとき、あなたは自分の端末から写真を「渡して」いない。コピーが相手へ増え、手元のファイルはそのまま残る。音楽も、PDFも、ほとんどあらゆるデジタルデータも同じである。送信は複製であり、複製は実質タダに近い。</p>
-      <p>それなら、画面に「0.05 BTC を送った」と出た瞬間、なぜそれが現金の受け渡しに近い出来事だと言えるのか。銀行の窓口係も、店舗の金庫も、署名した紙の領収書も、プロトコルの画面には出てこない。出てくるのは文字列と数字と、少し待って消えるローディング表示だけである。</p>
-      <p>私にとって最も奇妙な点はここにある。Bitcoinが証明しようとしているのは「魔法の価値」ではない。データが好き放題コピーできる物理的現実の中で、<strong>同じ単位を二人に同時に使わせない</strong>ための、公開された手続きである。価格チャートはその上に重ねられた市場の物語であり、プロトコル本体の説明ではない。</p>
+      <p class="lead-para dwell">スマートフォンで友人に写真を送るとき、あなたは自分の端末から写真を「渡して」いない。コピーが相手へ増え、手元のファイルはそのまま残る。音楽ファイルも、スライド資料も、ほぼあらゆるデジタルオブジェクトも同じである。送信は複製であり、複製の限界費用は実質ゼロに近い。</p>
+      <p class="dwell">それなら、画面に「0.05 BTC を送った」と出た瞬間、なぜそれが現金の受け渡しに近い出来事だと言えるのか。銀行の窓口係も、店舗の金庫も、署名した紙の領収書も、プロトコルの画面には出てこない。出てくるのは文字列と数字と、少し待って消えるローディング表示だけである。</p>
+      <p class="dwell">多くの解説はここで「ブロックチェーンがあるから」と答えて止まる。しかしラベルはメカニズムではない。現金が現金である理由は、紙の質感ではなく、同じ紙幣を二人に同時に渡せないことにある。デジタルで同じことを言うには、複製可能という物理に逆らう共有状態が要る。この記事はその共有状態の中身を、急がずに分解する。</p>
+      <p class="dwell">もう一つ先に断りたい。Bitcoinを「通貨か、商品か、投機か」と分類する議論は市場では重要でも、プロトコル理解の最初の問いとしては早すぎる。最初に必要なのは、ある履歴候補がなぜ他の候補より高くつくのか、ある署名が何を証明して何を証明しないのか、画面の数字がどの委任層を指しているのか、という分解である。</p>
+      <p class="dwell">私にとって最も奇妙な点はここにある。Bitcoinが証明しようとしているのは「魔法の価値」でも「必ず上がる資産」でもない。データが好き放題コピーできる物理的現実の中で、<strong>同じ単位を二人に同時に使わせない</strong>ための、公開された手続きである。価格チャートはその上に重ねられた市場の物語であり、プロトコル本体の説明ではない。</p>
 
       <figure class="sourced">
         <img src="./assets/images/bitcoin-first-principles/copy-vs-cash.svg" alt="物理現金は渡せば減り、デジタルファイルは送っても手元に残る対比図" width="820" height="280">
         <figcaption>現金の受け渡しは手元から減ることで「一度きり」を保証する。デジタルは複製が自然なので、現金と同じことは別の仕組みで強制しなければならない。</figcaption>
       </figure>
 
-      <p>日常ではすでに、三つの裂け目に触れているはずだ。</p>
-      <p>ウォレットの復元画面で、12語のシードフレーズの順番が合わない。アプリは淡々と「無効なチェックサム」とだけ言う。サポート窓口はない。銀行なら本人確認の書類を求められるが、Bitcoinプロトコルには「本人」という概念がない。鍵を失えば、その鍵に紐づく残高は<strong>誰のものにもならない</strong>。永久に動かせない。</p>
-      <p>別の場面。取引所アプリに「残高 0.42 BTC」と表示されている。送金は「処理中」のまま。友人は「まだ届いていない」と言う。画面の数字は会社の内部帳簿上の負債（IOU）であることが多い。あなたが秘密鍵を持っているわけではない。会社が破綻すれば、その数字は債権争いに変わる。</p>
-      <p>三つ目。高額の支払いを受け取った相手が「6確認待ってから商品を渡す」と言う。あなたは取引所の「反映済み」で安心したが、相手は別の時計を見ている。確定は感覚ではなく、<strong>累積した作業コスト</strong>の話である。</p>
-      <p>これらは投資の成否ではない。<strong>主権・委任・確定</strong>という、システム設計の切れ目である。この記事は、その切れ目を再構築可能なメカニズムへ分解する。</p>
+      <p class="dwell">日常ではすでに、三つの裂け目に触れているはずだ。ウォレットの復元画面でシードの順番が合わないと、アプリは淡々と「無効なチェックサム」とだけ言う。サポート窓口はない。銀行なら本人確認の書類を求められるが、Bitcoinプロトコルには「本人」という概念がない。鍵を失えば、その鍵に紐づく残高は<strong>誰のものにもならない</strong>。</p>
+      <p class="dwell">別の場面。取引所アプリに「残高 0.42 BTC」と表示されている。送金は「処理中」のまま。友人は「まだ届いていない」と言う。画面の数字は会社の内部帳簿上の負債（IOU）であることが多い。あなたが秘密鍵を持っているわけではない。</p>
+      <p class="dwell">三つ目。高額の支払いを受け取った相手が「6確認待ってから商品を渡す」と言う。あなたは取引所の「反映済み」で安心したが、相手は別の時計を見ている。確定は感覚ではなく、<strong>累積した作業コスト</strong>の話である。</p>
+      <p>これらは投資の成否ではない。<strong>主権・委任・確定</strong>という、システム設計の切れ目である。この記事は、その切れ目に長く滞留しながら、再構築可能なメカニズムへ分解する。</p>
 
       <div class="callout">
-        <p><strong>すること</strong>：なぜ銀行のような台帳係なしに「同じコインを二度使えない」と主張できるかを、制約→必然の鎖で説明する。歴史の先行実験、公開規則、検証可能なコスト、そしてインタラクティブな Lab へ接続する。</p>
+        <p><strong>すること</strong>：なぜ銀行のような台帳係なしに「同じコインを二度使えない」と主張できるかを、制約→必然の鎖で説明する。危機の文脈、先行実験、公開規則、検証可能なコスト、過程が見える Lab へ接続する。</p>
         <p><strong>しないこと</strong>：価格予測・売買タイミング・ポートフォリオ助言。Lightning やサイドチェーンの詳細。Script / Taproot のオペコード一覧。</p>
       </div>
     </section>
 
     <section class="section reading" id="bank">
       <h2>銀行は「価値」ではなく、台帳係である</h2>
-      <p>オンラインでお金が動く、と聞いた瞬間に多くの人が想像するのは、どこか遠くのサーバに「あなたの残高」が書かれていて、会社がそれを正しい順序で書き換える光景である。実際、古典的な電子決済はほぼそれである。PayPal も、クレジットカードも、銀行送金も、最終的には権限のある組織が内部状態を更新し、紛争があればその組織（と法制度）が裁定する。</p>
-      <p>この設計は強力だ。利用者は鍵管理を考えなくてよい。パスワードを忘れたら窓口がある。不正利用があればチャージバックがある。欠点は対称的である。あなたは会社を信じなければならず、会社はあなたの利用を止められ、規制当局はその会社に圧力をかけられる。残高とは、しばしば「その会社に対する債権」の別名である。</p>
-      <p>電子現金の長年の夢は、この台帳係を必須としないことだった。物理の現金は、中央データベースなしで手から手へ移る。デジタルでも同じことをしたい——ただし、複製無料という物理法則に逆らう必要がある。</p>
+      <p class="dwell">オンラインでお金が動く、と聞いた瞬間に多くの人が想像するのは、どこか遠くのサーバに「あなたの残高」が書かれていて、会社がそれを正しい順序で書き換える光景である。実際、古典的な電子決済はほぼそれである。PayPal も、クレジットカードも、銀行送金も、最終的には権限のある組織が内部状態を更新し、紛争があればその組織（と法制度）が裁定する。</p>
+      <p class="dwell">この設計は強力だ。利用者は鍵管理を考えなくてよい。パスワードを忘れたら窓口がある。不正利用があればチャージバックがある。欠点は対称的である。あなたは会社を信じなければならず、会社はあなたの利用を止められ、規制当局はその会社に圧力をかけられる。残高とは、しばしば「その会社に対する債権」の別名である。</p>
+      <p class="dwell">だから「銀行がない」は浪漫ではなく、機能のトレードオフである。救済と不可逆性は同時に最大化しにくい。チャージバックがある世界は売り手にリスクを寄せ、不可逆な電子現金は買い手に注意を強いる。Bitcoinは後者側の設計選択をする。どちらが道徳的に正しいかではなく、どの失敗モードを引き受けるかの選択である。</p>
+      <p class="dwell">現代人が日常で触れる「デジタルの金」のほとんどは前者である。給与、クレカ、残高表示のアプリ。そこでは会社が台帳係であり、アプリの数字はしばしば内部状態の鏡像に過ぎない。Bitcoinの奇抜さは、同じスクリーン上に見えても、それが委任の鏡なのか、鍵で検証可能な状態なのかを、利用者自身が区別しなければならない点にある。</p>
+
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/photos/bank-of-england.jpg" alt="イングランド銀行の建物" width="1280" height="960">
+        <figcaption>イングランド銀行（写真: Wikimedia Commons）。近代の貨幣は建物や金庫そのものより、誰が台帳を書き換えられるかという権限構造に依存する。</figcaption>
+      </figure>
+
+      <p class="dwell">電子現金の長年の夢は、この台帳係を必須としないことだった。物理の現金は、中央データベースなしで手から手へ移る。デジタルでも同じことをしたい——ただし、複製無料という物理法則に逆らう必要がある。</p>
 
       <blockquote class="pull-quote">
         信頼最小化とは「誰も信じなくてよい」ではない。信じる対象を、特定企業の内部帳簿から、公開された規則と検証可能なコストへ移すことである。
@@ -171,24 +165,31 @@
         <img src="./assets/images/bitcoin-first-principles/hourglass.svg" alt="中央台帳係から公開規則とコストによる検証への信頼の移動" width="820" height="260">
         <figcaption>「信じない」のではなく、「何を信じるか」を移す。Bitcoinは人物や会社ではなく、検証可能な手続きを信頼の焦点にする。</figcaption>
       </figure>
+
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/photos/nyse.jpg" alt="ニューヨーク証券取引所の外観" width="1280" height="1707">
+        <figcaption>ニューヨーク証券取引所（Wikimedia Commons）。公開市場は価格を発見するが、Bitcoinプロトコルが定義しているのは価格ではなく、履歴の検証規則である。混同しないことが、この記事全体の読み方である。</figcaption>
+      </figure>
     </section>
 
     <section class="section reading" id="history">
       <h2>電子現金は、Bitcoinのずっと前から試みられていた</h2>
-      <p>Bitcoinを突然の発明として読むと、「ブロックチェーン」というラベルだけが残る。実際の発明は積み重ねである。インターネット上でお金のようなものを動かそうとする試みは、少なくとも1980年代から続いている。</p>
+      <p class="dwell">Bitcoinを突然の発明として読むと、「ブロックチェーン」というラベルだけが残る。実際の発明は積み重ねである。インターネット上でお金のようなものを動かそうとする試みは、少なくとも1980年代から続いている。部品はあった。欠けていたのは、部品が閉じた閉ループになる組立であった。</p>
+      <p class="dwell">暗号学の歴史は、しばしば「強いプリミティブ」の発見として語られる。しかし電子現金では、強い署名があっても足りない。強いハッシュがあっても足りない。強い匿名化があっても足りない。必要なのは、開かれたネットワーク上で、状態の更新順序について高いコストなしには覆せない合意をつくることだ。合意にコストがないなら、偽の履歴は無料で増殖する。</p>
+      <p class="dwell">だから Bitcoin を理解するには、2008年の論文だけを聖典化しても足りない。Hashcash の非対称コスト、b-money のような計算的通貨の構想、中央発行型電子現金の成功と失敗——それらが「何が欠けていたか」を教える。Satoshi の寄与は、空から降ってきた概念よりも、既存部品の配置を閉ループにした点に近い。</p>
 
       <div class="timeline">
         <div class="timeline-item">
           <p class="year">1980s–1990s · David Chaum</p>
-          <p>ブラインド署名などを用いた電子現金の構想と DigiCash は、プライバシー付きの電子決済を追求した。技術的には先駆的だったが、運用は中央発行体に依存した。発行体が止まれば、系も止まる。</p>
+          <p>ブラインド署名などを用いた電子現金の構想と DigiCash は、プライバシー付きの電子決済を追求した。技術的には先駆的だったが、運用は中央発行体に依存した。発行体が止まれば、系も止まる——台帳係問題が形を変えて戻る。</p>
         </div>
         <div class="timeline-item">
           <p class="year">1997–2002 · Adam Back · Hashcash</p>
-          <p>メールのスパム対策として提案された Hashcash は、送信側にハッシュ探索のコストを課し、受信側は安く検証できる非対称性を示した<a class="fn-ref" href="#ref-5">(*5)</a>。後の Proof-of-Work の直接の血統である。</p>
+          <p>メールのスパム対策として提案された Hashcash は、送信側にハッシュ探索のコストを課し、受信側は安く検証できる非対称性を示した<a class="fn-ref" href="#ref-5">(*5)</a>。後の Proof-of-Work の直接の血統である。「提案を高く、確認を安く」という非対称なしには、オープンなネットワークは偽身分に飲まれる。</p>
         </div>
         <div class="timeline-item">
-          <p class="year">1998 · Wei Dai · b-money</p>
-          <p>Wei Dai の b-money は、暗号と計算コストに基づく分散的な電子通貨の構想を提示した。Bitcoin の論文は明示的にこの系譜を参照する<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
+          <p class="year">1998 · Wei Dai · b-money / Nick Szabo · bit gold</p>
+          <p>Wei Dai の b-money は、暗号と計算コストに基づく分散的な電子通貨の構想を提示した。Bitcoin の論文は明示的にこの系譜を参照する<a class="fn-ref" href="#ref-1">(*1)</a><a class="fn-ref" href="#ref-8">(*8)</a>。同時期の構想群は、「計算コストで希少性をつくる」という発想がすでに共有されていたことを示す。</p>
         </div>
         <div class="timeline-item">
           <p class="year">2008–2009 · Satoshi Nakamoto</p>
@@ -196,17 +197,40 @@
         </div>
       </div>
 
-      <p>重要なのは、各先行案が「欠けていたピース」を教えてくれることだ。中央発行体は便利だが単一障害点になる。ハッシュのコストだけあっても、誰が何を所有するかの状態表現がなければ現金にならない。署名だけあっても、同じコインを二度使うことを止められない。Bitcoin の新しさは、部品の発明そのものより、<strong>部品の組み合わせが閉じた閉ループになる</strong>点にある。</p>
-      <p>論文の導入部は、率直である。商業上の電子決済はほとんど金融機関を信頼の要にしている一方、完全に不可逆な支払いには向かない。物理の現金は少額の対面取引ではその隙間を埋めるが、通信チャネル越しの同等物が欠けている——そこへ peer-to-peer の電子現金を置く、というのが宣言である<a class="fn-ref" href="#ref-1">(*1)</a>。金融危機の新聞見出しが genesis に刻まれたのは偶発的な詩情ではなく、その宣言の時間と文脈を、公開データとして固定する手段でもある。</p>
+      <figure class="photo-bleed">
+        <img src="./assets/images/bitcoin-first-principles/photos/lehman-2008.jpg" alt="2008年、タイムズスクエアのリーマン・ブラザーズ">
+        <figcaption>2008年9月、タイムズスクエアのリーマン・ブラザーズ（写真: David Shankbone / Wikimedia Commons, CC BY 3.0）。genesis の coinbase に刻まれた Times 見出しは、この危機の週に読むべき文脈がある——中央の金融仲介への不信と、公開手続きへの関心、という物語の入口として。</figcaption>
+      </figure>
+
+      <p class="dwell">論文の導入部は率直である。商業上の電子決済はほとんど金融機関を信頼の要にしている一方、完全に不可逆な支払いには向かない。物理の現金は少額の対面取引ではその隙間を埋めるが、通信チャネル越しの同等物が欠けている——そこへ peer-to-peer の電子現金を置く、というのが宣言である<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
+      <p class="dwell">重要なのは、各先行案が「欠けていたピース」を教えてくれることだ。中央発行体は便利だが単一障害点になる。ハッシュのコストだけあっても、誰が何を所有するかの状態表現がなければ現金にならない。署名だけあっても、同じコインを二度使うことを止められない。Bitcoin の新しさは、部品の発明そのものより、<strong>部品の組み合わせが閉じた閉ループになる</strong>点にある。</p>
     </section>
 
     <section class="section reading" id="doublespend">
       <h2>最初の問い：同じコインを二人に払えないとは、どういうことか</h2>
-      <p>物理の現金は、渡せば手元から減る。デジタルの「コイン」は、送信しても手元のビット列が消えなくてもよい。受け手は常にこう疑う必要がある——同じ単位が、別の人にも同時に送られていないか。</p>
-      <p>これが二重支払い（double-spending）問題である。古典解は、信頼できる第三者が残高を管理することだ。Satoshi の提案は、この第三者を必須としない電子現金を求める<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
-      <p>ここで多くの誤解が始まる。デジタル署名は強力だが、<strong>それだけでは足りない</strong>。署名は「Aliceがこのメッセージを承認した」ことは示せる。しかし「Aliceがいまだその支払いを許す残高状態にある」ことは、グローバルな順序付きの状態を見なければ示せない。権限の証明と、状態の一意性は別物である。</p>
+      <p class="dwell">物理の現金は、渡せば手元から減る。デジタルの「コイン」は、送信しても手元のビット列が消えなくてもよい。受け手は常にこう疑う必要がある——同じ単位が、別の人にも同時に送られていないか。</p>
+      <p class="dwell">これが二重支払い（double-spending）問題である。古典解は、信頼できる第三者が残高を管理することだ。Satoshi の提案は、この第三者を必須としない電子現金を求める<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
+      <p class="dwell">ここで多くの誤解が始まる。デジタル署名は強力だが、<strong>それだけでは足りない</strong>。署名は「Aliceがこのメッセージを承認した」ことは示せる。しかし「Aliceがいまだその支払いを許す残高状態にある」ことは、グローバルな順序付きの状態を見なければ示せない。権限の証明と、状態の一意性は別物である。</p>
+      <p class="dwell">映画のキーカードを想像してみるとよい。カードは「開ける権限」を示すが、ドアがいま施錠されているか、すでに誰かが通ったあとかは、ドア側の状態が知っていなければ判定できない。署名はキーカード、UTXO集合はドアの施錠状態、共有履歴はその施錠ログである。キーカードが本物でも、すでに開いて通行されたドアにもう一度「未使用」と言い張ることは許されない。</p>
+      <p class="dwell">銀行がある世界では、この施錠ログを会社が持つ。Bitcoinはログを公開し、誰でも検証できるようにし、ログへの追記に検証可能な値段を付ける。二重支払い問題の答えは「良い人が運営する」ではなく、「同じ順序を検証可能なコストで強制する」である。</p>
 
-      <p>Alice がコイン C を Bob へ送る取引 Tx1 を流し、同時に同じ C を Carol へ送る Tx2 も流すとしよう。第三者の銀行がいなければ、ネットワーク全体が共有する「C はもう使われた」記録が要る。つまり、全員がほぼ同じ順序の履歴を共有し、その履歴上で C は一度しか消費されない状態を作らなければならない。</p>
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/double-spend.svg" alt="Aliceが同じUTXOをBobとCarolに同時送金しようとする図" width="920" height="360">
+        <figcaption>Alice がコイン C を Bob と Carol の両方へ同時に送ろうとする。第三者がいなければ、ネットワーク全体が共有する「C はもう使われた」記録が要る。</figcaption>
+      </figure>
+
+      <div class="sim-embed sim-root" id="sim-race">
+        <p class="sim-title">Double-spend Race Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> 共有された順序なしでは、同じ入力への二つの支払いが一時的に両立して見えうる。正規履歴は後で片方だけを残す。</p>
+        <p>再生すると、Tx1（Bob）と Tx2（Carol）がネットワーク上を競う。最終的に一本の履歴だけが残り、もう一方は orphaned になる。</p>
+        <div class="sim-canvas-wrap"><canvas id="raceCanvas" width="900" height="280" aria-label="二重支払い競合の可視化"></canvas></div>
+        <div class="sim-controls">
+          <button type="button" class="sim-btn" id="btnRacePlay">再生</button>
+          <button type="button" class="sim-btn" id="btnRaceReset">リセット</button>
+        </div>
+        <p class="sim-status" id="raceStatus">再生すると、競合する二取引の運命が見えます。</p>
+        <p class="sim-caption">Lesson: 問題は「誰が正しい人か」ではなく、「どの順序の消費が一意か」である。</p>
+      </div>
 
       <div class="diagram" aria-label="四層図">
         <p class="diagram-title">四つの役割は別物である</p>
@@ -220,20 +244,27 @@
       </div>
 
       <figure class="sourced">
-        <img src="./assets/images/bitcoin-first-principles/layers.svg" alt="署名・UTXO・PoW・フルノードの四層パイプライン" width="820" height="220">
-        <figcaption>Mental Model Studio による層分け図。ラベルは説明装置であり、プロトコル用語の直訳ではない。</figcaption>
+        <img src="./assets/images/bitcoin-first-principles/layers.svg" alt="署名・UTXO・PoW・フルノードの四層パイプライン" width="920" height="280">
+        <figcaption>Mental Model Studio による層分け図。以降の節は、この四つの役割を一つずつ、滯留しながら埋める。</figcaption>
       </figure>
     </section>
 
     <section class="section reading" id="hash">
       <h2>指紋としてのハッシュ：改ざんを「検出」できる道具</h2>
-      <p>共有履歴が必要だと分かっても、巨大な取引ログを毎回全文比較するのは現実的でない。欲しいのは、データの要約指紋である。暗号学的ハッシュは、同じ入力なら同じ出力、入力を1ビット変えると出力が予測不能に変わり、出力から入力を逆算するのは実務上不可能に近い、という性質の束を与える<a class="fn-ref" href="#ref-2">(*2)</a><a class="fn-ref" href="#ref-1">(*1)</a>。</p>
-      <p>この性質だけでも、「改ざん不可能」までは言えない。言えるのは「改ざんを検出できる」という弱いが重要な主張である。ブロックヘッダが直前ブロックのハッシュを含めば、過去を1バイト書き換えれば以降のハッシュが連鎖的に食い違う。検出は安い。しかし検出しやすいだけで、攻撃者が新しい整合した鎖を作り直すのを止めはしない——そこには後でコストが要る。</p>
+      <p class="dwell">共有履歴が必要だと分かっても、巨大な取引ログを毎回全文比較するのは現実的でない。欲しいのは、データの要約指紋である。暗号学的ハッシュは、同じ入力なら同じ出力、入力を1ビット変えると出力が予測不能に変わり、出力から入力を逆算するのは実務上不可能に近い、という性質の束を与える<a class="fn-ref" href="#ref-2">(*2)</a><a class="fn-ref" href="#ref-1">(*1)</a>。</p>
+
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/photos/sha2.png" alt="SHA-2 ハッシュ関数の構造概略図" width="960" height="678">
+        <figcaption>SHA-2 家族の構造概略（Wikimedia Commons）。Bitcoin の PoW は二重 SHA-256 を使う。ここでのポイントは回路図の暗記ではなく、「わずかな入力差が出力を予測不能に散らす」ことである。</figcaption>
+      </figure>
+
+      <p class="dwell">この性質だけでも、「改ざん不可能」までは言えない。言えるのは「改ざんを検出できる」という弱いが重要な主張である。ブロックヘッダが直前ブロックのハッシュを含めば、過去を1バイト書き換えれば以降のハッシュが連鎖的に食い違う。検出は安い。しかし検出しやすいだけで、攻撃者が新しい整合した鎖を作り直すのを止めはしない——そこには後でコストが要る。</p>
+      <p class="dwell">混同しやすいのはここだ。指紋があることと、指紋を偽造するコストが高いことは違う。書類のハッシュを公開すれば改ざんは見えるが、攻撃者が全文書を用意し直して新しいハッシュを提示することは原理的にできる。Bitcoinがさらに必要とするのは、新しい整合履歴を作ること自体が高くつくこと——Proof-of-Workである。</p>
+      <p class="dwell">したがって「ブロックチェーン＝改ざん不可能」は口号としては短すぎる。正しくは「ハッシュで結合された履歴は改ざんを検出しやすく、その上に十分な累積作業量が積まれ、かつ検証者が規則を執行していれば、書き換えは高価である」だ。条件が増えるほど嘘は減る。</p>
 
       <div class="sim-embed sim-root" id="sim-hash">
         <p class="sim-title">Hash Avalanche Lab</p>
         <p class="sim-hard-claim"><strong>Hard claim:</strong> 入力を1文字変えると要約指紋は予測不能に変わり、照合は即座に不一致を検出できる。</p>
-        <p>下の文を少し変えてみよ。受信者を差し替えただけで指紋は別物になる。</p>
         <label for="hashInput">入力メッセージ</label>
         <textarea id="hashInput" rows="3" style="width:100%;font:14px/1.5 var(--mm-mono);padding:10px;border:1px solid var(--mm-line);">Alice pays Bob 0.30 BTC using UTXO u1</textarea>
         <p class="hash-out" id="hashDigest">—</p>
@@ -249,27 +280,27 @@
 
     <section class="section reading" id="keys">
       <h2>秘密鍵：名簿のない所有</h2>
-      <p>Bitcoinは世界共通の氏名台帳を前提にしたくない。それでも「この残高を動かしてよいのは鍵の持ち主だけ」と言いたい。そこで公開鍵暗号の署名が入る。秘密鍵から公開鍵を導き、さらにハッシュしてアドレス（例: <code>bc1...</code>）として流通させる。アドレスは「Alice」という人名ではなく、<strong>支払い条件のハッシュ</strong>である<a class="fn-ref" href="#ref-3">(*3)</a>。ネットワークは人物を知らない。署名を検証するだけである。</p>
-      <p>この単純さが、日常の不安を生む。鍵を持つ者が主権を持つ——第三者の許可なく使える。鍵を失う・盗まれると、プロトコル上の救済当局はいない。銀行の「本人確認して復元」は、プロトコル外の社会的手当である。</p>
-      <p>取引所に資産を預けているとき、画面の残高はしばしば内部帳簿の IOU である。取引所が破綻・ハッキング・出金停止をしたら、画面の数字は紙切れになりうる。救済がない代わりに、第三者にも止められない——これが主権の両面である。</p>
+      <p class="dwell">Bitcoinは世界共通の氏名台帳を前提にしたくない。それでも「この残高を動かしてよいのは鍵の持ち主だけ」と言いたい。そこで公開鍵暗号の署名が入る。秘密鍵から公開鍵を導き、さらにハッシュしてアドレス（例: <code>bc1...</code>）として流通させる。アドレスは「Alice」という人名ではなく、<strong>支払い条件のハッシュ</strong>である<a class="fn-ref" href="#ref-3">(*3)</a>。ネットワークは人物を知らない。署名を検証するだけである。</p>
+      <p class="dwell">この単純さが、日常の不安を生む。鍵を持つ者が主権を持つ——第三者の許可なく使える。鍵を失う・盗まれると、プロトコル上の救済当局はいない。銀行の「本人確認して復元」は、プロトコル外の社会的手当である。</p>
+      <p class="dwell">取引所に資産を預けているとき、画面の残高はしばしば内部帳簿の IOU である。取引所が破綻・ハッキング・出金停止をしたら、画面の数字は紙切れになりうる。救済がない代わりに、第三者にも止められない——これが主権の両面である。自己保管は「技術オタクの趣味」ではなく、どの委任層に立つかの明示的な選択である。</p>
+      <div class="aside-note">Not your keys, not your coins——標語としては粗いが、メンタルモデルとしては正確に近い。取引所残高はプロトコル上のコインではなく、会社への請求権であることが多い。</div>
     </section>
 
     <section class="section reading" id="utxo">
       <h2>残高は口座ではなく、未使用の出力の束である</h2>
-      <p>口座残高モデルは直感的だが、更新順序の合意に中央性が入りやすい。Bitcoinは状態を<strong>未使用トランザクションアウトプット（UTXO）</strong>の集合として持つ<a class="fn-ref" href="#ref-3">(*3)</a><a class="fn-ref" href="#ref-2">(*2)</a>。各UTXOは過去の取引の出力スロットであり、一度入力として消費されたら二度と使えない。ウォレットの「残高 1.42 BTC」は、使えるUTXOの合計という便利な集計に過ぎない。原子単位は口座行ではなくUTXOである。</p>
-      <p>支払いの骨格は短い。</p>
+      <p class="dwell">口座残高モデルは直感的だが、更新順序の合意に中央性が入りやすい。Bitcoinは状態を<strong>未使用トランザクションアウトプット（UTXO）</strong>の集合として持つ<a class="fn-ref" href="#ref-3">(*3)</a><a class="fn-ref" href="#ref-2">(*2)</a>。各UTXOは過去の取引の出力スロットであり、一度入力として消費されたら二度と使えない。ウォレットの「残高 1.42 BTC」は、使えるUTXOの合計という便利な集計に過ぎない。原子単位は口座行ではなくUTXOである。</p>
+      <p>支払いの骨格は、お茶を買うときの紙幣とお釣りに似ている。</p>
       <ol>
         <li>既存UTXOを入力として参照し、消費する</li>
         <li>新しいUTXOを出力として作成する</li>
         <li>入力額の合計 ≥ 出力額の合計。差額は手数料</li>
         <li>各入力に消費権限の証明（署名）を付ける</li>
       </ol>
-      <p>お茶を買うとき、紙幣を渡してお釣りを受け取るのと似ている。ちょうど半額硬貨がなければ、大きめのUTXOを消費し、お釣りを自分宛の新しいUTXOとして受け取る。</p>
 
       <div class="sim-embed sim-root" id="sim-utxo">
         <p class="sim-title">UTXO Lab</p>
         <p class="sim-hard-claim"><strong>Hard claim:</strong> 同じ UTXO を二つの取引で使おうとすると、二つ目は台帳状態と矛盾し拒否される。</p>
-        <p>入力UTXOを選び、Bobへの支払いと手数料を配分して取引を構築する。その後、同じ入力でもう一度払おうとすると拒否される。</p>
+        <div class="sim-canvas-wrap"><canvas id="utxoCanvas" width="900" height="180" aria-label="UTXO消費の過程"></canvas></div>
         <div class="sim-grid-2">
           <div class="sim-panel">
             <h4>未使用 UTXO（Alice）</h4>
@@ -292,14 +323,18 @@
         </div>
         <p class="sim-caption">Lesson: 残高はUTXOの集計。入力は一度消費すると未使用集合から消える。</p>
       </div>
-
-      <p>例: Alice が 0.8 BTC のUTXOを入力にし、Bobへ 0.3、自分へお釣り 0.499、手数料 0.001 とする。同じ 0.8 BTC を Carol 向けに再利用すれば、先に受理された方だけが有効で、後から来た方は二重支払いとして拒否される。</p>
-      <p>次の限界はスケールである。有効取引を世界が一本ずつ高コストで「石に刻む」のは重い。取引を束ね、包含を要約するブロックが要る。</p>
+      <p class="dwell">次の限界はスケールである。有効取引を世界が一本ずつ高コストで「石に刻む」のは重い。取引を束ね、包含を要約するブロックが要る。</p>
     </section>
 
     <section class="section reading" id="blocks">
       <h2>ブロックと Merkle 根：履歴を束ね、包含を軽く証明する</h2>
-      <p>取引ごとに独立の高コスト証明を要求すると、同期と検証が破綻する。代わりに、<strong>ブロック</strong>はコンパクトなヘッダ（約80バイト）と可変長の取引本体からなる<a class="fn-ref" href="#ref-2">(*2)</a>。Proof-of-Work が計算する対象は主にこの80バイトのヘッダである。取引群は Merkle 根を経由してヘッダに拘束される。</p>
+      <p class="dwell">取引ごとに独立の高コスト証明を要求すると、同期と検証が破綻する。代わりに、<strong>ブロック</strong>はコンパクトなヘッダ（約80バイト）と可変長の取引本体からなる<a class="fn-ref" href="#ref-2">(*2)</a>。Proof-of-Work が計算する対象は主にこの80バイトのヘッダである。取引群は Merkle 根を経由してヘッダに拘束される。追加の取引は、Merkle 木の祖先だけを再計算すればよく、ヘッダ全体を一から書き直す必要はない。</p>
+
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/photos/blockchain-overview.png" alt="ブロックが鎖状に繋がる概念図" width="451" height="1200">
+        <figcaption>ブロック鎖の概念図（Wikimedia Commons）。図の細部より、「各ブロックが直前を参照する」という結合が改ざん検出を連鎖させる、という一点を持てばよい。</figcaption>
+      </figure>
+
       <table class="ladder">
         <thead><tr><th>ヘッダの字段</th><th>役割</th></tr></thead>
         <tbody>
@@ -315,7 +350,7 @@
   H(AB)                    H(CD)
    /    \                    /    \
  H(A)  H(B)              H(C)  H(D)</pre>
-      <p>Bobが取引Bだけ知りたいとき、Merkle proof として兄弟ハッシュを数個受け取り、根を再計算してヘッダの merkleRoot と照合できる。Bを差し替えると根が一致しない。大きなブロック全体をダウンロードしなくても、包含の主張を安く検証できる——ただし、これはコンセンサスルール全体の検証と同じではない。</p>
+      <p class="dwell">Bobが取引Bだけ知りたいとき、Merkle proof として兄弟ハッシュを数個受け取り、根を再計算してヘッダの merkleRoot と照合できる。大きなブロック全体をダウンロードしなくても、包含の主張を安く検証できる——ただし、これはコンセンサスルール全体の検証と同じではない。</p>
 
       <div class="newspaper" aria-label="Times headline reconstruction">
         <p class="masthead">THE TIMES</p>
@@ -330,31 +365,44 @@
       </figure>
 
       <figure class="sourced">
-        <img src="./assets/images/bitcoin-first-principles/genesis-schematic.svg" alt="Genesisブロックから伸びるブロック鎖の模式図" width="720" height="300">
-        <figcaption>Genesis（2009-01-03）は履歴のゼロ地点。以降のブロックは直前ヘッダのハッシュを含む。図は Mental Model Studio による模式<a class="fn-ref" href="#ref-2">(*2)</a>。</figcaption>
+        <img src="./assets/images/bitcoin-first-principles/genesis-schematic.svg" alt="Genesisブロックのヘッダとcoinbaseの模式図" width="880" height="420">
+        <figcaption>Genesis（2009-01-03）は履歴のゼロ地点。以降のブロックは直前ヘッダのハッシュを含む<a class="fn-ref" href="#ref-2">(*2)</a><a class="fn-ref" href="#ref-7">(*7)</a>。</figcaption>
       </figure>
 
-      <p>各ブロックの先頭取引はコインベース取引であり、新規発行（補助金）と手数料を鉱夫（正確にはブロック作成者）へ渡す。genesis の補助金 50 BTC は特別扱いで事実上使えない、という実装上のquirkも知られている<a class="fn-ref" href="#ref-7">(*7)</a>。</p>
-      <p>SPV（Simplified Payment Verification）クライアントはヘッダ鎖と Merkle proof で包含を確認しようとするが、すべてのコンセンサスルールを自ら検証するわけではない<a class="fn-ref" href="#ref-1">(*1)</a>。「改ざん不可能」に聞こえる宣伝は、しばしば<strong>自分が検証した範囲</strong>を超えて語られる。</p>
-      <p>まだ足りない。誰でもヘッダを書いてよいなら、矛盾するブロックは無限に増える。追記提案そのものに費用を載せなければ、偽の履歴が履歴を汚染する。</p>
+      <p class="dwell">SPV（Simplified Payment Verification）クライアントはヘッダ鎖と Merkle proof で包含を確認しようとするが、すべてのコンセンサスルールを自ら検証するわけではない<a class="fn-ref" href="#ref-1">(*1)</a>。「改ざん不可能」に聞こえる宣伝は、しばしば<strong>自分が検証した範囲</strong>を超えて語られる。まだ足りない。誰でもヘッダを書いてよいなら、矛盾するブロックは無限に増える。</p>
     </section>
 
     <section class="section reading" id="pow">
       <h2>Proof-of-Work：追記権に、検証可能な値段を付ける</h2>
-      <p>オンラインでは新しい「身分」を作るコストがほぼゼロである。提案が無料なら、攻撃者は矛盾する履歴を量産できる。票＝計算コストにしない限り、多数決は偽身分に飲まれる（いわゆる Sybil 問題）。</p>
-      <p>Adam Back の Hashcash は、メール送信者にハッシュ探索を要求する DoS 対策だった。「探索は高く、検証は安い」という非対称性である<a class="fn-ref" href="#ref-5">(*5)</a>。Satoshi はこの発想を、次の正規履歴候補を提案する権利へと再配置した<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
-      <p>実務上、マイナーはブロックヘッダの nonce などを変えながら二重 SHA-256 を繰り返し、出力が難易度が定める target 未満になるまで探す。見つかったヘッダは誰でも1回のハッシュで検証できる。難しさは、およそ平均試行回数が target の厳しさに比例する、という確率の話である<a class="fn-ref" href="#ref-2">(*2)</a>。</p>
+      <p class="dwell">オンラインでは新しい「身分」を作るコストがほぼゼロである。提案が無料なら、攻撃者は矛盾する履歴を量産できる。票＝計算コストにしない限り、多数決は偽身分に飲まれる（Sybil 問題）。</p>
+
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/sybil-vs-work.svg" alt="無料の多数決と検証可能な作業量の対比" width="920" height="300">
+        <figcaption>左は安い身分の洪水。右は提案ごとに実コストが要る世界。Hashcash の非対称性がここで意味を持つ。</figcaption>
+      </figure>
+
+      <p class="dwell">Adam Back の Hashcash は、メール送信者にハッシュ探索を要求する DoS 対策だった。「探索は高く、検証は安い」という非対称性である<a class="fn-ref" href="#ref-5">(*5)</a>。Satoshi はこの発想を、次の正規履歴候補を提案する権利へと再配置した<a class="fn-ref" href="#ref-1">(*1)</a>。</p>
+      <p class="dwell">実務上、マイナーはブロックヘッダの nonce などを変えながら二重 SHA-256 を繰り返し、出力が難易度が定める target 未満になるまで探す。見つかったヘッダは誰でも1回のハッシュで検証できる。難しさは、およそ平均試行回数が target の厳しさに比例する、という確率の話である<a class="fn-ref" href="#ref-2">(*2)</a>。</p>
+      <p class="dwell">この非対称は、日常生活のたとえに落とすと分かりやすい。宝くじの当たりを引くには何万回も買う必要があるが、当たりくじかどうかの確認は一瞬でできる。BitcoinのPoWは、履歴の次ページを書く権利をその宝くじに結び付ける。ただし普通の宝くじと違い、当たりの検証は誰でも同じ規則ででき、当たりのページが規則違反なら——いくら探索コストを払っても——フルノードは受け取らない。</p>
+      <p class="dwell">エネルギー消費への批判は当然生じうる。メンタルモデルとしては、そのエネルギーを「浪費」とだけ見るのではなく、「公開ネットワークで履歴を防衛するための継続課金」として読む必要がある。課金の大小が社会的に妥当かは別議論だが、ゼロコストで同等の公開防衛を得る設計はまだ見つかっていない、というのが少なからぬ研究者の見立てに近い。ここでも価格やモラルを先に結論せず、何のためのコストかを見失わないことが先である。</p>
+
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/photos/mining-farm.jpg" alt="多数の筐体が並ぶマイニング施設" width="1400" height="787">
+        <figcaption>ASIC マイニング施設の一例（Wikimedia Commons）。エネルギーと機材が「提案コスト」の物理的姿である。これは安全保障の支払いであり、それ自体が価格の上昇を証明するわけではない。</figcaption>
+      </figure>
 
       <div class="sim-embed sim-root" id="sim-pow">
-        <p class="sim-title">PoW Lab</p>
+        <p class="sim-title">PoW Process Lab</p>
         <p class="sim-hard-claim"><strong>Hard claim:</strong> 有効 PoW の発見は nonce 探索で高コスト、検証は1回のハッシュで即座に完了する。</p>
-        <p>簡略モデル: 指紋の先頭が <code id="powTargetLabel">000</code> で始まる nonce を探す。実 Bitcoin は SHA-256d と、はるかに厳しい target を使う。</p>
+        <p>簡略モデル: 指紋の先頭が <code id="powTargetLabel">000</code> で始まる nonce を探す。下のキャンバスは失敗の洪水と、稀な成功の瞬間を可視化する。</p>
+        <div class="sim-canvas-wrap"><canvas id="powCanvas" width="900" height="220" aria-label="PoW探索の過程"></canvas></div>
         <div class="sim-grid-2">
           <div class="sim-panel">
             <h4>マイナー（探索）</h4>
             <div class="sim-controls">
-              <button type="button" class="sim-btn" id="btnMine">nonce を1ステップ</button>
-              <button type="button" class="sim-btn" id="btnMineBurst">1000回バースト</button>
+              <button type="button" class="sim-btn" id="btnMine">1ステップ</button>
+              <button type="button" class="sim-btn" id="btnMineBurst">バースト探索</button>
+              <button type="button" class="sim-btn" id="btnMineAuto">自動探索</button>
               <button type="button" class="sim-btn" id="btnPowReset">リセット</button>
             </div>
             <p>試行回数: <strong id="powAttempts">0</strong></p>
@@ -369,25 +417,39 @@
             </div>
             <p>検証時間: <strong id="powVerifyMs">—</strong></p>
             <p class="sim-status" id="powStatus">探索を開始してください。</p>
-            <p style="font-size:13px;color:var(--mm-muted);margin-top:12px;">見つからない間、ログは失敗の山になる。成功の瞬間だけが「提案」として意味を持つ。検証側はその成功候補を一瞬で判定できる。</p>
+            <p style="font-size:13px;color:var(--mm-muted);margin-top:12px;">失敗は山のように積もり、成功だけが提案として意味を持つ。検証側はその成功候補を一瞬で判定できる。</p>
           </div>
         </div>
-        <p class="sim-caption">Lesson: 提案の希少性を、検証可能な形で示せる。無料提案が履歴を汚染する理由がここにある。</p>
+        <p class="sim-caption">Lesson: 提案の希少性を、検証可能な形で示せる。</p>
       </div>
 
-      <p>攻撃者が過去ブロックを書き換えようとすれば、そのブロック以降のすべてのブロックについて、ネットワークが積み上げた作業量を単独で再実行しなければならない。いわゆる「6確認を待て」は、差し替えコストが実務上十分大きくなるまで待つ経験則である——絶対不可能性の証明ではない。</p>
-      <p>それでも遅延のあるネットワークでは、同じ高さに二つの有効ブロックが一時的に並ぶ。次の規則が要る。</p>
+      <figure class="sourced">
+        <img src="./assets/images/bitcoin-first-principles/confirmations-ladder.svg" alt="確認数に応じて差し替えコストが上昇する梯子の図" width="920" height="280">
+        <figcaption>確認数は「絶対に覆らない」ことの証明書ではなく、差し替えに要する累積作業量の経験則である。</figcaption>
+      </figure>
+
+      <div class="sim-embed sim-root" id="sim-rework">
+        <p class="sim-title">Rewrite Cost Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> 過去を書き換えるには、その地点以降に積まれた作業量を再実行する必要がある。上に積むほどコストは単調に増える。</p>
+        <p>スライダーで「何確認待ちか」を変えると、攻撃者が再実行すべき相対コストが変わる。</p>
+        <label>確認数: <strong id="reworkNLabel">1</strong></label>
+        <input type="range" id="reworkN" min="0" max="12" value="1" style="width:100%">
+        <div class="sim-canvas-wrap"><canvas id="reworkCanvas" width="900" height="160" aria-label="書き換えコスト"></canvas></div>
+        <p class="sim-status" id="reworkStatus"></p>
+        <p class="sim-caption">Lesson: 6確認が特別な魔法数なのではなく、コストが実務上十分に大きくなる近傍である。</p>
+      </div>
     </section>
 
     <section class="section reading" id="forks">
       <h2>累積作業量：どちらが「本当の履歴」かを選ぶ</h2>
-      <p>同時出塊や伝播遅延で短い分岐（フォーク）は不可避である。確定は、二値の真実ではなく、確率的・コスト的な概念になる。</p>
-      <p>ノードは、コンセンサスルールを満たす鎖のうち、<strong>最も累積 Proof-of-Work が大きい</strong>ものを正規とする。論文の “longest chain” は、実務上 chainwork（累積作業量）として読むのが安全である<a class="fn-ref" href="#ref-1">(*1)</a><a class="fn-ref" href="#ref-2">(*2)</a>。短い枝にしか載らなかった取引は、再編成で「なかったこと」になりうる。</p>
+      <p class="dwell">同時出塊や伝播遅延で短い分岐（フォーク）は不可避である。確定は、二値の真実ではなく、確率的・コスト的な概念になる。ノードは、コンセンサスルールを満たす鎖のうち、<strong>最も累積 Proof-of-Work が大きい</strong>ものを正規とする。論文の “longest chain” は、実務上 chainwork（累積作業量）として読むのが安全である<a class="fn-ref" href="#ref-1">(*1)</a><a class="fn-ref" href="#ref-2">(*2)</a>。</p>
+      <p class="dwell">ここで日常の「反映済み」が崩れる。ある取引所の画面は、自社の内部台帳を更新した瞬間に緑のチェックを出すかもしれない。しかし相手の商人は、公開鎖の上に何ブロック積まれたかを見ている。前者は委任先の都合、後者は差し替えコストの経験則である。両方とも「BTCが動いた」ように見えて、時計が違う。</p>
+      <p class="dwell">再編成（reorg）はバグというより、分散系の通常運転に近い。短い分岐は消え、長い（正確には累積作業量が大きい）枝が残る。高額決済ほど、たまたま短い枝にだけ乗った支払いを最終扱いしない理由がここにある。</p>
 
       <div class="sim-embed sim-root" id="sim">
-        <p class="sim-title">Fork choice Lab</p>
+        <p class="sim-title">Fork Race Lab</p>
         <p class="sim-hard-claim"><strong>Hard claim:</strong> 累積作業量が大きい枝だけが正規履歴として残り、短い枝にだけ載った取引はなかったことになりうる。</p>
-        <p>高さ N で枝 A / B に分岐したあと、どちらを伸ばすか選ぶ。正規 tip は累積 work が大きい側。</p>
+        <div class="sim-canvas-wrap"><canvas id="forkCanvas" width="900" height="220" aria-label="フォーク競合の可視化"></canvas></div>
         <div class="sim-controls">
           <button type="button" class="sim-btn" id="btnA">枝Aを伸ばす</button>
           <button type="button" class="sim-btn" id="btnB">枝Bを伸ばす</button>
@@ -408,20 +470,17 @@
         <p class="sim-status" id="simStatus"></p>
         <p class="sim-caption">Lesson: 確認数＝差し替えコスト。取引所の「反映済み」と自分の確認時計は別物である。</p>
       </div>
-
-      <p>取引所アプリの「反映済み」は、しばしば内部帳簿の更新を指す。相手が言う「6確認」は、公開鎖上の累積作業量の話である。同じ「BTCが動いた」に見えても、時計が違う。</p>
-      <p>それでも、マイナーが作ったから正しい、ではない。規則違反のブロックは、PoWを満たしていても無効である。</p>
+      <p class="dwell">それでも、マイナーが作ったから正しい、ではない。規則違反のブロックは、PoWを満たしていても無効である。</p>
     </section>
 
     <section class="section reading" id="nodes">
       <h2>フルノード：立法者ではなく、審査官</h2>
-      <p>中央サーバがないなら、誰が無効データを止めるのか。マイナーが「報酬を上限の何倍も載せるコインベース」を組んで PoW に成功させても、ネットワークは従ってはならない。ルールはプロトコルにあり、マイナーは候補の提案者に過ぎない。</p>
-      <p>フルノードはピアから取引とブロックを受け取るたびに、ローカルのコンセンサスルールで検証する<a class="fn-ref" href="#ref-4">(*4)</a>。拒否されたデータは自分のUTXOセットにも、relay経路にも乗らない。この「各自が同じ規則で棄却する」習慣こそが、立法者不在のシステムの骨格である。</p>
+      <p class="dwell">中央サーバがないなら、誰が無効データを止めるのか。マイナーが「報酬を上限の何倍も載せるコインベース」を組んで PoW に成功させても、ネットワークは従ってはならない。ルールはプロトコルにあり、マイナーは候補の提案者に過ぎない。</p>
+      <p class="dwell">フルノードはピアから取引とブロックを受け取るたびに、ローカルのコンセンサスルールで検証する<a class="fn-ref" href="#ref-4">(*4)</a>。拒否されたデータは自分のUTXOセットにも、relay経路にも乗らない。この「各自が同じ規則で棄却する」習慣こそが、立法者不在のシステムの骨格である。</p>
 
       <div class="sim-embed sim-root" id="sim-validation">
         <p class="sim-title">Validation Lab</p>
         <p class="sim-hard-claim"><strong>Hard claim:</strong> 不正取引/ブロックは PoW 風の表示があってもフルノード規則で拒否される。</p>
-        <p>無効ケースをトグルして提出してみよ。PoW表示は常に「OK（見かけ）」でも、規則違反なら reject。</p>
         <div class="sim-controls">
           <label><input type="checkbox" id="valBadSig"> 署名不正</label>
           <label><input type="checkbox" id="valDouble"> 二重支払い</label>
@@ -440,17 +499,18 @@
 
     <section class="section reading" id="incentives">
       <h2>誰がエネルギーを払うのか：補助金、手数料、難易度</h2>
-      <p>検証と探索には資源が要る。なぜ誰かが払うのか。ブロック報酬は<strong>補助金（block subsidy）</strong>と<strong>取引手数料</strong>の合計である<a class="fn-ref" href="#ref-2">(*2)</a>。補助金は約210,000ブロック（約4年）ごとに半減する。半減は供給スケジュールのイベントであり、そのままハッシュレートや価格や「安全性」を保証しない。</p>
-      <p>ブロック容量は有限である。混雑時、マイナーは手数料率（sat/vB）の高い取引を優先する。ユーザーが見ているのは「BTCの値段」だけでなく、<strong>ブロック空間の一時市場</strong>である。同じ送金でも日によって手数料が違うのは、この入札のためだ。</p>
-      <p>難易度はおよそ2週間（2,016ブロック）ごとに調整され、出塊の時間リズムを保とうとする<a class="fn-ref" href="#ref-6">(*6)</a><a class="fn-ref" href="#ref-2">(*2)</a>。ハッシュレートが増えても、平均10分という鼓動を無理に速めない——むしろ探索をより難しくする。ここでの「セキュリティ」は、防衛に支払われている資源フローの別名に近い。補助金が減るほど、長期的には手数料市場がその予算をどれだけ支えるかが論点になる。それは価格予測ではなく、インセンティブ設計の読み方である。</p>
-      <p>もう一つ、見落とされやすい分離がある。ハッシュレートの大きさは、過去の鎖を書き換える攻撃を高くする。しかしそれは、明日の為替が上がることの証明ではない。半減が近づくたびに市場の物語が騒がしくなるのは自然でも、プロトコルが保証しているのは供給スケジュールと検証規則であって、需要曲線ではない。</p>
+      <p class="dwell">検証と探索には資源が要る。なぜ誰かが払うのか。ブロック報酬は<strong>補助金（block subsidy）</strong>と<strong>取引手数料</strong>の合計である<a class="fn-ref" href="#ref-2">(*2)</a>。補助金は約210,000ブロック（約4年）ごとに半減する。半減は供給スケジュールのイベントであり、そのままハッシュレートや価格や「安全性」を保証しない。</p>
+      <p class="dwell">ブロック容量は有限である。混雑時、マイナーは手数料率（sat/vB）の高い取引を優先する。ユーザーが見ているのは「BTCの値段」だけでなく、<strong>ブロック空間の一時市場</strong>である。同じ送金でも日によって手数料が違うのは、この入札のためだ。</p>
+      <p class="dwell">この分離は実務で強い。BTC/USD が同じでも、mempools が混めば手数料は跳ねる。逆に静かな時間帯なら安く入る。支払者が買っているのはコインそのものではなく、限られた次のブロック枠への優先権でもある。料金が「高い・安い」と感じる前に、何の市場かを見る癖がメンタルモデルになる。</p>
+      <p class="dwell">半減についても同様の分離が要る。補助金スケジュールは供給側の機械的な出来事である。それが需要・価格・ハッシュレートにどう波及するかは市場とインセンティブの相互作用であり、プロトコルが保証する命題ではない。「半減したから上がる」は物語になりやすく、設計説明としては短すぎる。</p>
+      <p class="dwell">難易度はおよそ2週間（2,016ブロック）ごとに調整され、出塊の時間リズムを保とうとする<a class="fn-ref" href="#ref-6">(*6)</a><a class="fn-ref" href="#ref-2">(*2)</a>。ハッシュレートが増えても、平均10分という鼓動を無理に速めない——むしろ探索をより難しくする。ここでの「セキュリティ」は、防衛に支払われている資源フローの別名に近い。補助金が減るほど、長期的には手数料市場がその予算をどれだけ支えるかが論点になる。それは価格予測ではなく、インセンティブ設計の読み方である。</p>
 
       <div class="sim-embed sim-root" id="sim-mempool">
         <p class="sim-title">Mempool Auction Lab</p>
         <p class="sim-hard-claim"><strong>Hard claim:</strong> 次ブロックの限られた枠では、手数料率の高い取引が優先され、低い取引は後回しになる。</p>
-        <p>仮想 mempool から、次ブロックに入る上位を選ぶ。スライダーでブロック枠（件数）を変えよ。</p>
         <label>次ブロックに入る件数: <strong id="blockSlotsLabel">3</strong></label>
         <input type="range" id="blockSlots" min="1" max="6" value="3" style="width:100%">
+        <div class="sim-canvas-wrap"><canvas id="mempoolCanvas" width="900" height="180" aria-label="mempool入札"></canvas></div>
         <div class="mempool-bars" id="mempoolBars"></div>
         <p class="sim-status" id="mempoolStatus"></p>
         <p class="sim-caption">Lesson: 手数料は「BTCの値段」とは別市場——ブロック空間の入札である。</p>
@@ -459,7 +519,7 @@
 
     <section class="section reading" id="limits">
       <h2>Bitcoinが解かない問題と、よくある誤解</h2>
-      <p>良いメンタルモデルは、システムが得意なことと同じくらい、苦手なことを明確にする。</p>
+      <p class="dwell">良いメンタルモデルは、システムが得意なことと同じくらい、苦手なことを明確にする。Bitcoinは二重支払いを公開コストで抑える電子現金の設計であって、すべての社会問題の万能薬ではない。</p>
       <table class="ladder">
         <thead><tr><th>領域</th><th>限界の根拠</th></tr></thead>
         <tbody>
@@ -481,8 +541,8 @@
 
     <section class="section reading" id="agency">
       <h2>あなたは今、鍵・台帳・確認のどこに立っているか</h2>
-      <p>抽象は、動いているときは無視できるように設計される。それ自体は悪いことではない。問題は、壊れたときや、高額を動かすとき、自分がどの層に立っているかを見失うことだ。</p>
-      <p>自己保管するなら、BTCを買う前に鍵運用と検証方針を設計する。高額決済なら、取引所の「反映済み」を相手の確定基準と混同しない。コーヒー1杯と不動産売買では、許容する委任と確認の深さが違う。そして説明責任として——「累積PoWがこの程度まで積まれ、自分はこのノードで規則を検証した（または検証を誰に委任した）」と言えるかどうか。</p>
+      <p class="dwell">抽象は、動いているときは無視できるように設計される。それ自体は悪いことではない。問題は、壊れたときや、高額を動かすとき、自分がどの層に立っているかを見失うことだ。</p>
+      <p class="dwell">自己保管するなら、BTCを買う前に鍵運用と検証方針を設計する。高額決済なら、取引所の「反映済み」を相手の確定基準と混同しない。コーヒー1杯と不動産売買では、許容する委任と確認の深さが違う。そして説明責任として——「累積PoWがこの程度まで積まれ、自分はこのノードで規則を検証した（または検証を誰に委任した）」と言えるかどうか。</p>
 
       <blockquote class="pull-quote">
         読み終えたあとに残すべきなのは、相場観ではない。「自分が今、権限（鍵）・状態（UTXO）・コスト（確認）・検証（ノード）のどこに立っているか」を一文で言えることである。
@@ -501,7 +561,8 @@
         </tbody>
       </table>
 
-      <p>Faza のソフトウェア論が言うように、理解できるものだけが制御できる。Bitcoinでも同じである。価格アプリの数字を眺めることと、自分がどの委任構造の上に立っているかを説明できることは、別のリテラシーだ。AIが要約や送金手順を提案する時代でも、最終的に検証すべきなのはモデル——署名、UTXO、累積作業量、フルノード——のどれが自分の手元にあるかである。</p>
+      <p class="dwell">Faza のソフトウェア論が言うように、理解できるものだけが制御できる。Bitcoinでも同じである。価格アプリの数字を眺めることと、自分がどの委任構造の上に立っているかを説明できることは、別のリテラシーだ。AIが要約や送金手順を提案する時代でも、最終的に検証すべきなのはモデル——署名、UTXO、累積作業量、フルノード——のどれが自分の手元にあるかである。</p>
+      <p class="dwell">この記事が目指したのは、用語辞典ではなく、世界の見え方が一段変わる足場である。コピーが無料でも希少性を強制できること、銀行がなくても順序を共有できること、作業量が見えるコストであること、そしてあなたがいまどこに委任しているか——それが説明できたなら、十分に遠くまで歩いたことになる。</p>
     </section>
 
     <section class="section reading" id="references">
@@ -513,8 +574,9 @@
         <li id="ref-4">Bitcoin.org, Developer Guide — P2P Network. <a href="https://developer.bitcoin.org/devguide/p2p_network.html">developer.bitcoin.org/devguide/p2p_network.html</a></li>
         <li id="ref-5">Adam Back, <em>Hashcash - A Denial of Service Counter-Measure</em>, 2002. <a href="http://www.hashcash.org/papers/hashcash.pdf">hashcash.org/papers/hashcash.pdf</a></li>
         <li id="ref-6">Bitcoin Wiki, Difficulty. <a href="https://en.bitcoin.it/wiki/Difficulty">en.bitcoin.it/wiki/Difficulty</a></li>
-        <li id="ref-7">Bitcoin Wiki, Genesis block（Times 見出し・公開ブロックデータ）. <a href="https://en.bitcoin.it/wiki/Genesis_block">en.bitcoin.it/wiki/Genesis_block</a></li>
-        <li id="ref-8">Wei Dai, <em>b-money</em>, 1998. <a href="http://www.weidai.com/bmoney.txt">weidai.com/bmoney.txt</a>（Bitcoin論文が先行構想として参照）</li>
+        <li id="ref-7">Bitcoin Wiki, Genesis block. <a href="https://en.bitcoin.it/wiki/Genesis_block">en.bitcoin.it/wiki/Genesis_block</a></li>
+        <li id="ref-8">Wei Dai, <em>b-money</em>, 1998. <a href="http://www.weidai.com/bmoney.txt">weidai.com/bmoney.txt</a></li>
+        <li id="ref-9">画像: David Shankbone, <em>Lehman Brothers Times Square</em> (Wikimedia Commons, CC BY 3.0); Bank of England / NYSE / mining farm / SHA-2 / blockchain diagrams via Wikimedia Commons（各ファイルのライセンス表記に従う）。</li>
       </ol>
       <p style="color:var(--mm-muted);font-size:13px;">注: 本稿の Lab は教育用の簡略モデルであり、実ネットワークの暗号・難易度・伝播をシミュレートするものではない。</p>
     </section>
@@ -522,7 +584,6 @@
 
   <script src="./assets/js/site.js"></script>
   <script>
-
   (function () {
     function demoHash(s) {
       var h = 2166136261;
@@ -539,6 +600,75 @@
     function meetsTarget(hex, zeros) {
       return hex.slice(0, zeros) === "0".repeat(zeros);
     }
+    function fitCanvas(c) {
+      if (!c) return null;
+      var rect = c.getBoundingClientRect();
+      var dpr = window.devicePixelRatio || 1;
+      var w = Math.max(300, Math.floor(rect.width || c.width));
+      var h = c.height;
+      c.width = Math.floor(w * dpr);
+      c.height = Math.floor(h * dpr);
+      c.style.width = w + "px";
+      c.style.height = h + "px";
+      var ctx = c.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx: ctx, w: w, h: h };
+    }
+
+    /* Double-spend race */
+    (function () {
+      var c = document.getElementById("raceCanvas");
+      if (!c) return;
+      var t = 0, playing = false, winner = null, raf;
+      function draw() {
+        var f = fitCanvas(c); if (!f) return;
+        var ctx = f.ctx, w = f.w, h = f.h;
+        ctx.clearRect(0,0,w,h);
+        ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+        ctx.fillStyle = "#8fb4c9"; ctx.font = "13px IBM Plex Sans, sans-serif";
+        ctx.fillText("Alice", 24, h/2);
+        ctx.beginPath(); ctx.arc(70, h/2, 16, 0, Math.PI*2); ctx.fillStyle = "#b77912"; ctx.fill();
+        var p1 = Math.min(1, t / 100);
+        var p2 = Math.min(1, t / 115);
+        var x1 = 100 + (w - 220) * p1;
+        var x2 = 100 + (w - 220) * p2;
+        ctx.fillStyle = "#1677b8"; ctx.beginPath(); ctx.arc(x1, h/2 - 36, 10, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#b54749"; ctx.beginPath(); ctx.arc(x2, h/2 + 36, 10, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = "#8fb4c9"; ctx.fillText("Tx1→Bob", x1 - 20, h/2 - 50);
+        ctx.fillText("Tx2→Carol", x2 - 28, h/2 + 58);
+        ctx.strokeStyle = "#2d4254"; ctx.beginPath(); ctx.moveTo(100, h/2-36); ctx.lineTo(w-100, h/2-36); ctx.moveTo(100, h/2+36); ctx.lineTo(w-100, h/2+36); ctx.stroke();
+        ctx.fillStyle = "#16836f"; ctx.fillRect(w-90, h/2-50, 70, 100);
+        ctx.fillStyle = "#fff"; ctx.fillText("履歴", w-72, h/2);
+        if (winner) {
+          ctx.fillStyle = "#e9f7f3";
+          ctx.fillText(winner === "bob" ? "正規: Tx1 残る / Tx2 orphaned" : "正規: Tx2 残る / Tx1 orphaned", 100, 28);
+        }
+      }
+      function tick() {
+        if (!playing) return;
+        t += 1.6;
+        if (t >= 115) {
+          playing = false;
+          winner = Math.random() < 0.55 ? "bob" : "carol";
+          document.getElementById("raceStatus").textContent = winner === "bob"
+            ? "共有履歴は Tx1（Bob）を採用。Carol 向けは orphaned。"
+            : "共有履歴は Tx2（Carol）を採用。Bob 向けは orphaned。";
+        }
+        draw();
+        if (playing) raf = requestAnimationFrame(tick);
+      }
+      document.getElementById("btnRacePlay").onclick = function () {
+        cancelAnimationFrame(raf); t = 0; winner = null; playing = true;
+        document.getElementById("raceStatus").textContent = "競合中… どちらの消費が先に正規履歴へ入るか。";
+        tick();
+      };
+      document.getElementById("btnRaceReset").onclick = function () {
+        cancelAnimationFrame(raf); playing = false; t = 0; winner = null;
+        document.getElementById("raceStatus").textContent = "再生すると、競合する二取引の運命が見えます。";
+        draw();
+      };
+      window.addEventListener("resize", draw); draw();
+    })();
 
     /* Hash Avalanche */
     var hashOriginal = "Alice pays Bob 0.30 BTC using UTXO u1";
@@ -561,8 +691,7 @@
       document.getElementById("hashDigest").textContent = hex;
       paintHashBars(hex);
       var st = document.getElementById("hashStatus");
-      if (input.value === hashOriginal) st.textContent = "元のメッセージ。指紋は安定。";
-      else st.textContent = "入力が変わったため指紋も別物です。照合は不一致になります。";
+      st.textContent = input.value === hashOriginal ? "元のメッセージ。指紋は安定。" : "入力が変わったため指紋も別物です。照合は不一致になります。";
     }
     if (document.getElementById("hashInput")) {
       document.getElementById("hashInput").addEventListener("input", updateHash);
@@ -577,39 +706,50 @@
       updateHash();
     }
 
-    /* UTXO Lab */
-    var utxoState = {
-      utxos: [{ id: "u1", amt: 0.8, spent: false }],
-      spentIds: [],
-      selected: null,
-      txCount: 0
-    };
+    /* UTXO + canvas */
+    var utxoState = { utxos: [{ id: "u1", amt: 0.8, spent: false }], spentIds: [], selected: null, txCount: 0, lastMsg: "" };
+    function drawUtxoCanvas() {
+      var c = document.getElementById("utxoCanvas"); if (!c) return;
+      var f = fitCanvas(c); if (!f) return;
+      var ctx = f.ctx, w = f.w, h = f.h;
+      ctx.clearRect(0,0,w,h); ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+      var unspent = utxoState.utxos.filter(function (u) { return !u.spent; });
+      unspent.forEach(function (u, i) {
+        var x = 40 + i * 120;
+        ctx.fillStyle = utxoState.selected === u.id ? "#1677b8" : "#b77912";
+        ctx.fillRect(x, 50, 100, 70);
+        ctx.fillStyle = "#fff"; ctx.font = "12px IBM Plex Sans, sans-serif";
+        ctx.fillText(u.id, x + 12, 78); ctx.fillText(u.amt + " BTC", x + 12, 98);
+      });
+      ctx.fillStyle = "#8fb4c9"; ctx.fillText("未使用集合 → 消費すると消える", 40, 30);
+      if (utxoState.lastMsg) { ctx.fillStyle = "#c8e6c0"; ctx.fillText(utxoState.lastMsg.slice(0, 80), 40, h - 24); }
+    }
     function renderUtxo() {
-      var pool = document.getElementById("utxoPool");
-      if (!pool) return;
+      var pool = document.getElementById("utxoPool"); if (!pool) return;
       pool.innerHTML = "";
       utxoState.utxos.forEach(function (u) {
         var el = document.createElement("button");
         el.type = "button";
         el.className = "utxo-chip" + (u.spent ? " spent" : "") + (utxoState.selected === u.id ? " selected" : "");
         el.textContent = u.id + ": " + u.amt + " BTC";
-        if (!u.spent) el.onclick = function () { utxoState.selected = u.id; renderUtxo(); };
+        if (!u.spent) el.onclick = function () { utxoState.selected = u.id; renderUtxo(); drawUtxoCanvas(); };
         pool.appendChild(el);
       });
       var unspent = utxoState.utxos.filter(function (u) { return !u.spent; });
       document.getElementById("utxoLedger").textContent = "未使用: " + (unspent.map(function (u) { return u.id + "(" + u.amt + ")"; }).join(", ") || "（空）");
+      drawUtxoCanvas();
     }
     function utxoReject(msg) {
       var st = document.getElementById("utxoStatus");
-      st.textContent = msg;
-      st.className = "sim-status reject";
+      st.textContent = msg; st.className = "sim-status reject";
+      utxoState.lastMsg = "REJECT: " + msg; drawUtxoCanvas();
     }
     function utxoAccept(msg) {
       var st = document.getElementById("utxoStatus");
-      st.textContent = msg;
-      st.className = "sim-status";
+      st.textContent = msg; st.className = "sim-status";
+      utxoState.lastMsg = "ACCEPT: " + msg; drawUtxoCanvas();
     }
-    function buildTx(forceDouble) {
+    function buildTx() {
       if (!utxoState.selected) { utxoReject("入力UTXOを選んでください。"); return; }
       var u = utxoState.utxos.find(function (x) { return x.id === utxoState.selected; });
       if (!u) return;
@@ -620,10 +760,6 @@
       var bob = parseFloat(document.getElementById("payBob").value) || 0;
       var fee = parseFloat(document.getElementById("payFee").value) || 0;
       if (bob + fee > u.amt + 1e-12) { utxoReject("拒否: 出力+手数料が入力を超える。"); return; }
-      if (forceDouble && utxoState.spentIds.length) {
-        utxoReject("拒否: 同じ入力での二重支払い試行。");
-        return;
-      }
       u.spent = true;
       utxoState.spentIds.push(u.id);
       utxoState.txCount += 1;
@@ -635,32 +771,51 @@
     }
     if (document.getElementById("btnSpend")) {
       renderUtxo();
-      document.getElementById("btnSpend").onclick = function () { buildTx(false); };
+      document.getElementById("btnSpend").onclick = buildTx;
       document.getElementById("btnDouble").onclick = function () {
-        if (!utxoState.selected && utxoState.spentIds.length) {
-          utxoState.selected = utxoState.spentIds[utxoState.spentIds.length - 1];
-        }
+        if (!utxoState.selected && utxoState.spentIds.length) utxoState.selected = utxoState.spentIds[utxoState.spentIds.length - 1];
         var u = utxoState.utxos.find(function (x) { return x.id === utxoState.selected; });
-        if (u && u.spent) {
-          utxoReject("拒否: 入力 " + u.id + " は既に消費済み。二重支払いは台帳状態と矛盾する。");
-          return;
-        }
-        buildTx(true);
+        if (u && u.spent) { utxoReject("拒否: 入力 " + u.id + " は既に消費済み。二重支払いは台帳状態と矛盾する。"); return; }
+        buildTx();
       };
       document.getElementById("btnUtxoReset").onclick = function () {
-        utxoState = { utxos: [{ id: "u1", amt: 0.8, spent: false }], spentIds: [], selected: null, txCount: 0 };
+        utxoState = { utxos: [{ id: "u1", amt: 0.8, spent: false }], spentIds: [], selected: null, txCount: 0, lastMsg: "" };
         utxoAccept("リセットしました。");
         renderUtxo();
       };
+      window.addEventListener("resize", drawUtxoCanvas);
     }
 
-    /* PoW Lab */
-    var powNonce = 0, powAttempts = 0, powFound = null, powZeros = 3;
-    var powHeader = "block-header-demo-v3";
+    /* PoW process */
+    var powNonce = 0, powAttempts = 0, powFound = null, powZeros = 3, powAuto = null, particles = [];
+    var powHeader = "block-header-demo-v4";
     function powLogLine(line) {
-      var log = document.getElementById("powLog");
-      if (!log) return;
+      var log = document.getElementById("powLog"); if (!log) return;
       log.textContent = line + "\n" + log.textContent.split("\n").slice(0, 12).join("\n");
+    }
+    function drawPow() {
+      var c = document.getElementById("powCanvas"); if (!c) return;
+      var f = fitCanvas(c); if (!f) return;
+      var ctx = f.ctx, w = f.w, h = f.h;
+      ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+      particles.forEach(function (p) {
+        ctx.globalAlpha = Math.max(0, p.life);
+        ctx.fillStyle = p.hit ? "#5ddea8" : "#4e6d82";
+        ctx.fillRect(p.x, p.y, 3, 10);
+        p.y += p.vy; p.life -= 0.02;
+      });
+      ctx.globalAlpha = 1;
+      particles = particles.filter(function (p) { return p.life > 0; });
+      var ratio = Math.min(1, powAttempts / 800);
+      ctx.fillStyle = "#2d4254"; ctx.fillRect(40, h - 36, w - 80, 12);
+      ctx.fillStyle = powFound ? "#16836f" : "#1677b8";
+      ctx.fillRect(40, h - 36, (w - 80) * ratio, 12);
+      ctx.fillStyle = "#8fb4c9"; ctx.font = "12px IBM Plex Sans, sans-serif";
+      ctx.fillText("探索の密度（教育用スケール）", 40, h - 48);
+      if (powFound) {
+        ctx.fillStyle = "#5ddea8";
+        ctx.fillText("HIT — 提案コストが支払われた", 40, 28);
+      }
     }
     function powRender() {
       var h = demoHash(powHeader + ":" + powNonce);
@@ -668,31 +823,36 @@
       document.getElementById("powNonce").textContent = powNonce;
       document.getElementById("powHash").textContent = h;
       document.getElementById("powTargetLabel").textContent = "0".repeat(powZeros);
+      drawPow();
     }
     function powStep(n) {
       for (var i = 0; i < n; i++) {
-        powAttempts += 1;
-        powNonce += 1;
+        powAttempts += 1; powNonce += 1;
         var h = demoHash(powHeader + ":" + powNonce);
-        if (meetsTarget(h, powZeros)) {
+        var hit = meetsTarget(h, powZeros);
+        particles.push({ x: 40 + Math.random() * 700, y: 20 + Math.random() * 80, vy: 1 + Math.random() * 2.5, life: 1, hit: hit });
+        if (hit) {
           powFound = { nonce: powNonce, hash: h, attempts: powAttempts };
           document.getElementById("powStatus").textContent = "マイナー: 有効ヘッダ発見！試行 " + powAttempts;
           powLogLine("HIT nonce=" + powNonce + " hash=" + h.slice(0, 16) + "…");
-          powRender();
-          return;
+          if (powAuto) { clearInterval(powAuto); powAuto = null; }
+          powRender(); return;
         }
-        if (i === n - 1 || powAttempts % 200 === 0) {
-          powLogLine("miss nonce=" + powNonce + " hash=" + h.slice(0, 12) + "…");
-        }
+        if (i === n - 1 || powAttempts % 200 === 0) powLogLine("miss nonce=" + powNonce + " hash=" + h.slice(0, 12) + "…");
       }
       document.getElementById("powStatus").textContent = "探索中… まだ target 未達（試行 " + powAttempts + "）";
       powRender();
     }
     if (document.getElementById("btnMine")) {
       document.getElementById("btnMine").onclick = function () { powStep(1); };
-      document.getElementById("btnMineBurst").onclick = function () { powStep(1000); };
+      document.getElementById("btnMineBurst").onclick = function () { powStep(400); };
+      document.getElementById("btnMineAuto").onclick = function () {
+        if (powAuto) return;
+        powAuto = setInterval(function () { powStep(80); drawPow(); }, 80);
+      };
       document.getElementById("btnPowReset").onclick = function () {
-        powNonce = 0; powAttempts = 0; powFound = null;
+        if (powAuto) { clearInterval(powAuto); powAuto = null; }
+        powNonce = 0; powAttempts = 0; powFound = null; particles = [];
         document.getElementById("powVerifyMs").textContent = "—";
         document.getElementById("powStatus").textContent = "探索を開始してください。";
         document.getElementById("powStatus").className = "sim-status";
@@ -709,43 +869,84 @@
         document.getElementById("powStatus").textContent = ok ? "検証: 受理（hash OK）" : "検証: 拒否（target 未達）";
         document.getElementById("powStatus").className = ok ? "sim-status" : "sim-status reject";
       };
+      setInterval(drawPow, 50);
       powRender();
     }
 
-    /* Fork choice Lab */
+    /* Rewrite cost */
+    function drawRework() {
+      var c = document.getElementById("reworkCanvas"); if (!c) return;
+      var n = parseInt(document.getElementById("reworkN").value, 10);
+      document.getElementById("reworkNLabel").textContent = String(n);
+      var f = fitCanvas(c); if (!f) return;
+      var ctx = f.ctx, w = f.w, h = f.h;
+      ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+      for (var i = 0; i <= 12; i++) {
+        var x = 40 + i * ((w - 80) / 12);
+        var hh = 20 + i * i * 0.9;
+        ctx.fillStyle = i <= n ? "#16836f" : "#2d4254";
+        ctx.fillRect(x, h - 30 - hh, 18, hh);
+      }
+      var cost = n * n;
+      document.getElementById("reworkStatus").textContent = "確認 " + n + " → 相対再実行コスト ≈ " + cost + "（模式。実網はハッシュレートと確率の関数）。";
+    }
+    if (document.getElementById("reworkN")) {
+      document.getElementById("reworkN").addEventListener("input", drawRework);
+      window.addEventListener("resize", drawRework); drawRework();
+    }
+
+    /* Fork race canvas */
     var workA = 10, workB = 10;
-    var elA = document.getElementById("chainA");
-    if (elA) {
+    function drawFork() {
+      var c = document.getElementById("forkCanvas"); if (!c) return;
+      var f = fitCanvas(c); if (!f) return;
+      var ctx = f.ctx, w = f.w, h = f.h;
+      ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+      var tip = workA === workB ? "tie" : (workA > workB ? "A" : "B");
+      function chain(y, work, color, label) {
+        ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(40, y);
+        var len = 80 + work * 18; ctx.lineTo(Math.min(w - 40, len), y); ctx.stroke();
+        for (var i = 0; i < work; i++) {
+          var x = 50 + i * 18;
+          if (x > w - 50) break;
+          ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 6, 0, Math.PI*2); ctx.fill();
+        }
+        ctx.fillStyle = "#8fb4c9"; ctx.font = "12px IBM Plex Sans, sans-serif";
+        ctx.fillText(label + " work=" + work, 40, y - 14);
+      }
+      chain(h/2 - 40, workA, tip === "B" ? "#4e6d82" : "#16836f", "A");
+      chain(h/2 + 40, workB, tip === "A" ? "#4e6d82" : "#1677b8", "B");
+    }
+    function forkRender() {
+      document.getElementById("workA").textContent = workA;
+      document.getElementById("workB").textContent = workB;
+      var tip = workA === workB ? "tie" : (workA > workB ? "A" : "B");
+      var elA = document.getElementById("chainA");
       var elB = document.getElementById("chainB");
       var txB = document.getElementById("txB");
       var status = document.getElementById("simStatus");
-      function forkRender() {
-        document.getElementById("workA").textContent = workA;
-        document.getElementById("workB").textContent = workB;
-        var tip = workA === workB ? "tie" : (workA > workB ? "A" : "B");
-        elA.className = "chain" + (tip === "A" ? " tip" : tip === "B" ? " orphaned" : "");
-        elB.className = "chain" + (tip === "B" ? " tip" : tip === "A" ? " orphaned" : "");
-        if (tip === "A") {
-          txB.className = "tx gone";
-          txB.textContent = "TxB: orphaned（正規鎖に無い）";
-          status.textContent = "正規 tip は枝 A。TxB だけを信じた受取は消えた状態。";
-        } else if (tip === "B") {
-          txB.className = "tx";
-          txB.textContent = "TxB: 正規 tip（B）に含まれる";
-          status.textContent = "正規 tip は枝 B。累積 work が勝った側が履歴になる。";
-        } else {
-          txB.className = "tx";
-          txB.textContent = "TxB: Bにしかない支払い（未決）";
-          status.textContent = "累積 work が同点。次のブロックで解消を待つ。";
-        }
+      elA.className = "chain" + (tip === "A" ? " tip" : tip === "B" ? " orphaned" : "");
+      elB.className = "chain" + (tip === "B" ? " tip" : tip === "A" ? " orphaned" : "");
+      if (tip === "A") {
+        txB.className = "tx gone"; txB.textContent = "TxB: orphaned（正規鎖に無い）";
+        status.textContent = "正規 tip は枝 A。TxB だけを信じた受取は消えた状態。";
+      } else if (tip === "B") {
+        txB.className = "tx"; txB.textContent = "TxB: 正規 tip（B）に含まれる";
+        status.textContent = "正規 tip は枝 B。累積 work が勝った側が履歴になる。";
+      } else {
+        txB.className = "tx"; txB.textContent = "TxB: Bにしかない支払い（未決）";
+        status.textContent = "累積 work が同点。次のブロックで解消を待つ。";
       }
+      drawFork();
+    }
+    if (document.getElementById("chainA")) {
       document.getElementById("btnA").onclick = function () { workA += 1; forkRender(); };
       document.getElementById("btnB").onclick = function () { workB += 1; forkRender(); };
       document.getElementById("btnReset").onclick = function () { workA = 10; workB = 10; forkRender(); };
-      forkRender();
+      window.addEventListener("resize", drawFork); forkRender();
     }
 
-    /* Validation Lab */
+    /* Validation */
     function runValidation() {
       var badSig = document.getElementById("valBadSig").checked;
       var dbl = document.getElementById("valDouble").checked;
@@ -757,24 +958,17 @@
         { name: "金額保存", ok: !cb },
         { name: "コインベース上限", ok: !cb }
       ];
-      var ul = document.getElementById("valChecks");
-      ul.innerHTML = "";
+      var ul = document.getElementById("valChecks"); ul.innerHTML = "";
       var allOk = true;
       checks.forEach(function (c) {
         var li = document.createElement("li");
         li.className = c.ok ? "pass" : "fail";
         li.textContent = (c.ok ? "✓ " : "✗ ") + c.name;
-        ul.appendChild(li);
-        if (!c.ok) allOk = false;
+        ul.appendChild(li); if (!c.ok) allOk = false;
       });
       var st = document.getElementById("valStatus");
-      if (allOk) {
-        st.className = "sim-status";
-        st.textContent = "受理: 規則を満たすので UTXO 更新候補になる（PoW OK は必要条件で十分条件ではない）。";
-      } else {
-        st.className = "sim-status reject";
-        st.textContent = "拒否: PoW 表示が OK でも、コンセンサスルール違反は無効。";
-      }
+      if (allOk) { st.className = "sim-status"; st.textContent = "受理: 規則を満たすので UTXO 更新候補になる。"; }
+      else { st.className = "sim-status reject"; st.textContent = "拒否: PoW 表示が OK でも、コンセンサスルール違反は無効。"; }
     }
     if (document.getElementById("btnValidate")) {
       document.getElementById("btnValidate").onclick = runValidation;
@@ -788,22 +982,33 @@
       };
     }
 
-    /* Mempool Lab */
+    /* Mempool */
     var mempool = [
-      { name: "Alice", fee: 5 },
-      { name: "Bob", fee: 50 },
-      { name: "Carol", fee: 12 },
-      { name: "Dave", fee: 28 },
-      { name: "Eve", fee: 3 },
-      { name: "Frank", fee: 41 }
+      { name: "Alice", fee: 5 }, { name: "Bob", fee: 50 }, { name: "Carol", fee: 12 },
+      { name: "Dave", fee: 28 }, { name: "Eve", fee: 3 }, { name: "Frank", fee: 41 }
     ];
+    function drawMempoolCanvas(sorted, slots) {
+      var c = document.getElementById("mempoolCanvas"); if (!c) return;
+      var f = fitCanvas(c); if (!f) return;
+      var ctx = f.ctx, w = f.w, h = f.h;
+      ctx.fillStyle = "#0f1a24"; ctx.fillRect(0,0,w,h);
+      var maxFee = sorted[0].fee;
+      sorted.forEach(function (tx, idx) {
+        var x = 40 + idx * ((w - 60) / sorted.length);
+        var hh = 30 + (tx.fee / maxFee) * (h - 70);
+        ctx.fillStyle = idx < slots ? "#b77912" : "#2d4254";
+        ctx.fillRect(x, h - 30 - hh, 36, hh);
+        ctx.fillStyle = "#8fb4c9"; ctx.font = "11px IBM Plex Sans, sans-serif";
+        ctx.fillText(tx.name[0], x + 12, h - 12);
+      });
+      ctx.fillStyle = "#5ddea8"; ctx.fillText("金色=次ブロック候補", 40, 24);
+    }
     function renderMempool() {
       var slots = parseInt(document.getElementById("blockSlots").value, 10);
       document.getElementById("blockSlotsLabel").textContent = String(slots);
       var sorted = mempool.slice().sort(function (a, b) { return b.fee - a.fee; });
       var maxFee = sorted[0].fee;
-      var box = document.getElementById("mempoolBars");
-      box.innerHTML = "";
+      var box = document.getElementById("mempoolBars"); box.innerHTML = "";
       var included = [];
       sorted.forEach(function (tx, idx) {
         var row = document.createElement("div");
@@ -814,13 +1019,13 @@
         box.appendChild(row);
       });
       document.getElementById("mempoolStatus").textContent = "次ブロック候補: " + included.join(", ") + "。枠外は待ち続ける。";
+      drawMempoolCanvas(sorted, slots);
     }
     if (document.getElementById("blockSlots")) {
       document.getElementById("blockSlots").addEventListener("input", renderMempool);
-      renderMempool();
+      window.addEventListener("resize", renderMempool); renderMempool();
     }
   })();
-
   </script>
 </body>
 </html>
