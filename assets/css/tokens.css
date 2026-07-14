@@ -1,0 +1,25 @@
+:root {
+  --mm-ink: #17212b;
+  --mm-muted: #536271;
+  --mm-paper: #fbfcfd;
+  --mm-white: #ffffff;
+  --mm-line: #d8e0e6;
+  --mm-navy: #263d59;
+
+  --mm-blue: #1677b8;
+  --mm-blue-soft: #eaf4fb;
+  --mm-gold: #b77912;
+  --mm-gold-soft: #fff5df;
+  --mm-green: #16836f;
+  --mm-green-soft: #e9f7f3;
+  --mm-red: #b54749;
+  --mm-red-soft: #fceeee;
+  --mm-gray: #677786;
+  --mm-gray-soft: #eff3f5;
+
+  --mm-max: 1100px;
+  --mm-reading: 820px;
+  --mm-header-h: 58px;
+  --mm-font: "IBM Plex Sans", "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --mm-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+}
