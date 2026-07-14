@@ -1,25 +1,31 @@
 :root {
-  --mm-ink: #17212b;
-  --mm-muted: #536271;
-  --mm-paper: #fbfcfd;
-  --mm-white: #ffffff;
-  --mm-line: #d8e0e6;
-  --mm-navy: #263d59;
+  /* Faza Networking dark tone — black page, light ink */
+  color-scheme: dark;
+  --mm-ink: #f2f3f0;
+  --mm-muted: #c2c3bf;
+  --mm-paper: #151716;
+  --mm-white: #1e201e;
+  --mm-line: #393b38;
+  --mm-navy: #e8ebe6;
 
-  --mm-blue: #1677b8;
-  --mm-blue-soft: #eaf4fb;
-  --mm-gold: #b77912;
-  --mm-gold-soft: #fff5df;
-  --mm-green: #16836f;
-  --mm-green-soft: #e9f7f3;
-  --mm-red: #b54749;
-  --mm-red-soft: #fceeee;
-  --mm-gray: #677786;
-  --mm-gray-soft: #eff3f5;
+  --mm-blue: #6eb6e8;
+  --mm-blue-soft: rgba(22, 119, 184, 0.22);
+  --mm-gold: #d4a017;
+  --mm-gold-soft: rgba(183, 121, 18, 0.24);
+  --mm-green: #35d0bb;
+  --mm-green-soft: rgba(53, 208, 187, 0.16);
+  --mm-red: #e07072;
+  --mm-red-soft: rgba(181, 71, 73, 0.24);
+  --mm-gray: #a9aaa5;
+  --mm-gray-soft: #1e201e;
 
   --mm-max: 1100px;
   --mm-reading: 820px;
   --mm-header-h: 58px;
   --mm-font: "IBM Plex Sans", "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif;
   --mm-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  --mm-accent: #35d0bb;
+  --mm-code-bg: #1e201e;
+  --mm-header-bg: rgba(21, 23, 22, 0.92);
 }
