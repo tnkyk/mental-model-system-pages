@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 360" role="img">
+  <rect width="920" height="360" fill="#f1f6f7"/>
+  <text x="460" y="36" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="15" font-weight="700" fill="#263d59">二重支払い：同じ入力を二人に同時送金しようとする</text>
+  <circle cx="120" cy="160" r="46" fill="#fff5df" stroke="#b77912" stroke-width="2"/>
+  <text x="120" y="156" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" font-weight="700" fill="#b77912">Alice</text>
+  <text x="120" y="176" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#536271">UTXO C</text>
+  <path d="M175 140 C280 90, 360 90, 450 120" fill="none" stroke="#1677b8" stroke-width="3"/>
+  <path d="M175 180 C280 230, 360 230, 450 200" fill="none" stroke="#b54749" stroke-width="3"/>
+  <text x="300" y="88" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#1677b8">Tx1 → Bob</text>
+  <text x="300" y="250" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="#b54749">Tx2 → Carol</text>
+  <rect x="450" y="90" width="150" height="60" fill="#eaf4fb" stroke="#1677b8"/>
+  <text x="525" y="125" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" font-weight="700" fill="#1677b8">Bob</text>
+  <rect x="450" y="180" width="150" height="60" fill="#fceeee" stroke="#b54749"/>
+  <text x="525" y="215" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="14" font-weight="700" fill="#b54749">Carol</text>
+  <rect x="640" y="100" width="250" height="140" fill="#fff" stroke="#d8e0e6"/>
+  <text x="765" y="130" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#17212b">共有履歴が要る</text>
+  <text x="765" y="160" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">どちらの Tx が先に</text>
+  <text x="765" y="180" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">C を消費したか</text>
+  <text x="765" y="210" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">全員が見る一本の順序</text>
+  <text x="40" y="320" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">署名は「Alice が承認した」ことだけを示す。状態の一意性は別問題である。</text>
+</svg>

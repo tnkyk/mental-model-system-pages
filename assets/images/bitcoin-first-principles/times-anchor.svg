@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 320" role="img" aria-labelledby="t2 d2">
+  <title id="t2">Genesis coinbase に刻まれた Times 見出し</title>
+  <desc id="d2">2009-01-03 の新聞見出しを coinbase に埋め込んだ模式図。</desc>
+  <rect width="820" height="320" fill="#fbfcfd"/>
+  <rect x="40" y="40" width="300" height="240" fill="#fff" stroke="#17212b" stroke-width="2"/>
+  <text x="190" y="78" text-anchor="middle" font-family="Georgia, serif" font-size="22" font-weight="700" fill="#17212b">THE TIMES</text>
+  <line x1="60" y1="92" x2="320" y2="92" stroke="#17212b" stroke-width="1.5"/>
+  <text x="190" y="118" text-anchor="middle" font-family="Georgia, serif" font-size="11" fill="#536271">Saturday January 3 2009</text>
+  <text x="60" y="160" font-family="Georgia, serif" font-size="16" font-weight="700" fill="#17212b">Chancellor on brink</text>
+  <text x="60" y="184" font-family="Georgia, serif" font-size="16" font-weight="700" fill="#17212b">of second bailout</text>
+  <text x="60" y="208" font-family="Georgia, serif" font-size="16" font-weight="700" fill="#17212b">for banks</text>
+  <text x="60" y="250" font-family="IBM Plex Sans, sans-serif" font-size="11" fill="#677786">公開 genesis データの再描画</text>
+  <path d="M360 160 H430" stroke="#1677b8" stroke-width="2.5" marker-end="url(#c)"/>
+  <rect x="450" y="70" width="330" height="180" rx="4" fill="#eaf4fb" stroke="#1677b8"/>
+  <text x="470" y="104" font-family="IBM Plex Sans, sans-serif" font-size="14" font-weight="700" fill="#263d59">Genesis coinbase（ASCII）</text>
+  <text x="470" y="140" font-family="ui-monospace, monospace" font-size="11" fill="#17212b">The Times 03/Jan/2009</text>
+  <text x="470" y="160" font-family="ui-monospace, monospace" font-size="11" fill="#17212b">Chancellor on brink of</text>
+  <text x="470" y="180" font-family="ui-monospace, monospace" font-size="11" fill="#17212b">second bailout for banks</text>
+  <text x="470" y="220" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">時刻証明 + 文脈の刻印</text>
+  <defs>
+    <marker id="c" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#1677b8"/></marker>
+  </defs>
+</svg>
