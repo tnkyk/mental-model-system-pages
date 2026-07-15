@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KV Cache Growth Lab | Mental Model Studio</title>
+<style>
+  :root{color-scheme:dark;--mm-ink:#f2f3f0;--mm-muted:#c2c3bf;--mm-paper:#151716;--mm-white:#1e201e;--mm-line:#393b38;
+    --mm-blue:#6eb6e8;--mm-gold:#d4a017;--mm-green:#35d0bb;--mm-red:#e07072;
+    --mm-blue-soft:rgba(22,119,184,.22);--mm-gold-soft:rgba(183,121,18,.24);--mm-green-soft:rgba(53,208,187,.16);--mm-red-soft:rgba(181,71,73,.24);--mm-gray-soft:#242624;}
+  body{margin:0;font:14px/1.6 system-ui,"Noto Sans JP",sans-serif;color:var(--mm-ink);background:var(--mm-paper);padding:20px;}
+  .sim-root{border:1px solid var(--mm-line);background:var(--mm-white);padding:18px;max-width:760px;margin:0 auto;}
+  h1{font-size:17px;margin:0 0 10px;}
+  .sim-hard-claim{padding:10px 12px;background:var(--mm-gold-soft);border-left:3px solid var(--mm-gold);font-size:13px;margin:0 0 14px;}
+  .sim-controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:10px 0;}
+  .sim-controls label{font-size:13px;color:var(--mm-muted);}
+  input[type=range]{width:min(280px,60vw);}
+  .sim-btn{border:1px solid var(--mm-line);background:var(--mm-paper);color:var(--mm-ink);padding:6px 12px;cursor:pointer;font:inherit;margin-right:6px;}
+  .sim-btn:hover{background:var(--mm-blue-soft);}
+  .capwrap{margin:12px 0;}
+  .caplabel{display:flex;justify-content:space-between;font-size:12px;color:var(--mm-muted);margin-bottom:3px;}
+  .captrack{height:20px;background:var(--mm-gray-soft);border:1px solid var(--mm-line);position:relative;overflow:hidden;}
+  .capbar{height:100%;background:var(--mm-blue);transition:width .15s;}
+  .capbar.warn{background:var(--mm-gold);}
+  .capbar.over{background:var(--mm-red);}
+  .capmark{position:absolute;top:0;bottom:0;width:2px;background:var(--mm-ink);left:100%;}
+  .chart{display:flex;align-items:flex-end;gap:6px;height:120px;margin:14px 0;border-bottom:1px solid var(--mm-line);padding-bottom:2px;}
+  .cbar{flex:1;background:var(--mm-blue-soft);border-top:2px solid var(--mm-blue);position:relative;min-height:2px;}
+  .cbar.cur{background:var(--mm-gold-soft);border-top:2px solid var(--mm-gold);}
+  .cbar .cl{position:absolute;bottom:-18px;left:0;right:0;text-align:center;font-size:10px;color:var(--mm-muted);}
+  .cards{display:flex;gap:12px;margin:14px 0;flex-wrap:wrap;}
+  .card{flex:1;min-width:180px;border:1px solid var(--mm-line);background:var(--mm-paper);padding:10px 12px;}
+  .card .num{font-size:20px;color:var(--mm-gold);}
+  .card .lbl{font-size:12px;color:var(--mm-muted);}
+  .sim-status{margin-top:10px;padding:10px 12px;background:var(--mm-green-soft);font-size:13px;}
+  .sim-status.caution{background:var(--mm-gold-soft);}
+  .sim-status.reject{background:var(--mm-red-soft);}
+  .sim-fallback{margin-top:10px;padding:10px 12px;background:var(--mm-gray-soft);font-size:12px;color:var(--mm-muted);}
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <h1>KV Cache Growth Lab（教育用トイ）</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> KVキャッシュは既計算のキー・バリューを保持することで各デコードステップの再計算を避けるが、そのメモリはコンテキスト長とバッチに比例して増大し、長文脈・多同時接続のボトルネックになる。</p>
+
+    <div class="sim-controls">
+      <label>コンテキスト長 <span id="ctxVal">4096</span> トークン</label>
+      <input type="range" id="ctx" min="0" max="7" step="1" value="3">
+      <label>同時バッチ（同時接続数） <span id="batchVal">4</span></label>
+      <input type="range" id="batch" min="1" max="64" step="1" value="4">
+    </div>
+    <div class="sim-controls">
+      <button type="button" class="sim-btn" id="presetLong">プリセット: 長文脈×少人数</button>
+      <button type="button" class="sim-btn" id="presetMany">プリセット: 短文脈×多人数</button>
+    </div>
+
+    <div class="capwrap">
+      <div class="caplabel"><span>KV メモリ使用量</span><span id="kvText">—</span></div>
+      <div class="captrack"><div class="capbar" id="capbar" style="width:0%"></div></div>
+      <p style="font-size:11px;color:var(--mm-muted);margin:4px 0 0;">トイGPUメモリ容量 80GB を上限として表示（100%で満杯、超過は赤）。</p>
+    </div>
+
+    <p style="font-size:12px;color:var(--mm-muted);margin:14px 0 4px;">現在のバッチ数を固定し、コンテキスト長を動かした場合のKVメモリ（線形増加の確認）</p>
+    <div class="chart" id="chart"></div>
+
+    <div class="cards">
+      <div class="card"><div class="num" id="cardCompute">—</div><div class="lbl">キャッシュ無し: 生成全体の再計算コスト（相対値, ∝ context²×batch）</div></div>
+      <div class="card"><div class="num" id="cardCache">—</div><div class="lbl">キャッシュ有り: 生成全体の計算コスト（相対値, ∝ context×batch）</div></div>
+    </div>
+
+    <div class="sim-status" id="st">—</div>
+
+    <p class="sim-fallback">
+      <strong>簡略化の開示：</strong> KVメモリの数値（トークンあたり0.05MB相当）・GPU容量（80GB）・計算コストの相対値は教育用の目安であり、実際のモデルの層数・ヘッド数・精度・実ハードウェア容量とは異なります。Multi-Query Attention・PagedAttention・量子化などの緩和策の効果もここでは再現していません。固定したいのは「KVメモリはコンテキスト長×バッチに比例して線形に増える」「キャッシュは再計算（O(n²)相当）を避ける代わりにメモリ契約（O(n×batch)）を作る」という会計構造だけです。
+    </p>
+  </div>
+<script>
+(function(){
+  var CTX_STEPS = [512, 1024, 2048, 4096, 8192, 16384, 32768, 65536];
+  var MB_PER_TOKEN = 0.05; // toy constant
+  var CAP_MB = 80000; // toy GPU capacity (80GB)
+
+  function ctxLen(){ return CTX_STEPS[+document.getElementById('ctx').value]; }
+  function batchN(){ return +document.getElementById('batch').value; }
+  function kvMB(ctx, batch){ return ctx * batch * MB_PER_TOKEN; }
+
+  function render(){
+    var ctx = ctxLen(), batch = batchN();
+    document.getElementById('ctxVal').textContent = ctx;
+    document.getElementById('batchVal').textContent = batch;
+
+    var kv = kvMB(ctx, batch);
+    var pct = Math.min(100, (kv / CAP_MB) * 100);
+    var bar = document.getElementById('capbar');
+    bar.style.width = pct + '%';
+    bar.className = 'capbar' + (kv > CAP_MB ? ' over' : (kv > CAP_MB * 0.75 ? ' warn' : ''));
+    document.getElementById('kvText').textContent = Math.round(kv).toLocaleString() + ' MB / ' + CAP_MB.toLocaleString() + ' MB（' + Math.round(kv / CAP_MB * 100) + '%）' + (kv > CAP_MB ? ' — 容量超過！' : '');
+
+    var chart = document.getElementById('chart');
+    chart.innerHTML = '';
+    var maxKv = kvMB(CTX_STEPS[CTX_STEPS.length - 1], batch);
+    CTX_STEPS.forEach(function(c){
+      var v = kvMB(c, batch);
+      var h = Math.max(2, Math.round((v / maxKv) * 100));
+      var div = document.createElement('div');
+      div.className = 'cbar' + (c === ctx ? ' cur' : '');
+      div.style.height = h + '%';
+      var lab = document.createElement('span');
+      lab.className = 'cl';
+      lab.textContent = c >= 1024 ? (c/1024) + 'k' : c;
+      div.appendChild(lab);
+      chart.appendChild(div);
+    });
+
+    var computeNoCache = Math.round((ctx * ctx * batch) / 1e6);
+    var computeCache = Math.round((ctx * batch) / 1e3);
+    document.getElementById('cardCompute').textContent = computeNoCache.toLocaleString();
+    document.getElementById('cardCache').textContent = computeCache.toLocaleString();
+
+    var st = document.getElementById('st');
+    if (kv > CAP_MB) {
+      st.className = 'sim-status reject';
+      st.textContent = 'KVメモリがトイGPU容量を超過。長文脈と多同時接続を両方満たそうとすると、キャッシュのメモリ会計がハードウェアの壁に当たる — これが「長い会話ほど重くなる／同時アクセスで遅くなる」の構造。';
+    } else if (kv > CAP_MB * 0.75) {
+      st.className = 'sim-status caution';
+      st.textContent = '容量の75%を超えた。新しいセッションや、より長い文脈を追加する余地が少ない。';
+    } else {
+      st.className = 'sim-status';
+      st.textContent = 'まだ余裕がある。コンテキスト長・バッチのどちらを動かしてもKVメモリは線形に伸びる（上の棒グラフを参照）。';
+    }
+  }
+
+  document.getElementById('ctx').oninput = render;
+  document.getElementById('batch').oninput = render;
+  document.getElementById('presetLong').onclick = function(){ document.getElementById('ctx').value = 6; document.getElementById('batch').value = 2; render(); };
+  document.getElementById('presetMany').onclick = function(){ document.getElementById('ctx').value = 1; document.getElementById('batch').value = 48; render(); };
+  render();
+})();
+</script>
+</body>
+</html>
