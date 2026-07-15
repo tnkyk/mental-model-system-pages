@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-labelledby="t d">
+  <title id="t">一時分岐と収束</title>
+  <desc id="d">二枝が短時間両立し最多作業へ寄る</desc>
+  <rect width="900" height="260" fill="#0b0c0c"/>
+
+  <text x="450" y="32" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">一時分岐：物理遅延で二枝が両立しうる</text>
+  <rect x="60" y="80" width="80" height="50" fill="#161818" stroke="#3d3f3e"/><text x="100" y="110" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">…</text>
+  <path d="M140 105 H190" stroke="#3d3f3e" stroke-width="2"/>
+  <rect x="190" y="80" width="90" height="50" fill="#161818" stroke="#a8bdd0"/><text x="235" y="110" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#a8bdd0">B_n</text>
+  <path d="M280 90 H340" stroke="#a8bdd0" stroke-width="2"/>
+  <path d="M280 120 H340" stroke="#a8bdd0" stroke-width="2" stroke-dasharray="5 4"/>
+  <rect x="340" y="55" width="100" height="50" fill="#161818" stroke="#7ec9a8" stroke-width="2"/><text x="390" y="85" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#7ec9a8">枝A</text>
+  <rect x="340" y="125" width="100" height="50" fill="#161818" stroke="#a8bdd0" stroke-dasharray="5 4"/><text x="390" y="155" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#a8bdd0">枝B</text>
+  <path d="M440 80 H520" stroke="#7ec9a8" stroke-width="3"/>
+  <rect x="520" y="55" width="120" height="50" fill="#161818" stroke="#7ec9a8" stroke-width="2"/><text x="580" y="85" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#7ec9a8">最多作業へ</text>
+  <text x="450" y="220" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: 一時両立はバグではなく遅延。最終は最多作業の有効鎖。</text>
+
+</svg>

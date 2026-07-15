@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" role="img" aria-labelledby="t d">
+  <title id="t">softとhardの対比</title>
+  <desc id="d">互換的厳しさ追加と永久分岐</desc>
+  <rect width="900" height="280" fill="#0b0c0c"/>
+
+  <text x="450" y="30" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">soft fork と hard fork：互換と分岐</text>
+  <rect x="40" y="60" width="380" height="150" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+  <text x="230" y="95" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#7ec9a8">soft</text>
+  <text x="230" y="125" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">厳しさを足しうる型</text>
+  <text x="230" y="148" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">非アップグレードも新鎖を</text>
+  <text x="230" y="170" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">旧規則のまま有効とみなしうる</text>
+  <rect x="480" y="60" width="380" height="150" fill="#161818" stroke="#a8bdd0" stroke-dasharray="5 4" stroke-width="2"/>
+  <text x="670" y="95" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#a8bdd0">hard</text>
+  <text x="670" y="125" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">非アップグレードが拒否しうる</text>
+  <text x="670" y="148" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">永久分岐しうる型</text>
+  <text x="670" y="170" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">（派名・価格は図に載せるな）</text>
+  <text x="450" y="250" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: アップデート語を聞いたら、先に型を取れ。</text>
+
+</svg>

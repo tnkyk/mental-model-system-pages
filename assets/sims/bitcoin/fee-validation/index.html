@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Fee / Validation Lab — Bitcoin educational toy</title>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/tokens.css"/>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/sim-kit.css"/>
+<style>
+  :root {
+    color-scheme: dark;
+    --mm-paper: #0b0c0c; --mm-ink: #f0ede6; --mm-white: #161818; --mm-muted: #b0aea6;
+    --mm-line: #3d3f3e; --mm-green: #7ec9a8; --mm-plus: #a8bdd0;
+    --mm-gray-soft: #1c1e1e; --mm-green-soft: rgba(126,201,168,0.18);
+    --mm-plus-soft: rgba(168,189,208,0.22); --mm-gold-soft: rgba(240,237,230,0.10);
+    --mm-blue: var(--mm-plus); --mm-gold: var(--mm-ink); --mm-red: var(--mm-plus);
+    --mm-blue-soft: var(--mm-plus-soft); --mm-red-soft: rgba(168,189,208,0.16);
+    --mm-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  }
+  body { margin: 0; font: 14px/1.55 var(--mm-sans); color: var(--mm-ink); background: var(--mm-paper); padding: 20px;
+    background-image: radial-gradient(ellipse at 25% 0%, rgba(168,189,208,0.08), transparent 50%),
+      radial-gradient(ellipse at 75% 100%, rgba(126,201,168,0.06), transparent 42%); }
+  .sim-root { border: 1px solid var(--mm-line); background: var(--mm-white); padding: 18px; max-width: 920px; margin: 0 auto; }
+  .sim-title { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+  .sim-hard-claim { padding: 10px 12px; background: var(--mm-gold-soft); border-left: 3px solid var(--mm-ink); font-size: 13px; margin: 0 0 14px; }
+  .sim-controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin: 12px 0; }
+  .sim-controls label { font-size: 13px; color: var(--mm-muted); }
+  .sim-controls input[type="range"] { width: min(180px, 40vw); }
+  .sim-btn { border: 1px solid var(--mm-line); background: var(--mm-paper); color: var(--mm-ink); padding: 6px 12px; cursor: pointer; font: inherit; }
+  .sim-btn:hover { background: var(--mm-plus-soft); }
+  .sim-btn.active { border-color: var(--mm-green); background: var(--mm-green-soft); }
+  .sim-status { margin-top: 10px; padding: 10px 12px; background: var(--mm-green-soft); font-size: 13px; }
+  .sim-status.reject { background: var(--mm-plus-soft); }
+  .sim-status.caution { background: var(--mm-gold-soft); }
+  .sim-caption { margin: 12px 0 0; color: var(--mm-muted); font-size: 13px; }
+  .sim-fallback { margin-top: 12px; padding: 10px 12px; background: var(--mm-gray-soft); font-size: 12px; color: var(--mm-muted); }
+  .sim-canvas-wrap { margin: 10px 0; border: 1px solid var(--mm-line); background: var(--mm-paper); }
+  .mode-panel { display: none; }
+  .mode-panel.on { display: block; }
+  .scope-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+  @media (max-width: 700px) { .scope-grid { grid-template-columns: 1fr; } }
+  .scope-card { padding: 12px; border: 1px solid var(--mm-line); background: var(--mm-paper); }
+  .scope-card h4 { margin: 0 0 6px; font-size: 14px; }
+  .scope-card.limited { border-top: 3px solid var(--mm-plus); }
+  .scope-card.full { border-top: 3px solid var(--mm-green); }
+  .check-list { list-style: none; padding: 0; margin: 8px 0; font-size: 13px; }
+  .check-list li { padding: 4px 0; color: var(--mm-muted); }
+  .check-list li.pass { color: var(--mm-green); }
+  .check-list li.fail { color: var(--mm-ink); }
+  .pow-badge { display: inline-block; padding: 2px 8px; border: 1px solid var(--mm-line); background: var(--mm-plus-soft); font-size: 12px; }
+  .band-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 10px 0; }
+  @media (max-width: 640px) { .band-row { grid-template-columns: 1fr; } }
+  .band { padding: 10px; border: 1px solid var(--mm-line); background: var(--mm-paper); font-size: 12px; color: var(--mm-muted); }
+  .band strong { display: block; color: var(--mm-ink); margin-bottom: 4px; font-size: 13px; }
+  .band.on { border-color: var(--mm-green); background: var(--mm-green-soft); }
+  .mempool-bars { margin-top: 8px; }
+  .mempool-row { display: grid; grid-template-columns: 72px 1fr 72px; gap: 8px; align-items: center; margin: 4px 0; font-size: 12px; color: var(--mm-muted); }
+  .mempool-row .bar { height: 10px; background: var(--mm-plus); transform-origin: left; border: 1px solid var(--mm-line); }
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <p class="sim-title">Fee / Validation / SPV Lab</p>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> ウォレットは鍵・選択・手数料・配信・確認の層；カストディ／軽量クライアントで信頼が変わる。同一 consensus rules で受理／拒否するのが検証権力；SPV は検証範囲が薄い。</p>
+
+    <div class="sim-controls">
+      <button type="button" class="sim-btn active" id="tabSpv" data-mode="spv">Mode A — SPV vs フル検証</button>
+      <button type="button" class="sim-btn" id="tabMem" data-mode="mempool">Mode B — Mempool 入札</button>
+      <button type="button" class="sim-btn" id="tabVal" data-mode="validation">検証権力（規則）</button>
+    </div>
+
+    <div class="band-row" id="custodyBands">
+      <div class="band" data-band="custody"><strong>カストディ</strong>画面残高＝会社への請求。鍵は相手。</div>
+      <div class="band" data-band="spv"><strong>軽量（SPV）</strong>鍵は自分。検証はヘッダ＋包含が主。</div>
+      <div class="band on" data-band="full"><strong>自己保管＋フル</strong>鍵と規則執行の両方。</div>
+    </div>
+
+    <!-- SPV mode -->
+    <div class="mode-panel on" id="panelSpv">
+      <div class="sim-controls">
+        <label><input type="radio" name="attackCase" value="ok" checked> 正当な取引（規則OK・包含OK）</label>
+        <label><input type="radio" name="attackCase" value="inflated"> 過大コインベース（包含OK・規則違反）</label>
+        <label><input type="radio" name="attackCase" value="fakeproof"> 偽の Merkle 証明（包含NG）</label>
+      </div>
+      <div class="sim-controls">
+        <button type="button" class="sim-btn" id="btnSpvRun">両クライアントへ提示</button>
+        <button type="button" class="sim-btn" id="btnSpvReset">リセット</button>
+      </div>
+      <div class="scope-grid">
+        <div class="scope-card limited" id="spvCard">
+          <h4>SPV クライアント</h4>
+          <p style="font-size:13px;color:var(--mm-muted);margin:0;">見るもの: ヘッダ鎖 + Merkle proof</p>
+          <ul class="check-list" id="spvChecks"></ul>
+          <p class="sim-status" id="spvStatus">未判定</p>
+        </div>
+        <div class="scope-card full" id="fullCard">
+          <h4>フルノード</h4>
+          <p style="font-size:13px;color:var(--mm-muted);margin:0;">見るもの: ヘッダ + 全取引 + UTXO規則</p>
+          <ul class="check-list" id="fullChecks"></ul>
+          <p class="sim-status" id="fullStatus">未判定</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mempool mode -->
+    <div class="mode-panel" id="panelMem">
+      <div class="sim-controls">
+        <label>次ブロック枠: <strong id="blockSlotsLabel">3</strong></label>
+        <input type="range" id="blockSlots" min="1" max="6" value="3">
+        <button type="button" class="sim-btn" id="btnMemArrive">新規TX到着</button>
+        <button type="button" class="sim-btn" id="btnMemMine">1ブロック確定</button>
+        <button type="button" class="sim-btn" id="btnMemReset">リセット</button>
+      </div>
+      <div class="sim-canvas-wrap"><canvas id="mempoolCanvas" width="900" height="180" aria-label="mempool入札"></canvas></div>
+      <div class="mempool-bars" id="mempoolBars"></div>
+      <p class="sim-status" id="mempoolStatus"></p>
+      <p style="font-size:13px;color:var(--mm-muted);">ウォレット層: 鍵 → UTXO選択 → 手数料入札 → 配信 → 確認待ち。手数料は「コインの値段」ではなくブロック空間への時間付き入札。</p>
+    </div>
+
+    <!-- Validation mode -->
+    <div class="mode-panel" id="panelVal">
+      <div class="sim-controls">
+        <label><input type="checkbox" id="valBadSig"> 署名不正</label>
+        <label><input type="checkbox" id="valDouble"> 二重支払い</label>
+        <label><input type="checkbox" id="valCoinbase"> 過大コインベース（上限超過）</label>
+      </div>
+      <p style="font-size:13px;color:var(--mm-muted);">攻撃者の表示: <span class="pow-badge">PoW: OK（見かけ）</span> — 実際の検証とは独立</p>
+      <div class="sim-controls">
+        <button type="button" class="sim-btn" id="btnValidate">フルノードへ提出</button>
+        <button type="button" class="sim-btn" id="btnValReset">クリア</button>
+      </div>
+      <ul class="check-list" id="valChecks"></ul>
+      <p class="sim-status" id="valStatus">ケースを選んで提出してください。</p>
+    </div>
+
+    <p class="sim-caption">Lesson: 同じ「残高」でも信頼帯が違う。検証権力は同一規則での受理／拒否。SPV は範囲が薄い。手数料は空間入札。</p>
+    <p class="sim-fallback"><strong>簡略化の開示：</strong> 教材トイです。実 mempool 政策・Bloom・個別ウォレット手順は省略。固定したいのは信頼帯の差と、規則検証 vs 包含だけの差です。</p>
+  </div>
+<script>
+(function () {
+  var C = { paper: "#0b0c0c", ink: "#f0ede6", muted: "#b0aea6", line: "#3d3f3e", green: "#7ec9a8", plus: "#a8bdd0" };
+  function fitCanvas(c) {
+    if (!c) return null;
+    if (!c.dataset.logicH) c.dataset.logicH = c.getAttribute("height") || "180";
+    var parent = c.parentElement || c;
+    var rect = parent.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(280, Math.floor(rect.width || 300));
+    var h = parseInt(c.dataset.logicH, 10) || 180;
+    var bw = Math.floor(w * dpr), bh = Math.floor(h * dpr);
+    if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+    c.style.width = "100%"; c.style.height = h + "px";
+    var ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, w: w, h: h };
+  }
+
+  function setMode(mode) {
+    document.getElementById("panelSpv").classList.toggle("on", mode === "spv");
+    document.getElementById("panelMem").classList.toggle("on", mode === "mempool");
+    document.getElementById("panelVal").classList.toggle("on", mode === "validation");
+    ["tabSpv", "tabMem", "tabVal"].forEach(function (id) {
+      var btn = document.getElementById(id);
+      btn.classList.toggle("active", btn.getAttribute("data-mode") === mode);
+    });
+    var bands = document.querySelectorAll("#custodyBands .band");
+    bands.forEach(function (b) { b.classList.remove("on"); });
+    if (mode === "spv") document.querySelector('[data-band="spv"]').classList.add("on");
+    else if (mode === "mempool") document.querySelector('[data-band="custody"]').classList.add("on");
+    else document.querySelector('[data-band="full"]').classList.add("on");
+    if (mode === "mempool") renderMempool();
+  }
+  document.getElementById("tabSpv").onclick = function () { setMode("spv"); };
+  document.getElementById("tabMem").onclick = function () { setMode("mempool"); };
+  document.getElementById("tabVal").onclick = function () { setMode("validation"); };
+  document.querySelectorAll("#custodyBands .band").forEach(function (b) {
+    b.style.cursor = "pointer";
+    b.onclick = function () {
+      var band = b.getAttribute("data-band");
+      if (band === "spv") setMode("spv");
+      else if (band === "custody") setMode("mempool");
+      else setMode("validation");
+    };
+  });
+
+  /* SPV */
+  function paint(listId, items) {
+    var ul = document.getElementById(listId); ul.innerHTML = "";
+    items.forEach(function (it) {
+      var li = document.createElement("li");
+      li.className = it.ok ? "pass" : "fail";
+      li.textContent = (it.ok ? "✓ " : "✗ ") + it.name;
+      ul.appendChild(li);
+    });
+  }
+  function runSpv() {
+    var v = (document.querySelector('input[name="attackCase"]:checked') || {}).value || "ok";
+    var merkleOk = v !== "fakeproof";
+    var rulesOk = v === "ok";
+    paint("spvChecks", [
+      { name: "ヘッダが鎖に繋がる", ok: true },
+      { name: "Merkle proof が根と一致", ok: merkleOk }
+    ]);
+    paint("fullChecks", [
+      { name: "ヘッダが鎖に繋がる", ok: true },
+      { name: "Merkle / 取引集合の整合", ok: merkleOk },
+      { name: "署名・二重支払い・金額保存", ok: rulesOk && merkleOk },
+      { name: "コインベース上限", ok: rulesOk && merkleOk }
+    ]);
+    var spvAccept = merkleOk;
+    var fullAccept = merkleOk && rulesOk;
+    var spvSt = document.getElementById("spvStatus");
+    var fullSt = document.getElementById("fullStatus");
+    spvSt.className = "sim-status" + (spvAccept ? "" : " reject");
+    fullSt.className = "sim-status" + (fullAccept ? "" : " reject");
+    spvSt.textContent = spvAccept ? "SPV: 受理（包含OK）" : "SPV: 拒否（証明不一致）";
+    fullSt.textContent = fullAccept ? "フルノード: 受理（規則OK）" : "フルノード: 拒否（規則 or 証明）";
+    if (spvAccept && !fullAccept) spvSt.textContent += " — 規則違反を見ない（検証範囲が薄い）";
+  }
+  document.getElementById("btnSpvRun").onclick = runSpv;
+  document.getElementById("btnSpvReset").onclick = function () {
+    document.querySelector('input[name="attackCase"][value="ok"]').checked = true;
+    document.getElementById("spvChecks").innerHTML = "";
+    document.getElementById("fullChecks").innerHTML = "";
+    document.getElementById("spvStatus").className = "sim-status";
+    document.getElementById("fullStatus").className = "sim-status";
+    document.getElementById("spvStatus").textContent = "未判定";
+    document.getElementById("fullStatus").textContent = "未判定";
+  };
+
+  /* Validation */
+  function runValidation() {
+    var badSig = document.getElementById("valBadSig").checked;
+    var dbl = document.getElementById("valDouble").checked;
+    var cb = document.getElementById("valCoinbase").checked;
+    var checks = [
+      { name: "形式・フィールド", ok: true },
+      { name: "署名・スクリプト", ok: !badSig },
+      { name: "二重支払いなし", ok: !dbl },
+      { name: "金額保存", ok: !cb },
+      { name: "コインベース上限", ok: !cb }
+    ];
+    var ul = document.getElementById("valChecks"); ul.innerHTML = "";
+    var allOk = true;
+    checks.forEach(function (c) {
+      var li = document.createElement("li");
+      li.className = c.ok ? "pass" : "fail";
+      li.textContent = (c.ok ? "✓ " : "✗ ") + c.name;
+      ul.appendChild(li); if (!c.ok) allOk = false;
+    });
+    var st = document.getElementById("valStatus");
+    if (allOk) { st.className = "sim-status"; st.textContent = "受理: 同一 consensus rules を満たすので UTXO 更新候補になる。検証権力はここにある。"; }
+    else { st.className = "sim-status reject"; st.textContent = "拒否: PoW 表示が OK でも、コンセンサスルール違反は無効。マイナー ≠ 立法者。"; }
+  }
+  document.getElementById("btnValidate").onclick = runValidation;
+  document.getElementById("btnValReset").onclick = function () {
+    document.getElementById("valBadSig").checked = false;
+    document.getElementById("valDouble").checked = false;
+    document.getElementById("valCoinbase").checked = false;
+    document.getElementById("valChecks").innerHTML = "";
+    document.getElementById("valStatus").className = "sim-status";
+    document.getElementById("valStatus").textContent = "ケースを選んで提出してください。";
+  };
+
+  /* Mempool */
+  var names = ["Alice", "Bob", "Carol", "Dave", "Eve", "Frank", "Gina", "Hank", "Ivy", "Jon"];
+  var mempool = [
+    { name: "Alice", fee: 5 }, { name: "Bob", fee: 50 }, { name: "Carol", fee: 12 },
+    { name: "Dave", fee: 28 }, { name: "Eve", fee: 3 }, { name: "Frank", fee: 41 }
+  ];
+  var nameIdx = 0;
+
+  function drawMempoolCanvas(sorted, slots) {
+    var c = document.getElementById("mempoolCanvas"); if (!c) return;
+    var f = fitCanvas(c); if (!f) return;
+    var ctx = f.ctx, w = f.w, h = f.h;
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, w, h);
+    if (!sorted.length) {
+      ctx.fillStyle = C.muted; ctx.fillText("mempool 空", 40, 40); return;
+    }
+    var maxFee = Math.max.apply(null, sorted.map(function (t) { return t.fee; }));
+    sorted.forEach(function (tx, idx) {
+      var x = 40 + idx * Math.min(70, (w - 60) / sorted.length);
+      var hh = 30 + (tx.fee / maxFee) * (h - 80);
+      ctx.fillStyle = idx < slots ? C.ink : C.line;
+      ctx.fillRect(x, h - 36 - hh, 28, hh);
+      ctx.fillStyle = idx < slots ? C.paper : C.muted;
+      ctx.font = "10px sans-serif";
+      ctx.fillText(tx.name.slice(0, 1), x + 9, h - 14);
+      ctx.fillStyle = C.muted;
+      ctx.fillText(String(tx.fee), x + 2, h - 40 - hh);
+    });
+    ctx.fillStyle = C.green; ctx.font = "12px sans-serif";
+    ctx.fillText("明色=次ブロック候補 / 灰=待機（手数料率入札）", 40, 24);
+  }
+
+  function renderMempool() {
+    var slots = parseInt(document.getElementById("blockSlots").value, 10);
+    document.getElementById("blockSlotsLabel").textContent = String(slots);
+    var sorted = mempool.slice().sort(function (a, b) { return b.fee - a.fee; });
+    var maxFee = sorted.length ? sorted[0].fee : 1;
+    var box = document.getElementById("mempoolBars"); box.innerHTML = "";
+    var included = [];
+    sorted.forEach(function (tx, idx) {
+      var row = document.createElement("div");
+      row.className = "mempool-row";
+      var inBlock = idx < slots;
+      if (inBlock) included.push(tx.name + "(" + tx.fee + ")");
+      row.innerHTML = "<span>" + tx.name + "</span><div class='bar' style='transform:scaleX(" + (tx.fee / maxFee) + ");opacity:" + (inBlock ? "1" : ".35") + "'></div><span>" + tx.fee + " sat/vB</span>";
+      box.appendChild(row);
+    });
+    document.getElementById("mempoolStatus").textContent = sorted.length
+      ? ("待機 " + sorted.length + " 件 / 次ブロック候補: " + (included.join(", ") || "—") + "。枠外は次以降まで残る。")
+      : "mempool は空です。新規TXを到着させてください。";
+    drawMempoolCanvas(sorted, slots);
+  }
+
+  document.getElementById("blockSlots").addEventListener("input", renderMempool);
+  document.getElementById("btnMemArrive").onclick = function () {
+    var fee = Math.floor(2 + Math.random() * 60);
+    var name = names[nameIdx % names.length] + (nameIdx >= names.length ? String(Math.floor(nameIdx / names.length) + 1) : "");
+    nameIdx++;
+    mempool.push({ name: name, fee: fee });
+    document.getElementById("mempoolStatus").textContent = name + " が " + fee + " sat/vB で到着。";
+    renderMempool();
+  };
+  document.getElementById("btnMemMine").onclick = function () {
+    var slots = parseInt(document.getElementById("blockSlots").value, 10);
+    var sorted = mempool.slice().sort(function (a, b) { return b.fee - a.fee; });
+    var taken = sorted.slice(0, slots).map(function (t) { return t.name; });
+    mempool = sorted.slice(slots);
+    document.getElementById("mempoolStatus").textContent = taken.length
+      ? ("ブロック確定: " + taken.join(", ") + " が入り、残り " + mempool.length + " 件が待機。")
+      : "入れる取引がありません。";
+    renderMempool();
+  };
+  document.getElementById("btnMemReset").onclick = function () {
+    mempool = [
+      { name: "Alice", fee: 5 }, { name: "Bob", fee: 50 }, { name: "Carol", fee: 12 },
+      { name: "Dave", fee: 28 }, { name: "Eve", fee: 3 }, { name: "Frank", fee: 41 }
+    ];
+    nameIdx = 0; renderMempool();
+  };
+
+  window.addEventListener("resize", function () {
+    if (document.getElementById("panelMem").classList.contains("on")) renderMempool();
+  });
+  renderMempool();
+})();
+</script>
+</body>
+</html>

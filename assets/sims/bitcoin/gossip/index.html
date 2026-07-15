@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Gossip Lab — Bitcoin educational toy</title>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/tokens.css"/>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/sim-kit.css"/>
+<style>
+  :root {
+    color-scheme: dark;
+    --mm-paper: #0b0c0c; --mm-ink: #f0ede6; --mm-white: #161818; --mm-muted: #b0aea6;
+    --mm-line: #3d3f3e; --mm-green: #7ec9a8; --mm-plus: #a8bdd0;
+    --mm-gray-soft: #1c1e1e; --mm-green-soft: rgba(126,201,168,0.18);
+    --mm-plus-soft: rgba(168,189,208,0.22); --mm-gold-soft: rgba(240,237,230,0.10);
+    --mm-blue: var(--mm-plus); --mm-gold: var(--mm-ink); --mm-red: var(--mm-plus);
+    --mm-blue-soft: var(--mm-plus-soft); --mm-red-soft: rgba(168,189,208,0.16);
+    --mm-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  }
+  body { margin: 0; font: 14px/1.55 var(--mm-sans); color: var(--mm-ink); background: var(--mm-paper); padding: 20px;
+    background-image: radial-gradient(ellipse at 15% 10%, rgba(168,189,208,0.09), transparent 48%),
+      radial-gradient(ellipse at 90% 90%, rgba(126,201,168,0.07), transparent 42%); }
+  .sim-root { border: 1px solid var(--mm-line); background: var(--mm-white); padding: 18px; max-width: 920px; margin: 0 auto; }
+  .sim-title { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+  .sim-hard-claim { padding: 10px 12px; background: var(--mm-gold-soft); border-left: 3px solid var(--mm-ink); font-size: 13px; margin: 0 0 14px; }
+  .sim-controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin: 12px 0; }
+  .sim-btn { border: 1px solid var(--mm-line); background: var(--mm-paper); color: var(--mm-ink); padding: 6px 12px; cursor: pointer; font: inherit; }
+  .sim-btn:hover { background: var(--mm-plus-soft); }
+  .sim-status { margin-top: 10px; padding: 10px 12px; background: var(--mm-green-soft); font-size: 13px; }
+  .sim-status.caution { background: var(--mm-gold-soft); }
+  .sim-caption { margin: 12px 0 0; color: var(--mm-muted); font-size: 13px; }
+  .sim-fallback { margin-top: 12px; padding: 10px 12px; background: var(--mm-gray-soft); font-size: 12px; color: var(--mm-muted); }
+  .sim-canvas-wrap { margin: 10px 0; border: 1px solid var(--mm-line); background: var(--mm-paper); }
+  .gossip-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--mm-muted); margin-bottom: 8px; }
+  .gossip-legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; vertical-align: middle; border: 1px solid var(--mm-line); }
+  .lg-idle::before { background: #3d3f3e; }
+  .lg-sees1::before { background: #a8bdd0; }
+  .lg-sees2::before { background: #f0ede6; }
+  .lg-conflict::before { background: #7ec9a8; }
+  .metric-row { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--mm-muted); margin: 8px 0; }
+  .metric-row b { color: var(--mm-ink); }
+  .fork-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  @media (max-width: 640px) { .fork-panel { grid-template-columns: 1fr; } }
+  .chain { padding: 10px 12px; border: 1px solid var(--mm-line); background: var(--mm-paper); }
+  .chain.tip { border-color: var(--mm-green); background: var(--mm-green-soft); }
+  .chain.orphaned { opacity: 0.45; }
+  .chain h4 { margin: 0 0 6px; font-size: 13px; }
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <p class="sim-title">P2P Gossip / Temporary Fork Lab</p>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> 同時に両立しうる枝が起き、最終は最多作業の有効鎖へ。</p>
+
+    <div class="gossip-legend">
+      <span class="lg-idle">未受信</span>
+      <span class="lg-sees1">Tx1(Bob) 先着</span>
+      <span class="lg-sees2">Tx2(Carol) 先着</span>
+      <span class="lg-conflict">両方可視（競合）</span>
+    </div>
+    <div class="sim-canvas-wrap"><canvas id="gossipCanvas" width="900" height="300" aria-label="P2P伝播の可視化"></canvas></div>
+
+    <div class="sim-controls">
+      <button type="button" class="sim-btn" id="btnGossipOne">A — Tx1だけ送る</button>
+      <button type="button" class="sim-btn" id="btnGossipPlay">B — 二重支払いをブロードキャスト</button>
+      <button type="button" class="sim-btn" id="btnResolve">最多作業へ収束</button>
+      <button type="button" class="sim-btn" id="btnGossipReset">リセット</button>
+    </div>
+    <div class="metric-row">
+      <span>Tx1到達: <b id="gReach1">0</b>/12</span>
+      <span>Tx2到達: <b id="gReach2">0</b>/12</span>
+      <span>競合ノード: <b id="gConflict">0</b></span>
+      <span>収束: <b id="gConverge">—</b></span>
+    </div>
+
+    <div class="sim-canvas-wrap"><canvas id="forkCanvas" width="900" height="140" aria-label="枝の累積作業"></canvas></div>
+    <div class="fork-panel">
+      <div class="chain" id="chainA"><h4>枝 A（Tx1 側）</h4><div>累積 work: <b id="workA">10</b></div></div>
+      <div class="chain" id="chainB"><h4>枝 B（Tx2 側）</h4><div>累積 work: <b id="workB">10</b></div></div>
+    </div>
+    <div class="sim-controls">
+      <button type="button" class="sim-btn" id="btnA">枝Aを伸ばす</button>
+      <button type="button" class="sim-btn" id="btnB">枝Bを伸ばす</button>
+    </div>
+
+    <p class="sim-status" id="gossipStatus">Alice から東西へ伝播させ、ローカル視野の割れを観察してください。その後、枝を伸ばして最多作業側へ収束させます。</p>
+    <p class="sim-caption">Lesson: 伝播遅延がある限り二重支払いは一時両立しうる。最終の正規履歴は最多作業の有効鎖である。</p>
+    <p class="sim-fallback"><strong>簡略化の開示：</strong> 教材トイです。実 P2P トポロジ・遅延分布・実チェーンワーク計算は簡略化しています。固定したいのは「一時両立は遅延の物理」と「収束は最多作業」です。</p>
+  </div>
+<script>
+(function () {
+  var C = { paper: "#0b0c0c", ink: "#f0ede6", muted: "#b0aea6", line: "#3d3f3e", green: "#7ec9a8", plus: "#a8bdd0" };
+  function fitCanvas(c) {
+    if (!c) return null;
+    if (!c.dataset.logicH) c.dataset.logicH = c.getAttribute("height") || "220";
+    var parent = c.parentElement || c;
+    var rect = parent.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(280, Math.floor(rect.width || 300));
+    var h = parseInt(c.dataset.logicH, 10) || 220;
+    var bw = Math.floor(w * dpr), bh = Math.floor(h * dpr);
+    if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+    c.style.width = "100%"; c.style.height = h + "px";
+    var ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, w: w, h: h };
+  }
+
+  /* Gossip */
+  var gc = document.getElementById("gossipCanvas");
+  var N = 12, nodes = [], edges = [], packets = [], raf, playing = false, tickN = 0, mode = "dual";
+  for (var i = 0; i < N; i++) {
+    var ang = (i / N) * Math.PI * 2 - Math.PI / 2;
+    nodes.push({ x: 0.5 + Math.cos(ang) * 0.34, y: 0.52 + Math.sin(ang) * 0.34, first: 0, both: false });
+  }
+  for (var a = 0; a < N; a++) for (var b = a + 1; b < N; b++) {
+    if ((b - a) % N === 1 || (a === 0 && b === N - 1) || (b - a) === 2 || (a + 2) % N === b) edges.push([a, b]);
+  }
+  edges.push([0, 5], [3, 8], [6, 11], [2, 9]);
+
+  var workA = 10, workB = 10, resolved = false;
+
+  function drawGossip() {
+    var f = fitCanvas(gc); if (!f) return;
+    var ctx = f.ctx, w = f.w, h = f.h;
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1;
+    edges.forEach(function (e) {
+      ctx.beginPath();
+      ctx.moveTo(nodes[e[0]].x * w, nodes[e[0]].y * h);
+      ctx.lineTo(nodes[e[1]].x * w, nodes[e[1]].y * h);
+      ctx.stroke();
+    });
+    ctx.fillStyle = C.green;
+    ctx.beginPath(); ctx.arc(0.5 * w, 0.5 * h, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = C.paper; ctx.font = "11px sans-serif";
+    ctx.fillText("Alice", 0.5 * w - 16, 0.5 * h + 4);
+    nodes.forEach(function (n, idx) {
+      var col = C.line;
+      if (n.both) col = C.green;
+      else if (n.first === 1) col = C.plus;
+      else if (n.first === 2) col = C.ink;
+      ctx.beginPath(); ctx.arc(n.x * w, n.y * h, 11, 0, Math.PI * 2);
+      ctx.fillStyle = col; ctx.fill();
+      ctx.fillStyle = n.first === 2 && !n.both ? C.paper : C.muted;
+      ctx.font = "10px sans-serif";
+      ctx.fillText(String(idx + 1), n.x * w - 3, n.y * h + 3);
+    });
+    packets.forEach(function (p) {
+      var x = p.x0 + (p.x1 - p.x0) * p.u;
+      var y = p.y0 + (p.y1 - p.y0) * p.u;
+      ctx.beginPath(); ctx.arc(x * w, y * h, 5, 0, Math.PI * 2);
+      ctx.fillStyle = p.kind === 1 ? C.plus : C.ink; ctx.fill();
+    });
+  }
+
+  function neighbors(i) {
+    var out = [];
+    edges.forEach(function (e) {
+      if (e[0] === i) out.push(e[1]);
+      if (e[1] === i) out.push(e[0]);
+    });
+    return out;
+  }
+
+  function metrics() {
+    var r1 = nodes.filter(function (n) { return n.first === 1 || n.both; }).length;
+    var r2 = nodes.filter(function (n) { return n.first === 2 || n.both; }).length;
+    var conf = nodes.filter(function (n) { return n.both; }).length;
+    document.getElementById("gReach1").textContent = r1;
+    document.getElementById("gReach2").textContent = r2;
+    document.getElementById("gConflict").textContent = conf;
+    document.getElementById("gConverge").textContent = resolved
+      ? (workA >= workB ? "枝A（最多作業）" : "枝B（最多作業）")
+      : (playing ? "伝播中" : (tickN ? (conf ? "局所競合あり（順序未決）" : "到達完了") : "—"));
+  }
+
+  function deliver(to, kind, from) {
+    var n = nodes[to];
+    if (n.first === 0) n.first = kind;
+    else if (n.first !== kind) n.both = true;
+    neighbors(to).forEach(function (j) {
+      if (j === from) return;
+      var already = (kind === 1 && (nodes[j].first === 1 || nodes[j].both)) || (kind === 2 && (nodes[j].first === 2 || nodes[j].both));
+      if (!already || (nodes[j].first && nodes[j].first !== kind && !nodes[j].both && Math.random() < 0.4)) {
+        packets.push({
+          x0: nodes[to].x, y0: nodes[to].y, x1: nodes[j].x, y1: nodes[j].y,
+          u: 0, kind: kind, to: j, from: to, speed: 0.035 + Math.random() * 0.025
+        });
+      }
+    });
+  }
+
+  function step() {
+    if (!playing) return;
+    tickN++;
+    packets.forEach(function (p) { p.u += p.speed; });
+    var next = [];
+    packets.forEach(function (p) {
+      if (p.u >= 1) deliver(p.to, p.kind, p.from);
+      else next.push(p);
+    });
+    packets = next;
+    metrics(); drawGossip();
+    if (packets.length === 0 && tickN > 5) {
+      playing = false;
+      metrics();
+      var conf = nodes.filter(function (n) { return n.both; }).length;
+      var st = document.getElementById("gossipStatus");
+      st.className = "sim-status" + (conf ? " caution" : "");
+      st.textContent = mode === "dual"
+        ? (conf
+          ? "伝播完了。一部ノードは両方を見て競合を認識。共有順序なしではどちらが正規か未決 → 下で枝を伸ばし最多作業へ。"
+          : "伝播完了。偶然どちらか一方だけが全域に広まった。")
+        : "Tx1 のみが全域へ到達。競合なし（Mode A）。";
+      return;
+    }
+    raf = requestAnimationFrame(step);
+  }
+
+  function start(dual) {
+    cancelAnimationFrame(raf);
+    playing = true; tickN = 0; packets = []; mode = dual ? "dual" : "one"; resolved = false;
+    workA = 10; workB = 10;
+    nodes.forEach(function (n) { n.first = 0; n.both = false; });
+    packets.push({ x0: 0.5, y0: 0.5, x1: nodes[0].x, y1: nodes[0].y, u: 0, kind: 1, to: 0, from: -1, speed: 0.05 });
+    if (dual) packets.push({ x0: 0.5, y0: 0.5, x1: nodes[6].x, y1: nodes[6].y, u: 0, kind: 2, to: 6, from: -1, speed: 0.05 });
+    document.getElementById("gossipStatus").className = "sim-status";
+    document.getElementById("gossipStatus").textContent = dual
+      ? "東西へ同時ブロードキャスト。色の割れはローカル先着を示す。"
+      : "Tx1 のみ伝播。視野は揃いやすい。";
+    forkRender();
+    step();
+  }
+
+  /* Fork / most-work */
+  function drawFork() {
+    var c = document.getElementById("forkCanvas");
+    var f = fitCanvas(c); if (!f) return;
+    var ctx = f.ctx, w = f.w, h = f.h;
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, w, h);
+    var tip = workA === workB ? "tie" : (workA > workB ? "A" : "B");
+    function chain(y, work, color, label) {
+      ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(40, y);
+      var len = 80 + work * 14; ctx.lineTo(Math.min(w - 40, len), y); ctx.stroke();
+      for (var i = 0; i < work; i++) {
+        var x = 50 + i * 14;
+        if (x > w - 50) break;
+        ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.fillStyle = C.muted; ctx.font = "12px sans-serif";
+      ctx.fillText(label + " work=" + work, 40, y - 12);
+    }
+    chain(h / 2 - 28, workA, tip === "B" ? C.line : C.green, "A");
+    chain(h / 2 + 28, workB, tip === "A" ? C.line : C.plus, "B");
+  }
+
+  function forkRender() {
+    document.getElementById("workA").textContent = workA;
+    document.getElementById("workB").textContent = workB;
+    var tip = workA === workB ? "tie" : (workA > workB ? "A" : "B");
+    document.getElementById("chainA").className = "chain" + (tip === "A" ? " tip" : tip === "B" ? " orphaned" : "");
+    document.getElementById("chainB").className = "chain" + (tip === "B" ? " tip" : tip === "A" ? " orphaned" : "");
+    if (resolved && tip !== "tie") {
+      nodes.forEach(function (n) {
+        n.both = false;
+        n.first = tip === "A" ? 1 : 2;
+      });
+      metrics();
+      drawGossip();
+    }
+    drawFork();
+  }
+
+  document.getElementById("btnGossipPlay").onclick = function () { start(true); };
+  document.getElementById("btnGossipOne").onclick = function () { start(false); };
+  document.getElementById("btnGossipReset").onclick = function () {
+    cancelAnimationFrame(raf); playing = false; packets = []; tickN = 0; resolved = false;
+    workA = 10; workB = 10;
+    nodes.forEach(function (n) { n.first = 0; n.both = false; });
+    document.getElementById("gossipStatus").className = "sim-status";
+    document.getElementById("gossipStatus").textContent = "Alice から東西へ伝播させ、ローカル視野の割れを観察してください。その後、枝を伸ばして最多作業側へ収束させます。";
+    metrics(); drawGossip(); forkRender();
+  };
+  document.getElementById("btnA").onclick = function () {
+    workA += 1; resolved = false;
+    document.getElementById("gossipStatus").textContent = "枝Aを伸ばした。累積 work が勝った側が正規履歴になる。";
+    forkRender(); metrics();
+  };
+  document.getElementById("btnB").onclick = function () {
+    workB += 1; resolved = false;
+    document.getElementById("gossipStatus").textContent = "枝Bを伸ばした。累積 work が勝った側が正規履歴になる。";
+    forkRender(); metrics();
+  };
+  document.getElementById("btnResolve").onclick = function () {
+    if (workA === workB) {
+      workA += 2;
+      document.getElementById("gossipStatus").className = "sim-status caution";
+      document.getElementById("gossipStatus").textContent = "同点だったので枝Aに追加作業。最多作業の有効鎖へ収束。";
+    } else {
+      document.getElementById("gossipStatus").className = "sim-status";
+      document.getElementById("gossipStatus").textContent =
+        workA > workB
+          ? "正規履歴は枝A。短い枝B上だけの支払いは orphaned。"
+          : "正規履歴は枝B。短い枝A上だけの支払いは orphaned。";
+    }
+    resolved = true;
+    forkRender(); metrics();
+  };
+
+  window.addEventListener("resize", function () { drawGossip(); drawFork(); });
+  metrics(); drawGossip(); forkRender();
+})();
+</script>
+</body>
+</html>

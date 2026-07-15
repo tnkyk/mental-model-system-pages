@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>PoW Lab — Bitcoin educational toy</title>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/tokens.css"/>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/sim-kit.css"/>
+<style>
+  :root {
+    color-scheme: dark;
+    --mm-paper: #0b0c0c; --mm-ink: #f0ede6; --mm-white: #161818; --mm-muted: #b0aea6;
+    --mm-line: #3d3f3e; --mm-green: #7ec9a8; --mm-plus: #a8bdd0;
+    --mm-gray-soft: #1c1e1e; --mm-green-soft: rgba(126,201,168,0.18);
+    --mm-plus-soft: rgba(168,189,208,0.22); --mm-gold-soft: rgba(240,237,230,0.10);
+    --mm-blue: var(--mm-plus); --mm-gold: var(--mm-ink); --mm-red: var(--mm-plus);
+    --mm-blue-soft: var(--mm-plus-soft); --mm-red-soft: rgba(168,189,208,0.16);
+    --mm-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+    --mm-mono: ui-monospace, Consolas, monospace;
+  }
+  body { margin: 0; font: 14px/1.55 var(--mm-sans); color: var(--mm-ink); background: var(--mm-paper); padding: 20px;
+    background-image: radial-gradient(ellipse at 30% 0%, rgba(168,189,208,0.08), transparent 50%),
+      radial-gradient(ellipse at 70% 100%, rgba(126,201,168,0.06), transparent 40%); }
+  .sim-root { border: 1px solid var(--mm-line); background: var(--mm-white); padding: 18px; max-width: 920px; margin: 0 auto; }
+  .sim-title { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+  .sim-hard-claim { padding: 10px 12px; background: var(--mm-gold-soft); border-left: 3px solid var(--mm-ink); font-size: 13px; margin: 0 0 14px; }
+  .sim-controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin: 12px 0; }
+  .sim-controls label { font-size: 13px; color: var(--mm-muted); }
+  .sim-controls input[type="range"] { width: min(220px, 100%); }
+  .sim-btn { border: 1px solid var(--mm-line); background: var(--mm-paper); color: var(--mm-ink); padding: 6px 12px; cursor: pointer; font: inherit; }
+  .sim-btn:hover { background: var(--mm-plus-soft); }
+  .sim-btn.active { border-color: var(--mm-green); background: var(--mm-green-soft); }
+  .sim-status { margin-top: 10px; padding: 10px 12px; background: var(--mm-green-soft); font-size: 13px; }
+  .sim-status.reject { background: var(--mm-plus-soft); }
+  .sim-caption { margin: 12px 0 0; color: var(--mm-muted); font-size: 13px; }
+  .sim-fallback { margin-top: 12px; padding: 10px 12px; background: var(--mm-gray-soft); font-size: 12px; color: var(--mm-muted); }
+  .sim-canvas-wrap { margin: 10px 0; border: 1px solid var(--mm-line); background: var(--mm-paper); }
+  .sim-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .sim-grid-2 { grid-template-columns: 1fr; } }
+  .sim-panel { border: 1px solid var(--mm-line); padding: 12px; background: var(--mm-paper); }
+  .sim-panel.sim-mode-a { border-top: 3px solid var(--mm-plus); }
+  .sim-panel.sim-mode-b { border-top: 3px solid var(--mm-ink); }
+  .sim-panel h4 { margin: 0 0 8px; font-size: 13px; color: var(--mm-muted); }
+  .hash-out { font: 12px/1.45 var(--mm-mono); color: var(--mm-plus); word-break: break-all; min-height: 2.5em; }
+  .attempt-log { font: 11px/1.4 var(--mm-mono); color: var(--mm-muted); max-height: 120px; overflow: auto; white-space: pre-wrap; margin-top: 8px; padding: 8px; background: var(--mm-white); border: 1px solid var(--mm-line); }
+  code { font-family: var(--mm-mono); color: var(--mm-green); }
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <p class="sim-title">PoW Process Lab</p>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> ヘッダハッシュ目標が追記の検証可能な値段になる。</p>
+
+    <p style="font-size:13px;color:var(--mm-muted);margin:0 0 8px;">簡略モデル: 指紋の先頭が <code id="powTargetLabel">000</code> で始まる nonce を探す。探索は高く、検証は1回で足りる。</p>
+    <div class="sim-controls">
+      <label>目標ゼロ桁（難易度）: <strong id="diffLabel">3</strong></label>
+      <input type="range" id="powDiff" min="2" max="4" value="3"/>
+      <button type="button" class="sim-btn active" id="focusMine">A — 探索に注目</button>
+      <button type="button" class="sim-btn" id="focusVerify">B — 検証に注目</button>
+    </div>
+
+    <div class="sim-canvas-wrap"><canvas id="powCanvas" width="900" height="200" aria-label="PoW探索の過程"></canvas></div>
+
+    <div class="sim-grid-2">
+      <div class="sim-panel sim-mode-a" id="panelMine">
+        <h4>マイナー（探索）</h4>
+        <div class="sim-controls">
+          <button type="button" class="sim-btn" id="btnMine">1ステップ</button>
+          <button type="button" class="sim-btn" id="btnMineBurst">バースト探索</button>
+          <button type="button" class="sim-btn" id="btnMineAuto">自動探索</button>
+          <button type="button" class="sim-btn" id="btnPowReset">リセット</button>
+        </div>
+        <p>試行回数: <strong id="powAttempts">0</strong></p>
+        <p>現在 nonce: <code id="powNonce">0</code></p>
+        <p class="hash-out" id="powHash">—</p>
+        <div class="attempt-log" id="powLog">探索ログ</div>
+      </div>
+      <div class="sim-panel sim-mode-b" id="panelVerify">
+        <h4>フルノード（検証）</h4>
+        <div class="sim-controls">
+          <button type="button" class="sim-btn" id="btnVerify">1回検証</button>
+        </div>
+        <p>検証時間: <strong id="powVerifyMs">—</strong></p>
+        <p class="sim-status" id="powStatus">探索を開始してください。</p>
+        <p style="font-size:13px;color:var(--mm-muted);margin-top:12px;">失敗は山のように積もり、成功だけが提案として意味を持つ。検証側はその成功候補を一瞬で判定できる。</p>
+      </div>
+    </div>
+
+    <p class="sim-caption">Lesson: 提案の希少性を、検証可能な形で示せる。ヘッダハッシュ目標＝追記の値段。</p>
+    <p class="sim-fallback"><strong>簡略化の開示：</strong> 教材トイです。実 SHA-256・実難易度周期・ASIC は再現しません。固定したいのは「探索は高く、検証は安い」という非対称だけです。</p>
+  </div>
+<script>
+(function () {
+  var C = { paper: "#0b0c0c", ink: "#f0ede6", muted: "#b0aea6", line: "#3d3f3e", green: "#7ec9a8", plus: "#a8bdd0", white: "#161818" };
+  function demoHash(s) {
+    var h = 2166136261;
+    for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+    var a = (h >>> 0).toString(16).padStart(8, "0");
+    var b = (Math.imul(h, 2654435761) >>> 0).toString(16).padStart(8, "0");
+    var c = (Math.imul(h ^ 0x9e3779b9, 1597334677) >>> 0).toString(16).padStart(8, "0");
+    var d = (Math.imul(~h, 2246822519) >>> 0).toString(16).padStart(8, "0");
+    return a + b + c + d;
+  }
+  function meetsTarget(hex, zeros) { return hex.slice(0, zeros) === "0".repeat(zeros); }
+  function fitCanvas(c) {
+    if (!c) return null;
+    if (!c.dataset.logicH) c.dataset.logicH = c.getAttribute("height") || "200";
+    var parent = c.parentElement || c;
+    var rect = parent.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(280, Math.floor(rect.width || 300));
+    var h = parseInt(c.dataset.logicH, 10) || 200;
+    var bw = Math.floor(w * dpr), bh = Math.floor(h * dpr);
+    if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+    c.style.width = "100%"; c.style.height = h + "px";
+    var ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, w: w, h: h };
+  }
+
+  var powNonce = 0, powAttempts = 0, powFound = null, powZeros = 3, powAuto = null, particles = [];
+  var powHeader = "block-header-demo-v4";
+
+  function powLogLine(line) {
+    var log = document.getElementById("powLog");
+    log.textContent = line + "\n" + log.textContent.split("\n").slice(0, 12).join("\n");
+  }
+
+  function drawPow() {
+    var c = document.getElementById("powCanvas");
+    var f = fitCanvas(c); if (!f) return;
+    var ctx = f.ctx, w = f.w, h = f.h;
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, w, h);
+    particles.forEach(function (p) {
+      ctx.globalAlpha = Math.max(0, p.life);
+      ctx.fillStyle = p.hit ? C.green : C.line;
+      ctx.fillRect(p.x, p.y, 3, 10);
+      p.y += p.vy; p.life -= 0.02;
+    });
+    ctx.globalAlpha = 1;
+    particles = particles.filter(function (p) { return p.life > 0; });
+    var ratio = Math.min(1, powAttempts / (powZeros === 2 ? 80 : powZeros === 3 ? 800 : 4000));
+    ctx.fillStyle = C.line; ctx.fillRect(40, h - 36, w - 80, 12);
+    ctx.fillStyle = powFound ? C.green : C.plus;
+    ctx.fillRect(40, h - 36, (w - 80) * ratio, 12);
+    ctx.fillStyle = C.muted; ctx.font = "12px sans-serif";
+    ctx.fillText("探索の密度（教育用スケール）・target 先頭 " + "0".repeat(powZeros), 40, h - 48);
+    if (powFound) {
+      ctx.fillStyle = C.green;
+      ctx.fillText("HIT — 提案コストが支払われた（検証可能な値段）", 40, 28);
+    }
+  }
+
+  function powRender() {
+    var h = demoHash(powHeader + ":" + powNonce);
+    document.getElementById("powAttempts").textContent = powAttempts;
+    document.getElementById("powNonce").textContent = powNonce;
+    document.getElementById("powHash").textContent = h;
+    document.getElementById("powTargetLabel").textContent = "0".repeat(powZeros);
+    document.getElementById("diffLabel").textContent = String(powZeros);
+    drawPow();
+  }
+
+  function powStep(n) {
+    for (var i = 0; i < n; i++) {
+      powAttempts += 1; powNonce += 1;
+      var h = demoHash(powHeader + ":" + powNonce);
+      var hit = meetsTarget(h, powZeros);
+      particles.push({ x: 40 + Math.random() * Math.max(100, (document.getElementById("powCanvas").parentElement.clientWidth || 700) - 80), y: 20 + Math.random() * 80, vy: 1 + Math.random() * 2.5, life: 1, hit: hit });
+      if (hit) {
+        powFound = { nonce: powNonce, hash: h, attempts: powAttempts };
+        document.getElementById("powStatus").textContent = "マイナー: 有効ヘッダ発見！試行 " + powAttempts + "（検証ボタンで安さを確認）";
+        document.getElementById("powStatus").className = "sim-status";
+        powLogLine("HIT nonce=" + powNonce + " hash=" + h.slice(0, 16) + "…");
+        if (powAuto) { clearInterval(powAuto); powAuto = null; }
+        powRender(); return;
+      }
+      if (i === n - 1 || powAttempts % 200 === 0) powLogLine("miss nonce=" + powNonce + " hash=" + h.slice(0, 12) + "…");
+    }
+    document.getElementById("powStatus").textContent = "探索中… まだ target 未達（試行 " + powAttempts + "）";
+    document.getElementById("powStatus").className = "sim-status";
+    powRender();
+  }
+
+  document.getElementById("powDiff").oninput = function () {
+    powZeros = parseInt(this.value, 10);
+    if (powAuto) { clearInterval(powAuto); powAuto = null; }
+    powNonce = 0; powAttempts = 0; powFound = null; particles = [];
+    document.getElementById("powLog").textContent = "探索ログ";
+    document.getElementById("powVerifyMs").textContent = "—";
+    document.getElementById("powStatus").textContent = "難易度変更。目標先頭ゼロ=" + powZeros;
+    powRender();
+  };
+  document.getElementById("btnMine").onclick = function () { powStep(1); };
+  document.getElementById("btnMineBurst").onclick = function () { powStep(powZeros === 2 ? 40 : 400); };
+  document.getElementById("btnMineAuto").onclick = function () {
+    if (powAuto) return;
+    powAuto = setInterval(function () { powStep(powZeros === 2 ? 20 : 80); drawPow(); }, 80);
+  };
+  document.getElementById("btnPowReset").onclick = function () {
+    if (powAuto) { clearInterval(powAuto); powAuto = null; }
+    powNonce = 0; powAttempts = 0; powFound = null; particles = [];
+    document.getElementById("powVerifyMs").textContent = "—";
+    document.getElementById("powStatus").textContent = "探索を開始してください。";
+    document.getElementById("powStatus").className = "sim-status";
+    document.getElementById("powLog").textContent = "探索ログ";
+    powRender();
+  };
+  document.getElementById("btnVerify").onclick = function () {
+    var t0 = performance.now();
+    var n = powFound ? powFound.nonce : powNonce;
+    var h = demoHash(powHeader + ":" + n);
+    var ok = meetsTarget(h, powZeros);
+    var dt = (performance.now() - t0).toFixed(3);
+    document.getElementById("powVerifyMs").textContent = dt + " ms（1回）";
+    document.getElementById("powStatus").textContent = ok
+      ? "検証: 受理（hash OK）— 探索に " + (powFound ? powFound.attempts : powAttempts) + " 回かかっても検証は1回"
+      : "検証: 拒否（target 未達）— 提案の値段を払っていない";
+    document.getElementById("powStatus").className = ok ? "sim-status" : "sim-status reject";
+  };
+  document.getElementById("focusMine").onclick = function () {
+    this.classList.add("active");
+    document.getElementById("focusVerify").classList.remove("active");
+    document.getElementById("panelMine").style.opacity = "1";
+    document.getElementById("panelVerify").style.opacity = "0.55";
+  };
+  document.getElementById("focusVerify").onclick = function () {
+    this.classList.add("active");
+    document.getElementById("focusMine").classList.remove("active");
+    document.getElementById("panelVerify").style.opacity = "1";
+    document.getElementById("panelMine").style.opacity = "0.55";
+  };
+
+  setInterval(drawPow, 50);
+  window.addEventListener("resize", drawPow);
+  powRender();
+})();
+</script>
+</body>
+</html>

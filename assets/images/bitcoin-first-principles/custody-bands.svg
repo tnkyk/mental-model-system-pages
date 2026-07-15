@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-labelledby="t d">
+  <title id="t">カストディ帯</title>
+  <desc id="d">自己保管・IOU・SPV の三帯</desc>
+  <rect width="900" height="260" fill="#0b0c0c"/>
+
+  <text x="450" y="30" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">同じ「残高」でも信頼帯が違う</text>
+  <rect x="40" y="60" width="250" height="130" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+  <text x="165" y="100" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#7ec9a8">自己保管</text>
+  <text x="165" y="130" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">鍵＝支出権限</text>
+  <text x="165" y="152" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">フル検証と組める</text>
+  <rect x="325" y="60" width="250" height="130" fill="#161818" stroke="#f0ede6" stroke-dasharray="5 4" stroke-width="2"/>
+  <text x="450" y="100" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#f0ede6">カストディ</text>
+  <text x="450" y="130" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">会社への請求権(IOU)</text>
+  <text x="450" y="152" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">委任の帯</text>
+  <rect x="610" y="60" width="250" height="130" fill="#161818" stroke="#a8bdd0" stroke-width="2"/>
+  <text x="735" y="100" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#a8bdd0">軽量クライアント</text>
+  <text x="735" y="130" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">包含は示しうる</text>
+  <text x="735" y="152" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">規則適合は薄い</text>
+  <text x="450" y="230" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: 数字が同じでも、置いている信頼が違う。</text>
+
+</svg>

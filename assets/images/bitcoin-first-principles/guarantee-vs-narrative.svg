@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-labelledby="t d">
+  <title id="t">保証と物語の分離</title>
+  <desc id="d">プロトコル保証と制度位相の二列</desc>
+  <rect width="900" height="260" fill="#0b0c0c"/>
+
+  <text x="450" y="30" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">保証レイヤと物語・制度レイヤ</text>
+  <rect x="40" y="60" width="380" height="140" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+  <text x="230" y="100" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#7ec9a8">保証</text>
+  <text x="230" y="130" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">発行・履歴・受理／拒否</text>
+  <text x="230" y="155" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">公開検証できる約束</text>
+  <rect x="480" y="60" width="380" height="140" fill="#161818" stroke="#a8bdd0" stroke-dasharray="5 4" stroke-width="2"/>
+  <text x="670" y="100" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#a8bdd0">物語・制度</text>
+  <text x="670" y="130" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">見出し・証券枠・慣習</text>
+  <text x="670" y="155" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">ETP承認≠bitcoin推奨</text>
+  <text x="450" y="235" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: 今のニュースはどちらの時計か？</text>
+
+</svg>

@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 220" role="img" aria-labelledby="t d">
+  <title id="t">Bitcoin 層の全体地図</title>
+  <desc id="d">署名から社会像までの層を左から右へ示す</desc>
+  <rect width="960" height="220" fill="#0b0c0c"/>
+  <text x="480" y="32" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">Bitcoin の層地図（全体）</text>
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="20" y="56" width="110" height="88" fill="#161818" stroke="#a8bdd0" stroke-width="2"/>
+    <text x="75" y="92" text-anchor="middle" fill="#a8bdd0" font-weight="700">署名</text>
+    <text x="75" y="114" text-anchor="middle" fill="#b0aea6">誰が許可</text>
+    <path d="M134 100 H154" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="158" y="56" width="110" height="88" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="213" y="92" text-anchor="middle" fill="#f0ede6" font-weight="700">UTXO</text>
+    <text x="213" y="114" text-anchor="middle" fill="#b0aea6">何が未使用</text>
+    <path d="M272 100 H292" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="296" y="56" width="130" height="88" fill="#161818" stroke="#a8bdd0" stroke-width="2"/>
+    <text x="361" y="92" text-anchor="middle" fill="#a8bdd0" font-weight="700">伝播・PoW</text>
+    <text x="361" y="114" text-anchor="middle" fill="#b0aea6">どの履歴が正規</text>
+    <path d="M430 100 H450" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="454" y="56" width="110" height="88" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+    <text x="509" y="92" text-anchor="middle" fill="#7ec9a8" font-weight="700">検証</text>
+    <text x="509" y="114" text-anchor="middle" fill="#b0aea6">誰が執行</text>
+    <path d="M568 100 H588" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="592" y="56" width="120" height="88" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="652" y="92" text-anchor="middle" fill="#f0ede6" font-weight="700">ウォレット</text>
+    <text x="652" y="114" text-anchor="middle" fill="#b0aea6">送る経路</text>
+    <path d="M716 100 H736" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="740" y="56" width="100" height="88" fill="#161818" stroke="#3d3f3e" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="790" y="92" text-anchor="middle" fill="#f0ede6" font-weight="700">fork</text>
+    <text x="790" y="114" text-anchor="middle" fill="#b0aea6">更新の型</text>
+    <path d="M844 100 H864" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="868" y="56" width="72" height="88" fill="#161818" stroke="#3d3f3e" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="904" y="92" text-anchor="middle" fill="#b0aea6" font-weight="700">三軸</text>
+    <text x="904" y="114" text-anchor="middle" fill="#b0aea6">／社会</text>
+  </g>
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11">
+    <rect x="20" y="168" width="14" height="10" fill="#a8bdd0"/><text x="40" y="177" fill="#b0aea6">search/data (plus)</text>
+    <rect x="180" y="168" width="14" height="10" fill="#f0ede6"/><text x="200" y="177" fill="#b0aea6">transform (ink)</text>
+    <rect x="340" y="168" width="14" height="10" fill="#7ec9a8"/><text x="360" y="177" fill="#b0aea6">verify (green)</text>
+    <rect x="500" y="168" width="14" height="10" fill="none" stroke="#f0ede6" stroke-dasharray="3 2"/><text x="520" y="177" fill="#b0aea6">boundary (dashed)</text>
+    <text x="480" y="205" text-anchor="middle" fill="#b0aea6">Lesson: 「ブロックチェーン」一語で止まらず、信頼を置く層を問う。</text>
+  </g>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Rewrite Cost Lab — Bitcoin educational toy</title>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/tokens.css"/>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/sim-kit.css"/>
+<style>
+  :root {
+    color-scheme: dark;
+    --mm-paper: #0b0c0c; --mm-ink: #f0ede6; --mm-white: #161818; --mm-muted: #b0aea6;
+    --mm-line: #3d3f3e; --mm-green: #7ec9a8; --mm-plus: #a8bdd0;
+    --mm-gray-soft: #1c1e1e; --mm-green-soft: rgba(126,201,168,0.18);
+    --mm-plus-soft: rgba(168,189,208,0.22); --mm-gold-soft: rgba(240,237,230,0.10);
+    --mm-blue: var(--mm-plus); --mm-gold: var(--mm-ink); --mm-red: var(--mm-plus);
+    --mm-blue-soft: var(--mm-plus-soft); --mm-red-soft: rgba(168,189,208,0.16);
+    --mm-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  }
+  body { margin: 0; font: 14px/1.55 var(--mm-sans); color: var(--mm-ink); background: var(--mm-paper); padding: 20px;
+    background-image: radial-gradient(ellipse at 10% 20%, rgba(126,201,168,0.07), transparent 45%),
+      radial-gradient(ellipse at 85% 80%, rgba(168,189,208,0.08), transparent 48%); }
+  .sim-root { border: 1px solid var(--mm-line); background: var(--mm-white); padding: 18px; max-width: 920px; margin: 0 auto; }
+  .sim-title { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+  .sim-hard-claim { padding: 10px 12px; background: var(--mm-gold-soft); border-left: 3px solid var(--mm-ink); font-size: 13px; margin: 0 0 14px; }
+  .sim-controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin: 12px 0; }
+  .sim-controls label { font-size: 13px; color: var(--mm-muted); }
+  .sim-controls input[type="range"] { width: min(100%, 420px); }
+  .sim-btn { border: 1px solid var(--mm-line); background: var(--mm-paper); color: var(--mm-ink); padding: 6px 12px; cursor: pointer; font: inherit; }
+  .sim-btn:hover { background: var(--mm-plus-soft); }
+  .sim-btn.active { border-color: var(--mm-green); background: var(--mm-green-soft); }
+  .sim-status { margin-top: 10px; padding: 10px 12px; background: var(--mm-green-soft); font-size: 13px; }
+  .sim-status.caution { background: var(--mm-gold-soft); }
+  .sim-caption { margin: 12px 0 0; color: var(--mm-muted); font-size: 13px; }
+  .sim-fallback { margin-top: 12px; padding: 10px 12px; background: var(--mm-gray-soft); font-size: 12px; color: var(--mm-muted); }
+  .sim-canvas-wrap { margin: 10px 0; border: 1px solid var(--mm-line); background: var(--mm-paper); }
+  .metric-row { display: flex; flex-wrap: wrap; gap: 16px; font-size: 13px; color: var(--mm-muted); margin: 8px 0; }
+  .metric-row b { color: var(--mm-ink); }
+  .thermo-bar { height: 10px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); margin: 8px 0 14px; }
+  .thermo-fill { height: 100%; background: var(--mm-plus); width: 40%; transition: width 0.15s; }
+  .role-note { padding: 10px 12px; border: 1px solid var(--mm-line); background: var(--mm-paper); font-size: 13px; color: var(--mm-muted); margin-top: 10px; }
+  .role-note strong { color: var(--mm-ink); }
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <p class="sim-title">Rewrite Cost / Incentive Lab</p>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> 報酬・難易度・プールは履歴防衛の計算供給を勧誘し、立法はしない；エネルギーは役割コスト。</p>
+
+    <div class="sim-controls">
+      <button type="button" class="sim-btn active" id="modeShallow">A — 浅い確認（再編成しやすい）</button>
+      <button type="button" class="sim-btn" id="modeDeep">B — 深い確認（コスト増大）</button>
+    </div>
+
+    <label style="color:var(--mm-muted);font-size:13px;">確認数: <strong id="reworkNLabel">1</strong></label>
+    <input type="range" id="reworkN" min="0" max="12" value="1" style="width:100%;display:block;margin:8px 0;"/>
+    <div class="sim-canvas-wrap"><canvas id="reworkCanvas" width="900" height="160" aria-label="書き換えコスト"></canvas></div>
+    <p class="sim-status" id="reworkStatus"></p>
+
+    <p style="font-size:13px;color:var(--mm-muted);margin:16px 0 6px;">難易度サーモスタット（勧誘のリズム — 立法ではない）</p>
+    <label style="color:var(--mm-muted);font-size:13px;">相対ハッシュレート: <strong id="hashrateLabel">1.0×</strong></label>
+    <input type="range" id="hashrateSlider" min="10" max="400" value="100" style="width:100%;display:block;margin:8px 0;"/>
+    <div class="metric-row">
+      <span>調整前の平均間隔: <b id="intervalBefore">10.0</b> 分</span>
+      <span>難易度倍数: <b id="diffMult">1.00×</b></span>
+      <span>調整後の平均間隔: <b id="intervalAfter">10.0</b> 分</span>
+    </div>
+    <div class="thermo-bar" aria-hidden="true"><div class="thermo-fill" id="thermoFill"></div></div>
+    <div class="sim-canvas-wrap"><canvas id="diffCanvas" width="900" height="140" aria-label="難易度調整の可視化"></canvas></div>
+    <p class="sim-status" id="diffStatus">ハッシュレートを変えると、調整前後の鼓動が見えます。</p>
+
+    <div class="role-note">
+      <strong>役割の境界:</strong> 報酬・難易度・プールは計算供給を勧誘する。規則（コインベース上限・二重支払い禁止など）を書く立法者ではない。
+      エネルギーは「公開網上で履歴を防衛する役割コスト」であり、Lab は道徳判決を下さない。
+      <div class="sim-controls" style="margin-bottom:0;">
+        <button type="button" class="sim-btn" id="btnPool">プールがハッシュを集める（勧誘）</button>
+        <button type="button" class="sim-btn" id="btnLegislate">「マイナーが規則を変える」を試す → 拒否</button>
+      </div>
+      <p class="sim-status reject" id="roleStatus" style="display:none;background:var(--mm-plus-soft);"></p>
+    </div>
+
+    <p class="sim-caption">Lesson: 確認は感覚ではなく再編成コスト。難易度は鼓動のサーモスタット。マイナー ≠ 立法者。</p>
+    <p class="sim-fallback"><strong>簡略化の開示：</strong> 教材トイです。実ハッシュレート市場・CBECI・プール ROI は再現しません。固定したいのは「積むほど書換は高い」「報酬／難易度は勧誘」「エネルギーは役割コスト」です。</p>
+  </div>
+<script>
+(function () {
+  var C = { paper: "#0b0c0c", ink: "#f0ede6", muted: "#b0aea6", line: "#3d3f3e", green: "#7ec9a8", plus: "#a8bdd0" };
+  function fitCanvas(c) {
+    if (!c) return null;
+    if (!c.dataset.logicH) c.dataset.logicH = c.getAttribute("height") || "160";
+    var parent = c.parentElement || c;
+    var rect = parent.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(280, Math.floor(rect.width || 300));
+    var h = parseInt(c.dataset.logicH, 10) || 160;
+    var bw = Math.floor(w * dpr), bh = Math.floor(h * dpr);
+    if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+    c.style.width = "100%"; c.style.height = h + "px";
+    var ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, w: w, h: h };
+  }
+
+  function drawRework() {
+    var c = document.getElementById("reworkCanvas");
+    var n = parseInt(document.getElementById("reworkN").value, 10);
+    document.getElementById("reworkNLabel").textContent = String(n);
+    var f = fitCanvas(c); if (!f) return;
+    var ctx = f.ctx, w = f.w, h = f.h;
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, w, h);
+    for (var i = 0; i <= 12; i++) {
+      var x = 40 + i * ((w - 80) / 12);
+      var hh = 20 + i * i * 0.9;
+      ctx.fillStyle = i <= n ? C.green : C.line;
+      ctx.fillRect(x, h - 30 - hh, 18, hh);
+    }
+    var cost = n * n;
+    var st = document.getElementById("reworkStatus");
+    st.className = "sim-status" + (n <= 2 ? " caution" : "");
+    st.textContent = "確認 " + n + " → 相対再実行コスト ≈ " + cost +
+      (n <= 2
+        ? "（浅い: 攻撃者の再実行は相対的に安い）"
+        : n >= 6
+          ? "（深い: 実務上十分大きくなる近傍。6は魔法数ではない）"
+          : "（模式。実網はハッシュレートと確率の関数）");
+    document.getElementById("modeShallow").classList.toggle("active", n <= 2);
+    document.getElementById("modeDeep").classList.toggle("active", n >= 6);
+  }
+
+  function renderDiff() {
+    var hr = parseInt(document.getElementById("hashrateSlider").value, 10) / 100;
+    document.getElementById("hashrateLabel").textContent = hr.toFixed(1) + "×";
+    var before = 10 / hr;
+    var mult = hr;
+    var after = 10;
+    document.getElementById("intervalBefore").textContent = before.toFixed(1);
+    document.getElementById("diffMult").textContent = mult.toFixed(2) + "×";
+    document.getElementById("intervalAfter").textContent = after.toFixed(1);
+    document.getElementById("thermoFill").style.width = Math.min(100, hr * 40) + "%";
+    document.getElementById("diffStatus").textContent =
+      "ハッシュレート " + hr.toFixed(1) + "× の直後は約 " + before.toFixed(1) +
+      " 分間隔になるが、調整後は難易度 " + mult.toFixed(2) + "× で再び約10分へ戻る。報酬・難易度は供給を勧誘し、規則は変えない。";
+    var c = document.getElementById("diffCanvas");
+    var f = fitCanvas(c); if (!f) return;
+    var ctx = f.ctx, w = f.w, h = f.h;
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, w, h);
+    function beats(y, intervalMin, color, label) {
+      var gap = Math.max(8, (intervalMin / 10) * 28);
+      ctx.fillStyle = color;
+      for (var x = 40; x < w - 40; x += gap) ctx.fillRect(x, y, 6, 28);
+      ctx.fillStyle = C.muted; ctx.font = "12px sans-serif";
+      ctx.fillText(label, 40, y - 8);
+    }
+    beats(48, before, C.plus, "調整前の出塊（模式）");
+    beats(100, after, C.green, "調整後 ≈ 10分リズム");
+  }
+
+  document.getElementById("reworkN").addEventListener("input", drawRework);
+  document.getElementById("modeShallow").onclick = function () {
+    document.getElementById("reworkN").value = 1;
+    drawRework();
+  };
+  document.getElementById("modeDeep").onclick = function () {
+    document.getElementById("reworkN").value = 6;
+    drawRework();
+  };
+  document.getElementById("hashrateSlider").addEventListener("input", renderDiff);
+
+  document.getElementById("btnPool").onclick = function () {
+    var el = document.getElementById("roleStatus");
+    el.style.display = "block";
+    el.className = "sim-status";
+    el.style.background = "";
+    el.textContent = "プールはハッシュ供給を束ねる勧誘装置。出塊確率は上がるが、無効規則を立法する権限は持たない。";
+    var s = document.getElementById("hashrateSlider");
+    s.value = Math.min(400, parseInt(s.value, 10) + 80);
+    renderDiff();
+  };
+  document.getElementById("btnLegislate").onclick = function () {
+    var el = document.getElementById("roleStatus");
+    el.style.display = "block";
+    el.className = "sim-status reject";
+    el.style.background = "rgba(168,189,208,0.16)";
+    el.textContent = "拒否: マイナー／プールは候補提案者。コインベース上限や二重支払い禁止を書き換える立法権はない。フルノードが規則で棄却する。";
+  };
+
+  window.addEventListener("resize", function () { drawRework(); renderDiff(); });
+  drawRework();
+  renderDiff();
+})();
+</script>
+</body>
+</html>
