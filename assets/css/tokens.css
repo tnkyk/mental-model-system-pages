@@ -1,31 +1,41 @@
 :root {
-  /* Dark editorial longform — black page, light ink */
+  /* Bitcoin-JA-like longform: black / gray / white / green / +1 */
   color-scheme: dark;
-  --mm-ink: #f2f3f0;
-  --mm-muted: #c2c3bf;
-  --mm-paper: #151716;
-  --mm-white: #1e201e;
-  --mm-line: #393b38;
-  --mm-navy: #e8ebe6;
+  --mm-paper: #0b0c0c;          /* black */
+  --mm-ink: #dedbd3;            /* warm white */
+  --mm-white: #111313;          /* surface (near-black) */
+  --mm-muted: #898984;          /* gray */
+  --mm-line: #2a2c2b;           /* gray line */
+  --mm-gray: #898984;
+  --mm-gray-soft: #171919;
+  --mm-navy: #dedbd3;
 
-  --mm-blue: #6eb6e8;
-  --mm-blue-soft: rgba(22, 119, 184, 0.22);
-  --mm-gold: #d4a017;
-  --mm-gold-soft: rgba(183, 121, 18, 0.24);
-  --mm-green: #35d0bb;
-  --mm-green-soft: rgba(53, 208, 187, 0.16);
-  --mm-red: #e07072;
-  --mm-red-soft: rgba(181, 71, 73, 0.24);
-  --mm-gray: #a9aaa5;
-  --mm-gray-soft: #1e201e;
+  --mm-green: #70b796;          /* green */
+  --mm-green-soft: rgba(112, 183, 150, 0.14);
+  --mm-accent: #70b796;
 
-  --mm-max: 1100px;
-  --mm-reading: 820px;
-  --mm-header-h: 58px;
-  --mm-font: "IBM Plex Sans", "Noto Sans JP", "Hiragino Sans", "Yu Gothic UI", sans-serif;
-  --mm-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  /* +1 only — cool steel for diagram “search / structure” */
+  --mm-plus: #9eb0c0;
+  --mm-plus-soft: rgba(158, 176, 192, 0.16);
 
-  --mm-accent: #35d0bb;
-  --mm-code-bg: #1e201e;
-  --mm-header-bg: rgba(21, 23, 22, 0.92);
+  /* Legacy aliases → 5-color system (no blue/gold/red on page) */
+  --mm-blue: var(--mm-plus);
+  --mm-blue-soft: var(--mm-plus-soft);
+  --mm-gold: var(--mm-ink);
+  --mm-gold-soft: rgba(222, 219, 211, 0.08);
+  --mm-red: var(--mm-muted);
+  --mm-red-soft: rgba(137, 137, 132, 0.14);
+
+  --mm-max: 1120px;
+  --mm-reading: 720px;
+  --mm-header-h: 72px;
+
+  /* Match bitcoin-first-principles-ja: serif body, sans UI */
+  --mm-serif: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", Georgia, serif;
+  --mm-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "IBM Plex Sans", sans-serif;
+  --mm-font: var(--mm-serif);
+  --mm-mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  --mm-code-bg: #171919;
+  --mm-header-bg: rgba(11, 12, 12, 0.92);
 }

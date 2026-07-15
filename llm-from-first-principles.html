@@ -2,24 +2,24 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="theme-color" content="#151716">
+  <meta name="theme-color" content="#0b0c0c">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LLMのできること／できないことを第一原理で切り出し、検索＋翻訳として圧縮したうえで、Context Engineering とワークフロー設計として使い方を再構築する。">
-  <title>結局LLMは何ができて何ができないのか | Mental Model Studio</title>
+  <meta name="description" content="LLM, from First Principles — 検索＋翻訳として切り出し、Context Engineering とワークフロー設計まで第一原理で再構築する。">
+  <title>LLM , from First Principles | Mental Models</title>
   <link rel="stylesheet" href="./assets/css/site.css">
   <link rel="stylesheet" href="./assets/css/sim-kit.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
   
 <style>
   /* —— Article shell + TOC rail (Faza-like) —— */
   .article-shell {
     display: grid;
-    gap: 2.5rem;
+    gap: 3.5rem;
     width: min(1180px, calc(100% - 48px));
     margin: 0 auto;
-    padding: 28px 0 96px;
+    padding: 40px 0 128px;
     align-items: start;
   }
   @media (min-width: 1100px) {
@@ -37,11 +37,22 @@
     .article-main { order: 1; }
   }
   .article-main {
-    max-width: 860px;
+    max-width: 720px;
     min-width: 0;
   }
+  .article-main p { margin: 0 0 28px; font-size: 18px; line-height: 2.05; }
+  .article-main h2 {
+    font-family: var(--mm-sans, sans-serif);
+    margin: 0 0 40px;
+    font-size: clamp(28px, 4vw, 40px);
+    font-weight: 600; letter-spacing: -0.03em;
+  }
+  .chapter-kicker {
+    color: var(--mm-green); font: 10px/1 var(--mm-mono);
+    letter-spacing: 0.16em; margin-bottom: 18px; display: inline-block;
+  }
   .article-main .section {
-    padding: 40px 0;
+    padding: 72px 0;
     border-bottom: 1px solid var(--mm-line);
     scroll-margin-top: 76px;
   }
@@ -117,7 +128,7 @@
   .soft-aim {
     margin: 0 0 8px;
     padding: 22px 24px;
-    border: 1px solid rgba(53, 208, 187, 0.35);
+    border: 1px solid rgba(112, 183, 150, 0.35);
     border-left: 3px solid var(--mm-green);
     background: var(--mm-green-soft);
   }
@@ -157,7 +168,7 @@
     font-weight: 800;
   }
   .scope-card.do h4 { color: var(--mm-green); }
-  .scope-card.dont h4 { color: var(--mm-red); }
+  .scope-card.dont h4 { color: var(--mm-muted); }
   .scope-card ul { margin: 0 0 8px; padding-left: 1.2em; font-size: 14.5px; }
 
   /* Roadmap path */
@@ -247,9 +258,9 @@
     border: 1px solid var(--mm-line);
     background: var(--mm-white);
   }
-  .callout-example { border-left: 3px solid var(--mm-gold); }
-  .callout-warn { border-left: 3px solid var(--mm-red); }
-  .callout-next { border-left: 3px solid var(--mm-blue); }
+  .callout-example { border-left: 3px solid var(--mm-plus); }
+  .callout-warn { border-left: 3px solid var(--mm-muted); }
+  .callout-next { border-left: 3px solid var(--mm-green); }
   .cap-label {
     margin: 0 0 6px;
     font-size: 11px;
@@ -259,15 +270,15 @@
     color: var(--mm-gray);
   }
   .lead-para.dwell {
-    font-size: 18px;
-    line-height: 1.8;
+    font-size: 21px;
+    line-height: 2;
     color: var(--mm-ink);
   }
   .pull-quote {
-    margin: 22px 0;
-    padding: 14px 18px;
-    border-left: 3px solid var(--mm-gold);
-    background: var(--mm-gold-soft);
+    margin: 40px 0;
+    padding: 22px 28px;
+    border-left: 2px solid var(--mm-green);
+    background: transparent;
     color: var(--mm-ink);
     font-size: 16.5px;
     line-height: 1.7;
@@ -295,7 +306,7 @@
 
   /* Editorial figures */
   figure.diagram {
-    margin: 28px 0;
+    margin: 48px 0 56px;
     padding: 20px 18px 16px;
     border: 1px solid var(--mm-line);
     background: var(--mm-white);
@@ -459,7 +470,7 @@
   <header class="article-head">
     <div class="wrap">
       <p class="kicker">Machine learning · Sequence models · Inference systems</p>
-      <h1>結局LLMは何ができて何ができないのか</h1>
+      <h1>LLM , from First Principles</h1>
       <p class="dek">根源機能は検索と翻訳——思考主体ではない。窓の設計と外側のワークフローに、信頼と作業を置く。</p>
       <p class="meta">Mental Model Studio · 2026-07-15 · Labs ×5（教育用トイ） · 性能予言・投資助言ではない</p>
     </div>
@@ -523,30 +534,30 @@
           <span><span class="swatch red"></span>権限</span>
         </div>
         <svg viewBox="0 0 720 260" role="img" xmlns="http://www.w3.org/2000/svg">
-          <text x="24" y="28" fill="#c2c3bf" font-size="11">横＝利用の流れ　／　縦＝信頼の層</text>
+          <text x="24" y="28" fill="#898984" font-size="11">横＝利用の流れ　／　縦＝信頼の層</text>
           <!-- top: search → translate -->
-          <rect x="40" y="48" width="200" height="56" rx="4" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)" stroke-width="1.5"/>
-          <text x="140" y="72" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">検索</text>
-          <text x="140" y="90" text-anchor="middle" fill="#c2c3bf" font-size="11">材料の関連づけ・取得</text>
+          <rect x="40" y="48" width="200" height="56" rx="4" fill="rgba(158,176,192,0.16)" stroke="var(--mm-plus)" stroke-width="1.5"/>
+          <text x="140" y="72" text-anchor="middle" fill="var(--mm-plus)" font-size="13" font-weight="700">検索</text>
+          <text x="140" y="90" text-anchor="middle" fill="#898984" font-size="11">材料の関連づけ・取得</text>
           <path d="M250 76 H300" stroke="var(--mm-gray)" stroke-width="1.5"/>
-          <rect x="300" y="48" width="200" height="56" rx="4" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)" stroke-width="1.5"/>
-          <text x="400" y="72" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">翻訳</text>
-          <text x="400" y="90" text-anchor="middle" fill="#c2c3bf" font-size="11">条件付き次トークン</text>
+          <rect x="300" y="48" width="200" height="56" rx="4" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)" stroke-width="1.5"/>
+          <text x="400" y="72" text-anchor="middle" fill="var(--mm-ink)" font-size="13" font-weight="700">翻訳</text>
+          <text x="400" y="90" text-anchor="middle" fill="#898984" font-size="11">条件付き次トークン</text>
           <path d="M510 76 H560" stroke="var(--mm-gray)" stroke-width="1.5"/>
           <rect x="560" y="48" width="120" height="56" rx="4" fill="none" stroke="var(--mm-ink)" stroke-width="1" stroke-dasharray="3 3"/>
           <text x="620" y="72" text-anchor="middle" fill="var(--mm-ink)" font-size="12" font-weight="700">出力</text>
-          <text x="620" y="90" text-anchor="middle" fill="#c2c3bf" font-size="10">流暢な続き</text>
+          <text x="620" y="90" text-anchor="middle" fill="#898984" font-size="10">流暢な続き</text>
           <!-- mid: context / stacks -->
           <rect x="40" y="124" width="640" height="48" rx="4" fill="rgba(169,170,165,0.12)" stroke="var(--mm-gray)" stroke-width="1.2"/>
           <text x="360" y="146" text-anchor="middle" fill="var(--mm-gray)" font-size="12" font-weight="700">有限の窓（Context）· 学習／推論の往復</text>
-          <text x="360" y="162" text-anchor="middle" fill="#c2c3bf" font-size="10">入れた≠使える · 遅さは KV／decode 側が多い</text>
+          <text x="360" y="162" text-anchor="middle" fill="#898984" font-size="10">入れた≠使える · 遅さは KV／decode 側が多い</text>
           <!-- bottom: outer -->
-          <rect x="40" y="192" width="300" height="48" rx="4" fill="rgba(53,208,187,0.12)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <rect x="40" y="192" width="300" height="48" rx="4" fill="rgba(112,183,150,0.12)" stroke="var(--mm-green)" stroke-width="1.5"/>
           <text x="190" y="214" text-anchor="middle" fill="var(--mm-green)" font-size="12" font-weight="700">外側：検証・停止</text>
-          <text x="190" y="230" text-anchor="middle" fill="#c2c3bf" font-size="10">完了条件はハーネス側</text>
-          <rect x="380" y="192" width="300" height="48" rx="4" fill="rgba(181,71,73,0.12)" stroke="var(--mm-red)" stroke-width="1.5"/>
-          <text x="530" y="214" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">外側：権限・価値</text>
-          <text x="530" y="230" text-anchor="middle" fill="#c2c3bf" font-size="10">人間・制度が残す</text>
+          <text x="190" y="230" text-anchor="middle" fill="#898984" font-size="10">完了条件はハーネス側</text>
+          <rect x="380" y="192" width="300" height="48" rx="4" fill="rgba(137,137,132,0.12)" stroke="var(--mm-muted)" stroke-width="1.5"/>
+          <text x="530" y="214" text-anchor="middle" fill="var(--mm-muted)" font-size="12" font-weight="700">外側：権限・価値</text>
+          <text x="530" y="230" text-anchor="middle" fill="#898984" font-size="10">人間・制度が残す</text>
         </svg>
         <figcaption>LLM は検索＋翻訳の部品。信頼と作業は窓の設計と、外側のワークフロー（検証・停止・権限）に置く。</figcaption>
       </figure>
@@ -622,7 +633,8 @@
       </div>
     </section>
     <section class="section" id="stakes">
-      <h2><span class="node-num">1.</span> 上手いのに信用できない日常から問いを立てる</h2>
+      <span class="chapter-kicker">CHAPTER 01</span>
+      <h2>上手いのに信用できない日常から問いを立てる</h2>
       <p>あなたはすでに、チャットAIと会話するたびに「相手が賢い」と感じた瞬間があるはずだ。返事は整っている。語尾は自信に満ちている。読みやすい。だから、そのまま共有してしまう。会議資料に貼る。上司に送る。自分の判断の代わりに、生成された文章を差し出す。</p>
       <p>そして後から、火傷する。</p>
       <p>数字が逆だった。論点がすり替わっていた。同じ質問なのに別の答えが返ってきた。長い会話のあと、最初に信頼していた部分だけが靄んだ。こういう体験をした人は少なくない。それでも多くの人は、失敗のあとに「自分のプロンプトが下手だった」「まだ○代モデルでは足りない」と帰属する。あなただけが使い方が未熟なわけではない、という保証もなく、逆に「全部信用できない」と諦める人もいる。</p>
@@ -655,7 +667,8 @@
       </div>
     </section>
     <section class="section" id="frame">
-      <h2><span class="node-num">2.</span> 記号列の予測へ立て直し、検索と翻訳として圧縮する</h2>
+      <span class="chapter-kicker">CHAPTER 02</span>
+      <h2>記号列の予測へ立て直し、検索と翻訳として圧縮する</h2>
       <p>前章で共有した問い——「結局何ができて、どう使えばいいか」——に答えるには、まず製品カタログや「賢い相手」という見方を置き換える必要がある。本章では、大規模言語モデル（LLM）が<strong>実際に扱っているもの</strong>を一文の型で固定し、利用者向けに<strong>検索＋翻訳</strong>という圧縮フレームへ写す。中身の機構語（注意・自己回帰・トークン化）は次章以降で開く。ここでは、判断のための型と写像先の辞書だけを残す。</p>
       <h3>まず型だけ：モデルが扱うもの</h3>
       <p>モデルが扱うのは、離散記号（トークン）の列 \(x = (x_1, x_2, \ldots)\) 上の<strong>条件付き分布</strong>である。与えられた前文 \(x_{<t} = (x_1, \ldots, x_{t-1})\) に対し、次の記号 \(x_t\) がどれだけありそうかを表す確率 \(P(x_t \mid x_{<t})\) を出力し、選ばれた1トークンを前文に足して、また次を予測する——この左から順への延長が<strong>自己回帰</strong>である<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a>。大規模言語モデルの事前学習は、インターネット規模のテキストで、この「次のトークン当て」を繰り返し学習させる方式に帰着する<a class="fn-ref" href="#ref-2">(*2)</a>。</p>
@@ -690,17 +703,17 @@
           <span><span class="swatch green"></span>検証（外側）</span>
         </div>
         <svg viewBox="0 0 720 140" role="img" xmlns="http://www.w3.org/2000/svg">
-          <rect x="40" y="40" width="160" height="60" rx="4" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)" stroke-width="1.5"/>
-          <text x="120" y="68" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">検索</text>
-          <text x="120" y="86" text-anchor="middle" fill="#c2c3bf" font-size="11">窓内注意 · RAG</text>
+          <rect x="40" y="40" width="160" height="60" rx="4" fill="rgba(158,176,192,0.16)" stroke="var(--mm-plus)" stroke-width="1.5"/>
+          <text x="120" y="68" text-anchor="middle" fill="var(--mm-plus)" font-size="13" font-weight="700">検索</text>
+          <text x="120" y="86" text-anchor="middle" fill="#898984" font-size="11">窓内注意 · RAG</text>
           <path d="M210 70 H260" stroke="var(--mm-gray)" stroke-width="1.5"/>
-          <rect x="260" y="40" width="160" height="60" rx="4" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)" stroke-width="1.5"/>
-          <text x="340" y="68" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">翻訳</text>
-          <text x="340" y="86" text-anchor="middle" fill="#c2c3bf" font-size="11">条件付き生成</text>
+          <rect x="260" y="40" width="160" height="60" rx="4" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)" stroke-width="1.5"/>
+          <text x="340" y="68" text-anchor="middle" fill="var(--mm-ink)" font-size="13" font-weight="700">翻訳</text>
+          <text x="340" y="86" text-anchor="middle" fill="#898984" font-size="11">条件付き生成</text>
           <path d="M430 70 H480" stroke="var(--mm-gray)" stroke-width="1.5"/>
-          <rect x="480" y="40" width="160" height="60" rx="4" fill="rgba(53,208,187,0.12)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <rect x="480" y="40" width="160" height="60" rx="4" fill="rgba(112,183,150,0.12)" stroke="var(--mm-green)" stroke-width="1.5"/>
           <text x="560" y="68" text-anchor="middle" fill="var(--mm-green)" font-size="13" font-weight="700">検証</text>
-          <text x="560" y="86" text-anchor="middle" fill="#c2c3bf" font-size="11">人間側に残る</text>
+          <text x="560" y="86" text-anchor="middle" fill="#898984" font-size="11">人間側に残る</text>
         </svg>
         <figcaption>思考主体ではなく部品。上手い出力も、検証なしでは信頼にならない。</figcaption>
       </figure>
@@ -736,7 +749,8 @@
       </div>
     </section>
     <section class="section" id="mechanism">
-      <h2><span class="node-num">3.</span> 中で何が起きているか——トークン、注意、自己回帰</h2>
+      <span class="chapter-kicker">CHAPTER 03</span>
+      <h2>中で何が起きているか——トークン、注意、自己回帰</h2>
       <p>前章で固定した型——記号列上の条件付き予測 <code>P(x_t|x_&lt;t)</code> と、利用者向けの <strong>検索＋翻訳</strong>——は、まだ写像の宣言にすぎない。本章はその箱を開ける。操作可能な部品は三つだけ——<strong>切る</strong>（離散トークン化）、<strong>関連づける</strong>（注意）、<strong>順に出す</strong>（自己回帰）——であり、以後の章で出てくる窓設計・目的関数・切り出し・速度の話は、すべてこの三つが重なった上に載る。</p>
 
       <figure class="diagram" aria-label="トークンから次トークンへ">
@@ -749,17 +763,35 @@
         <svg viewBox="0 0 720 150" role="img" xmlns="http://www.w3.org/2000/svg">
           <rect x="30" y="50" width="120" height="56" rx="4" fill="rgba(169,170,165,0.15)" stroke="var(--mm-gray)" stroke-width="1.5"/>
           <text x="90" y="76" text-anchor="middle" fill="var(--mm-gray)" font-size="13" font-weight="700">トークン化</text>
-          <text x="90" y="94" text-anchor="middle" fill="#c2c3bf" font-size="10">単語≠トークン</text>
+          <text x="90" y="94" text-anchor="middle" fill="#898984" font-size="10">単語≠トークン</text>
           <path d="M160 78 H210" stroke="var(--mm-gray)" stroke-width="1.5"/>
-          <rect x="210" y="50" width="160" height="56" rx="4" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)" stroke-width="1.5"/>
-          <text x="290" y="76" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">Attention</text>
-          <text x="290" y="94" text-anchor="middle" fill="#c2c3bf" font-size="10">加重関連づけ</text>
+          <rect x="210" y="50" width="160" height="56" rx="4" fill="rgba(158,176,192,0.16)" stroke="var(--mm-plus)" stroke-width="1.5"/>
+          <text x="290" y="76" text-anchor="middle" fill="var(--mm-plus)" font-size="13" font-weight="700">Attention</text>
+          <text x="290" y="94" text-anchor="middle" fill="#898984" font-size="10">加重関連づけ</text>
           <path d="M380 78 H430" stroke="var(--mm-gray)" stroke-width="1.5"/>
-          <rect x="430" y="50" width="240" height="56" rx="4" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)" stroke-width="1.5"/>
-          <text x="550" y="76" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">P(next | context)</text>
-          <text x="550" y="94" text-anchor="middle" fill="#c2c3bf" font-size="10">自己回帰で1つ選ぶ</text>
+          <rect x="430" y="50" width="240" height="56" rx="4" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)" stroke-width="1.5"/>
+          <text x="550" y="76" text-anchor="middle" fill="var(--mm-ink)" font-size="13" font-weight="700">P(next | context)</text>
+          <text x="550" y="94" text-anchor="middle" fill="#898984" font-size="10">自己回帰で1つ選ぶ</text>
         </svg>
         <figcaption>検索メタファーは注意、翻訳は逐次生成。どちらも有限窓の上でしか起きない。</figcaption>
+      </figure>
+
+      <figure class="sourced paper-fig" aria-label="Transformer — model architecture（論文図）">
+        <p class="fig-title" style="font-family:var(--mm-sans);font-size:14px;font-weight:700;margin:0 0 14px;color:var(--mm-ink)">Transformer — model architecture（論文図）</p>
+        <img src="./assets/figures/llm/transformer-architecture.png" alt="Transformer — model architecture（論文図）" loading="lazy">
+        <figcaption>
+          Encoder / Decoder の積み重ねと Multi-Head Attention。現代の LLM 系譜の骨格。
+          <span class="fig-source">Source: <a href="https://arxiv.org/abs/1706.03762" rel="noopener noreferrer">Vaswani et al., Attention Is All You Need (2017), Figure 1</a></span>
+        </figcaption>
+      </figure>
+
+      <figure class="sourced paper-fig" aria-label="Multi-Head Attention（論文図）">
+        <p class="fig-title" style="font-family:var(--mm-sans);font-size:14px;font-weight:700;margin:0 0 14px;color:var(--mm-ink)">Multi-Head Attention（論文図）</p>
+        <img src="./assets/figures/llm/transformer-mha.png" alt="Multi-Head Attention（論文図）" loading="lazy">
+        <figcaption>
+          複数の注意ヘッドを並列に走らせ、結合する。注意は「混合」であることの原図。
+          <span class="fig-source">Source: <a href="https://arxiv.org/abs/1706.03762" rel="noopener noreferrer">Vaswani et al., Attention Is All You Need (2017), Figure 2 (right)</a></span>
+        </figcaption>
       </figure>
       <h3>まず離散化——テキストを記号列に切る</h3>
       <p>コンピュータが扱えるのは有限の記号列である。連続的なテキストをそのまま渡せないので、最初の段で <strong>離散トークン列</strong> へ落とす。ここが全処理の入口であり、検索も翻訳も、この列の上でしか起きない。</p>
@@ -816,34 +848,34 @@
           <span><span class="swatch gray"></span>インフラ／時間</span>
         </div>
         <svg viewBox="0 0 720 200" role="img" xmlns="http://www.w3.org/2000/svg">
-          <text x="180" y="28" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">Train — 位置を並列に当てる</text>
-          <rect x="40" y="48" width="70" height="44" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
-          <text x="75" y="75" text-anchor="middle" fill="var(--mm-gold)" font-size="12">t₁</text>
-          <rect x="120" y="48" width="70" height="44" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
-          <text x="155" y="75" text-anchor="middle" fill="var(--mm-gold)" font-size="12">t₂</text>
-          <rect x="200" y="48" width="70" height="44" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
-          <text x="235" y="75" text-anchor="middle" fill="var(--mm-gold)" font-size="12">t₃</text>
-          <rect x="280" y="48" width="70" height="44" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
-          <text x="315" y="75" text-anchor="middle" fill="var(--mm-gold)" font-size="12">t₄</text>
-          <text x="180" y="118" text-anchor="middle" fill="#c2c3bf" font-size="11">正解列が与えられ、各位置の損失を同時計算</text>
+          <text x="180" y="28" text-anchor="middle" fill="var(--mm-ink)" font-size="13" font-weight="700">Train — 位置を並列に当てる</text>
+          <rect x="40" y="48" width="70" height="44" rx="3" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)"/>
+          <text x="75" y="75" text-anchor="middle" fill="var(--mm-ink)" font-size="12">t₁</text>
+          <rect x="120" y="48" width="70" height="44" rx="3" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)"/>
+          <text x="155" y="75" text-anchor="middle" fill="var(--mm-ink)" font-size="12">t₂</text>
+          <rect x="200" y="48" width="70" height="44" rx="3" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)"/>
+          <text x="235" y="75" text-anchor="middle" fill="var(--mm-ink)" font-size="12">t₃</text>
+          <rect x="280" y="48" width="70" height="44" rx="3" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)"/>
+          <text x="315" y="75" text-anchor="middle" fill="var(--mm-ink)" font-size="12">t₄</text>
+          <text x="180" y="118" text-anchor="middle" fill="#898984" font-size="11">正解列が与えられ、各位置の損失を同時計算</text>
           <rect x="40" y="132" width="310" height="28" rx="3" fill="rgba(169,170,165,0.14)" stroke="var(--mm-gray)"/>
           <text x="195" y="151" text-anchor="middle" fill="var(--mm-gray)" font-size="11">バッチ並列 · GPU 上で一括</text>
-          <text x="540" y="28" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">Infer — 1トークンずつ足す</text>
-          <rect x="400" y="48" width="56" height="36" rx="3" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)"/>
-          <text x="428" y="71" text-anchor="middle" fill="var(--mm-blue)" font-size="12">x₁</text>
+          <text x="540" y="28" text-anchor="middle" fill="var(--mm-plus)" font-size="13" font-weight="700">Infer — 1トークンずつ足す</text>
+          <rect x="400" y="48" width="56" height="36" rx="3" fill="rgba(158,176,192,0.16)" stroke="var(--mm-plus)"/>
+          <text x="428" y="71" text-anchor="middle" fill="var(--mm-plus)" font-size="12">x₁</text>
           <path d="M456 66 H478" stroke="var(--mm-gray)" stroke-width="1.4"/>
-          <rect x="478" y="48" width="56" height="36" rx="3" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)"/>
-          <text x="506" y="71" text-anchor="middle" fill="var(--mm-blue)" font-size="12">x₂</text>
+          <rect x="478" y="48" width="56" height="36" rx="3" fill="rgba(158,176,192,0.16)" stroke="var(--mm-plus)"/>
+          <text x="506" y="71" text-anchor="middle" fill="var(--mm-plus)" font-size="12">x₂</text>
           <path d="M534 66 H556" stroke="var(--mm-gray)" stroke-width="1.4"/>
-          <rect x="556" y="48" width="56" height="36" rx="3" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)"/>
-          <text x="584" y="71" text-anchor="middle" fill="var(--mm-blue)" font-size="12">x₃</text>
+          <rect x="556" y="48" width="56" height="36" rx="3" fill="rgba(158,176,192,0.16)" stroke="var(--mm-plus)"/>
+          <text x="584" y="71" text-anchor="middle" fill="var(--mm-plus)" font-size="12">x₃</text>
           <path d="M612 66 H634" stroke="var(--mm-gray)" stroke-width="1.4"/>
-          <rect x="634" y="48" width="56" height="36" rx="3" fill="rgba(22,119,184,0.12)" stroke="var(--mm-blue)" stroke-dasharray="3 2"/>
-          <text x="662" y="71" text-anchor="middle" fill="var(--mm-blue)" font-size="12">…</text>
-          <text x="545" y="118" text-anchor="middle" fill="#c2c3bf" font-size="11">自分が出したトークンが次の条件になる</text>
+          <rect x="634" y="48" width="56" height="36" rx="3" fill="rgba(158,176,192,0.10)" stroke="var(--mm-plus)" stroke-dasharray="3 2"/>
+          <text x="662" y="71" text-anchor="middle" fill="var(--mm-plus)" font-size="12">…</text>
+          <text x="545" y="118" text-anchor="middle" fill="#898984" font-size="11">自分が出したトークンが次の条件になる</text>
           <rect x="400" y="132" width="290" height="28" rx="3" fill="rgba(169,170,165,0.14)" stroke="var(--mm-gray)"/>
           <text x="545" y="151" text-anchor="middle" fill="var(--mm-gray)" font-size="11">逐次 decode · 時間は列に比例</text>
-          <text x="360" y="188" text-anchor="middle" fill="#c2c3bf" font-size="11">同じ重みでも、時間の使い方は非対称——「遅い＝考えている」ではない</text>
+          <text x="360" y="188" text-anchor="middle" fill="#898984" font-size="11">同じ重みでも、時間の使い方は非対称——「遅い＝考えている」ではない</text>
         </svg>
         <figcaption>学習並列／推論逐次。遅さの帰属は後章の KV・帯域へ渡す。</figcaption>
       </figure>
@@ -862,7 +894,8 @@
       </div>
     </section>
     <section class="section" id="training">
-      <h2><span class="node-num">4.</span> 何を学び、どう癖づき、どう切り出すか</h2>
+      <span class="chapter-kicker">CHAPTER 04</span>
+      <h2>何を学び、どう癖づき、どう切り出すか</h2>
       <p>前章までで、テキストはトークン列に切られ、注意で窓内の材料が関連づけられ、自己回帰で次の記号が逐次に選ばれる——という <strong>内部部品</strong> の手触りは得られた。ここから先は、その部品に <strong>何の目的で重みが付けられたか</strong>、<strong>チャットらしい口調や従順さはどの工程で乗ったか</strong>、<strong>同じ質問で答えが変わるのはなぜか</strong> を三つの層に分けて見る。入場のころ残りがちな「大きいほど賢い」「丁寧＝人格」「ぶれ＝気分」は、ここで一度冷ます。流暢さは損失関数の副作用として再配置し、意図への追従は別工程、出力の揺れは切り出し手順——と読めるようになれば、この章の契約は果たせる。</p>
       <h3>事前学習は何を最適化するか</h3>
       <p>大規模言語モデルの <strong>事前学習</strong> の直接目的は、インターネット規模のテキスト上で <strong>次トークン交差エントロピー（CE）</strong> を最小化することだ <a class="fn-ref" id="fnref-8" href="#ref-8">(*8)</a>。各位置で正解の続きトークンに高い確率を置くよう重みが更新され、結果として「統計的にありそうな続き」を出す能力——いわゆる流暢さ——が立ち上がる。GPT-3 系の報告が示すように、ベンチマークや in-context デモの改善も、この CE 代理の押し上げとして読むのが筋がよい <a class="fn-ref" id="fnref-9" href="#ref-9">(*9)</a>。ただし <strong>単一スコア＝能力の保証</strong> ではない。上手い続きと、事実として正しい続きは、損失項上は同一視される。</p>
@@ -907,12 +940,12 @@
           <rect x="292" y="36" width="110" height="48" rx="4" fill="rgba(169,170,165,0.12)" stroke="var(--mm-gray)" stroke-width="1.4"/>
           <text x="347" y="65" text-anchor="middle" fill="var(--mm-gray)" font-size="12" font-weight="700">top-p</text>
           <path d="M402 60 H426" stroke="var(--mm-gray)" stroke-width="1.4"/>
-          <rect x="426" y="36" width="140" height="48" rx="4" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)" stroke-width="1.5"/>
-          <text x="496" y="65" text-anchor="middle" fill="var(--mm-gold)" font-size="12" font-weight="700">1トークン選択</text>
+          <rect x="426" y="36" width="140" height="48" rx="4" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)" stroke-width="1.5"/>
+          <text x="496" y="65" text-anchor="middle" fill="var(--mm-ink)" font-size="12" font-weight="700">1トークン選択</text>
           <path d="M566 60 H590" stroke="var(--mm-gray)" stroke-width="1.4"/>
-          <rect x="590" y="36" width="110" height="48" rx="4" fill="rgba(183,121,18,0.12)" stroke="var(--mm-gold)" stroke-width="1.4"/>
-          <text x="645" y="65" text-anchor="middle" fill="var(--mm-gold)" font-size="12" font-weight="700">次へ</text>
-          <text x="360" y="108" text-anchor="middle" fill="#c2c3bf" font-size="11">人格アイコンは置かない — 切り出しは性格ではない</text>
+          <rect x="590" y="36" width="110" height="48" rx="4" fill="rgba(222,219,211,0.06)" stroke="var(--mm-ink)" stroke-width="1.4"/>
+          <text x="645" y="65" text-anchor="middle" fill="var(--mm-ink)" font-size="12" font-weight="700">次へ</text>
+          <text x="360" y="108" text-anchor="middle" fill="#898984" font-size="11">人格アイコンは置かない — 切り出しは性格ではない</text>
         </svg>
         <figcaption>温度・top-p は同じ分布からの決定手順。ぶれは気分ではなくレバー。</figcaption>
       </figure>
@@ -945,7 +978,8 @@
       </div>
     </section>
     <section class="section" id="stacks">
-      <h2><span class="node-num">5.</span> 学習と推論でハードとアプリをどう往復するか</h2>
+      <span class="chapter-kicker">CHAPTER 05</span>
+      <h2>学習と推論でハードとアプリをどう往復するか</h2>
       <p>前章までで、モデルは「次トークン分布を学び、適応で癖づき、切り出しでぶれる」ことが分かった。ここから先は、<strong>同じ Transformer を回しても、学習時とチャット推論時では資源の使い方が正反対</strong>だ、という話になる。</p>
       <p>日常で「AI が遅い」「高い」「長いと壊れる」と感じる場面の多くは、<strong>推論（チャット）側</strong>の話だ。一方、事前学習や SFT を想像するときに頭に浮かぶのは、巨大クラスタで何週間も回す <strong>学習</strong> のイメージだ。これらを一枚岩の「GPU が頑張っている」にまとめると、帰属が必ずズレる——アプリのせい、モデルのせい、回線のせい、「考え込んでいるから重い」のせい、と混線する。</p>
       <p>本章では <strong>二枚の地図</strong> を持つ。左が学習スタック、右が推論スタックだ。どちらも「アプリ目的（または条件）→ ランタイム → ハードウェア → 戻り」の往復だが、<strong>律速の場所が違う</strong>。GPU の型番比較やカーネルチューニング手順はここでは扱わない。読者が持ち帰るのは、<strong>どのフェーズで何を疑うか</strong> という会計の型だけだ。</p>
@@ -958,21 +992,21 @@
           <span><span class="swatch gray"></span>律速になりやすい層</span>
         </div>
         <svg viewBox="0 0 720 200" role="img" xmlns="http://www.w3.org/2000/svg">
-          <text x="180" y="28" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">Train</text>
-          <rect x="60" y="44" width="240" height="36" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
-          <text x="180" y="67" text-anchor="middle" fill="var(--mm-gold)" font-size="12">目標 · データ · 勾配</text>
-          <rect x="60" y="88" width="240" height="36" rx="3" fill="rgba(183,121,18,0.12)" stroke="var(--mm-gold)"/>
-          <text x="180" y="111" text-anchor="middle" fill="var(--mm-gold)" font-size="12">並列注意 · 最適化</text>
+          <text x="180" y="28" text-anchor="middle" fill="var(--mm-ink)" font-size="13" font-weight="700">Train</text>
+          <rect x="60" y="44" width="240" height="36" rx="3" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)"/>
+          <text x="180" y="67" text-anchor="middle" fill="var(--mm-ink)" font-size="12">目標 · データ · 勾配</text>
+          <rect x="60" y="88" width="240" height="36" rx="3" fill="rgba(222,219,211,0.06)" stroke="var(--mm-ink)"/>
+          <text x="180" y="111" text-anchor="middle" fill="var(--mm-ink)" font-size="12">並列注意 · 最適化</text>
           <rect x="60" y="132" width="240" height="36" rx="3" fill="rgba(169,170,165,0.18)" stroke="var(--mm-gray)"/>
           <text x="180" y="155" text-anchor="middle" fill="var(--mm-gray)" font-size="12">GPU 計算（FLOPS）</text>
-          <text x="540" y="28" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">Infer</text>
-          <rect x="420" y="44" width="240" height="36" rx="3" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)"/>
-          <text x="540" y="67" text-anchor="middle" fill="var(--mm-blue)" font-size="12">窓 · サンプリング</text>
-          <rect x="420" y="88" width="240" height="36" rx="3" fill="rgba(22,119,184,0.12)" stroke="var(--mm-blue)"/>
-          <text x="540" y="111" text-anchor="middle" fill="var(--mm-blue)" font-size="12">Prefill / Decode · KV</text>
+          <text x="540" y="28" text-anchor="middle" fill="var(--mm-plus)" font-size="13" font-weight="700">Infer</text>
+          <rect x="420" y="44" width="240" height="36" rx="3" fill="rgba(158,176,192,0.16)" stroke="var(--mm-plus)"/>
+          <text x="540" y="67" text-anchor="middle" fill="var(--mm-plus)" font-size="12">窓 · サンプリング</text>
+          <rect x="420" y="88" width="240" height="36" rx="3" fill="rgba(158,176,192,0.10)" stroke="var(--mm-plus)"/>
+          <text x="540" y="111" text-anchor="middle" fill="var(--mm-plus)" font-size="12">Prefill / Decode · KV</text>
           <rect x="420" y="132" width="240" height="36" rx="3" fill="rgba(169,170,165,0.18)" stroke="var(--mm-gray)"/>
           <text x="540" y="155" text-anchor="middle" fill="var(--mm-gray)" font-size="12">帯域 · 提供</text>
-          <text x="360" y="188" text-anchor="middle" fill="#c2c3bf" font-size="11">「遅い」は学習失敗ではなく推論側の会計であることが多い</text>
+          <text x="360" y="188" text-anchor="middle" fill="#898984" font-size="11">「遅い」は学習失敗ではなく推論側の会計であることが多い</text>
         </svg>
         <figcaption>アプリ条件 → ランタイム → ハードの往復。律速の場所を混同しない。</figcaption>
       </figure>
@@ -1065,7 +1099,8 @@
       </div>
     </section>
     <section class="section" id="limits-map">
-      <h2><span class="node-num">6.</span> できないことの地図——評価・規範・主体誤認</h2>
+      <span class="chapter-kicker">CHAPTER 06</span>
+      <h2>できないことの地図——評価・規範・主体誤認</h2>
       <h3>はじめに — できる側のあとに戻る引力</h3>
       <p>前章までで、学習と推論は別スタックで往復し、遅さやコストは KV や提供の会計に帰属することが見えた。同時に第4章では、次トークンの交差エントロピーが押し上げるのは流暢な続きであり、事実の真正性や意図の読み取りを直最適化しないことも固定した。第2章で一度おりた「思考している相手」フレームが、製品体験の滑らかさと数字の並びに触れると、また戻ってくる。</p>
       <p>ベンチマークの順位表を見て「これが一番賢い」と感じる。開発チームが LLM-as-judge のスコアを並べて「品質が上がった」と報告する。製品ページに Safety Guard のバッジが付いている。モデルが丁寧に拒否し、根拠らしい段落を返す——そのとき、第1章で触れた「上手いのに信用できない」が別の形で再燃する。本章は、<strong>できる側の地図のあとに、できない側の地図を一枚足す</strong> 章である。否定は冷笑ではない。検索と翻訳は有効なまま、<strong>載せ方と止め方</strong> が変わる。</p>
@@ -1080,17 +1115,17 @@
           <span><span class="swatch red"></span>外側に残る</span>
         </div>
         <svg viewBox="0 0 720 210" role="img" xmlns="http://www.w3.org/2000/svg">
-          <rect x="220" y="70" width="280" height="80" rx="6" fill="rgba(183,121,18,0.16)" stroke="var(--mm-gold)" stroke-width="1.5"/>
-          <text x="360" y="106" text-anchor="middle" fill="var(--mm-gold)" font-size="14" font-weight="700">検索＋翻訳</text>
-          <text x="360" y="126" text-anchor="middle" fill="#c2c3bf" font-size="11">条件付き次トークン</text>
-          <rect x="40" y="28" width="130" height="44" rx="4" fill="none" stroke="var(--mm-red)" stroke-width="1.4"/>
-          <text x="105" y="55" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">真正性</text>
-          <rect x="550" y="28" width="130" height="44" rx="4" fill="none" stroke="var(--mm-red)" stroke-width="1.4"/>
-          <text x="615" y="55" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">権限</text>
-          <rect x="40" y="148" width="130" height="44" rx="4" fill="none" stroke="var(--mm-red)" stroke-width="1.4"/>
-          <text x="105" y="175" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">完了</text>
-          <rect x="550" y="148" width="130" height="44" rx="4" fill="none" stroke="var(--mm-red)" stroke-width="1.4"/>
-          <text x="615" y="175" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">価値</text>
+          <rect x="220" y="70" width="280" height="80" rx="6" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)" stroke-width="1.5"/>
+          <text x="360" y="106" text-anchor="middle" fill="var(--mm-ink)" font-size="14" font-weight="700">検索＋翻訳</text>
+          <text x="360" y="126" text-anchor="middle" fill="#898984" font-size="11">条件付き次トークン</text>
+          <rect x="40" y="28" width="130" height="44" rx="4" fill="none" stroke="var(--mm-muted)" stroke-width="1.4"/>
+          <text x="105" y="55" text-anchor="middle" fill="var(--mm-muted)" font-size="12" font-weight="700">真正性</text>
+          <rect x="550" y="28" width="130" height="44" rx="4" fill="none" stroke="var(--mm-muted)" stroke-width="1.4"/>
+          <text x="615" y="55" text-anchor="middle" fill="var(--mm-muted)" font-size="12" font-weight="700">権限</text>
+          <rect x="40" y="148" width="130" height="44" rx="4" fill="none" stroke="var(--mm-muted)" stroke-width="1.4"/>
+          <text x="105" y="175" text-anchor="middle" fill="var(--mm-muted)" font-size="12" font-weight="700">完了</text>
+          <rect x="550" y="148" width="130" height="44" rx="4" fill="none" stroke="var(--mm-muted)" stroke-width="1.4"/>
+          <text x="615" y="175" text-anchor="middle" fill="var(--mm-muted)" font-size="12" font-weight="700">価値</text>
         </svg>
         <figcaption>流暢さは四隅を保証しない。載せ方と止め方が変わる。</figcaption>
       </figure>
@@ -1156,7 +1191,8 @@
       </div>
     </section>
     <section class="section" id="context">
-      <h2><span class="node-num">7.</span> だから Context Engineering</h2>
+      <span class="chapter-kicker">CHAPTER 07</span>
+      <h2>だから Context Engineering</h2>
       <p>前章で、できないことの地図——真正性保証、権限裁定、業務完了の定義、価値選定——をモデルの外側に置いた。それは禁欲ではなく、利用を始めるための前提だ。しかし地図だけでは、あなたの手は空のままだ。資料を貼ったのに論点だけ落ち、返ってきたのはきれいな別の文だった——そんな『資料なのに論点落ち』の経験は、人格やプロンプトの丁寧さだけでは説明しきれない。</p>
       <p>第2章で固定した「検索＋翻訳」の型に戻ろう。モデルは窓の中の材料を関連づけて拾い、その分布を文字列に翻訳する。第3章で見た注意は一様な全体走査ではなく、ソフトな検索だった。第5章で有限窓と KV が律速になることも触れた。これらを <strong>利用者が触れるレバー</strong> に落とすのが Context Engineering である。流行のラベルではなく、有限 attention の下で検索材料の効用を設計する必然だ <a class="fn-ref" id="fnref-34" href="#ref-34">(*34)</a><a class="fn-ref" id="fnref-35" href="#ref-35">(*35)</a>。</p>
       <h3>プロンプトは窓の一部である</h3>
@@ -1173,11 +1209,11 @@
         <svg viewBox="0 0 720 200" role="img" xmlns="http://www.w3.org/2000/svg">
           <rect x="80" y="36" width="560" height="140" rx="6" fill="rgba(169,170,165,0.12)" stroke="var(--mm-gray)" stroke-width="1.6"/>
           <text x="100" y="58" fill="var(--mm-gray)" font-size="13" font-weight="700">Context — 推論時に渡すトークン集合全体</text>
-          <text x="100" y="78" fill="#c2c3bf" font-size="11">履歴 · 資料 · ツール返り値 · システム文 …</text>
-          <rect x="160" y="96" width="280" height="56" rx="4" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)" stroke-width="1.5"/>
-          <text x="300" y="122" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">Prompt</text>
-          <text x="300" y="140" text-anchor="middle" fill="#c2c3bf" font-size="11">指示 · few-shot · 出力形式</text>
-          <text x="480" y="128" fill="#c2c3bf" font-size="11">← 磨いても、外側の材料が効く</text>
+          <text x="100" y="78" fill="#898984" font-size="11">履歴 · 資料 · ツール返り値 · システム文 …</text>
+          <rect x="160" y="96" width="280" height="56" rx="4" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)" stroke-width="1.5"/>
+          <text x="300" y="122" text-anchor="middle" fill="var(--mm-ink)" font-size="13" font-weight="700">Prompt</text>
+          <text x="300" y="140" text-anchor="middle" fill="#898984" font-size="11">指示 · few-shot · 出力形式</text>
+          <text x="480" y="128" fill="#898984" font-size="11">← 磨いても、外側の材料が効く</text>
         </svg>
         <figcaption>指示の上手さだけでは足りない。窓全体のキュレーションが本丸。</figcaption>
       </figure>
@@ -1195,15 +1231,15 @@
         <svg viewBox="0 0 720 190" role="img" xmlns="http://www.w3.org/2000/svg">
           <line x1="80" y1="150" x2="640" y2="150" stroke="var(--mm-gray)" stroke-width="1"/>
           <line x1="80" y1="36" x2="80" y2="150" stroke="var(--mm-gray)" stroke-width="1"/>
-          <text x="360" y="178" text-anchor="middle" fill="#c2c3bf" font-size="11">窓内の位置（先頭 → 末尾）</text>
-          <text x="36" y="96" text-anchor="middle" fill="#c2c3bf" font-size="11" transform="rotate(-90 36 96)">実効</text>
-          <path d="M80 48 C 200 52, 280 140, 360 145 S 520 52, 640 46" fill="none" stroke="var(--mm-blue)" stroke-width="2.2"/>
-          <circle cx="80" cy="48" r="4" fill="var(--mm-blue)"/>
+          <text x="360" y="178" text-anchor="middle" fill="#898984" font-size="11">窓内の位置（先頭 → 末尾）</text>
+          <text x="36" y="96" text-anchor="middle" fill="#898984" font-size="11" transform="rotate(-90 36 96)">実効</text>
+          <path d="M80 48 C 200 52, 280 140, 360 145 S 520 52, 640 46" fill="none" stroke="var(--mm-plus)" stroke-width="2.2"/>
+          <circle cx="80" cy="48" r="4" fill="var(--mm-plus)"/>
           <circle cx="360" cy="145" r="4" fill="var(--mm-gray)"/>
-          <circle cx="640" cy="46" r="4" fill="var(--mm-blue)"/>
-          <text x="90" y="40" fill="var(--mm-blue)" font-size="11">先頭</text>
+          <circle cx="640" cy="46" r="4" fill="var(--mm-plus)"/>
+          <text x="90" y="40" fill="var(--mm-plus)" font-size="11">先頭</text>
           <text x="340" y="165" fill="var(--mm-gray)" font-size="11">中間</text>
-          <text x="598" y="38" fill="var(--mm-blue)" font-size="11">末尾</text>
+          <text x="598" y="38" fill="var(--mm-plus)" font-size="11">末尾</text>
         </svg>
         <figcaption>入れた＝使える、ではない。増やす前に削る／移す／端に置く。</figcaption>
       </figure>
@@ -1238,7 +1274,8 @@
       </div>
     </section>
     <section class="section" id="workflow">
-      <h2><span class="node-num">8.</span> 使い方の本丸はワークフロー設計</h2>
+      <span class="chapter-kicker">CHAPTER 08</span>
+      <h2>使い方の本丸はワークフロー設計</h2>
       <h3>窓だけでは業務は閉じない</h3>
       <p>前章までで、窓に何を・どこに・いつ載せるか——Context Engineering のレバーは手に入った。仕様書の中央に論点を置かない、増やす前に削る、といった点検もできるようになった。それでも、窓を整えた <strong>1回のチャット呼び出し</strong> だけでは、多くの業務は閉じない。</p>
       <p>理由は単純だ。モデルの1ステップは <strong>次のトークンを出す</strong> ことに尽きる。社内規程を引いてくる、顧客にメールを送る、法務に承認を取る——こうした <strong>環境操作</strong> はモデルの外側が担い、その結果だけが窓へ戻ってくる。第6章の否定地図が示したとおり、真正性の裁定、権限の行使、完了の定義、価値の選定はモデル外に残る。窓最適化は必要だが <strong>不十分</strong> である。</p>
@@ -1257,19 +1294,19 @@
           <span><span class="swatch red"></span>権限</span>
         </div>
         <svg viewBox="0 0 720 180" role="img" xmlns="http://www.w3.org/2000/svg">
-          <rect x="70" y="64" width="110" height="50" rx="4" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)" stroke-width="1.5"/>
-          <text x="125" y="94" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">検索</text>
+          <rect x="70" y="64" width="110" height="50" rx="4" fill="rgba(158,176,192,0.16)" stroke="var(--mm-plus)" stroke-width="1.5"/>
+          <text x="125" y="94" text-anchor="middle" fill="var(--mm-plus)" font-size="13" font-weight="700">検索</text>
           <path d="M190 89 H240" stroke="var(--mm-gray)" stroke-width="1.5"/>
-          <rect x="240" y="64" width="110" height="50" rx="4" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)" stroke-width="1.5"/>
-          <text x="295" y="94" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">翻訳</text>
+          <rect x="240" y="64" width="110" height="50" rx="4" fill="rgba(222,219,211,0.08)" stroke="var(--mm-ink)" stroke-width="1.5"/>
+          <text x="295" y="94" text-anchor="middle" fill="var(--mm-ink)" font-size="13" font-weight="700">翻訳</text>
           <path d="M360 89 H410" stroke="var(--mm-gray)" stroke-width="1.5"/>
-          <rect x="410" y="64" width="110" height="50" rx="4" fill="rgba(53,208,187,0.12)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <rect x="410" y="64" width="110" height="50" rx="4" fill="rgba(112,183,150,0.12)" stroke="var(--mm-green)" stroke-width="1.5"/>
           <text x="465" y="94" text-anchor="middle" fill="var(--mm-green)" font-size="13" font-weight="700">検証</text>
           <path d="M465 64 C 465 28, 125 28, 125 64" fill="none" stroke="var(--mm-gray)" stroke-width="1.2" stroke-dasharray="4 4"/>
-          <text x="295" y="24" text-anchor="middle" fill="#c2c3bf" font-size="11">観測を窓へ戻す</text>
-          <rect x="560" y="50" width="110" height="78" rx="4" fill="none" stroke="var(--mm-red)" stroke-width="1.5" stroke-dasharray="4 3"/>
-          <text x="615" y="84" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">人間</text>
-          <text x="615" y="104" text-anchor="middle" fill="var(--mm-red)" font-size="10">権限 · 完了</text>
+          <text x="295" y="24" text-anchor="middle" fill="#898984" font-size="11">観測を窓へ戻す</text>
+          <rect x="560" y="50" width="110" height="78" rx="4" fill="none" stroke="var(--mm-muted)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="615" y="84" text-anchor="middle" fill="var(--mm-muted)" font-size="12" font-weight="700">人間</text>
+          <text x="615" y="104" text-anchor="middle" fill="var(--mm-muted)" font-size="10">権限 · 完了</text>
         </svg>
         <figcaption>AI はループ内の部品。止める・検証する・権限を渡すのはワークフロー側。</figcaption>
       </figure>
@@ -1345,7 +1382,8 @@
       </div>
     </section>
     <section class="section" id="synthesis">
-      <h2><span class="node-num">9.</span> 層で置き、単純化し、開かれた問いを残す</h2>
+      <span class="chapter-kicker">CHAPTER 09</span>
+      <h2>層で置き、単純化し、開かれた問いを残す</h2>
       <h3>地図は揃った——持ち帰りを一枚に圧縮する</h3>
       <p>ここまでで、型・中身・学習と推論の往復・できないこと・窓・ワークフローまで触れた。手元にはレバーがある。それでも残るのは、別種のもやだ。「結局、自分はどう使えばいいのか」「全部チェックすれば安全か」「外側ばかりだと、結局なにも信じられないのでは」——どちらの極端にも寄りやすい。</p>
       <p>この章は新しい機構を足さない。記事全体の持ち帰りを <strong>一枚の判断地図</strong> に圧縮する。最初に列挙した七つの日常の裂け目を、層の言葉で総回収する。そして、記事が約束したメンタルモデルと三つの判断フックを、自分の言葉で言える状態で閉じる。完璧なチェックリストでも、技術の虚無でもない。<strong>どこまでモデルに任せ、どこから人間が引き受けるか</strong> が言える安心——それだけを渡す。</p>
@@ -1430,13 +1468,13 @@
           <span><span class="swatch red"></span>権限境界</span>
         </div>
         <svg viewBox="0 0 720 160" role="img" xmlns="http://www.w3.org/2000/svg">
-          <rect x="40" y="28" width="200" height="36" rx="3" fill="none" stroke="var(--mm-gold)" stroke-width="1.3"/>
-          <text x="140" y="51" text-anchor="middle" fill="var(--mm-gold)" font-size="12">流暢さ ≠ 根拠</text>
-          <rect x="260" y="28" width="200" height="36" rx="3" fill="none" stroke="var(--mm-gold)" stroke-width="1.3"/>
-          <text x="360" y="51" text-anchor="middle" fill="var(--mm-gold)" font-size="12">ツール ≠ 検証済</text>
-          <rect x="480" y="28" width="200" height="36" rx="3" fill="none" stroke="var(--mm-red)" stroke-width="1.3"/>
-          <text x="580" y="51" text-anchor="middle" fill="var(--mm-red)" font-size="12">ガード ≠ 完了</text>
-          <rect x="140" y="90" width="440" height="44" rx="4" fill="rgba(53,208,187,0.12)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <rect x="40" y="28" width="200" height="36" rx="3" fill="none" stroke="var(--mm-ink)" stroke-width="1.3"/>
+          <text x="140" y="51" text-anchor="middle" fill="var(--mm-ink)" font-size="12">流暢さ ≠ 根拠</text>
+          <rect x="260" y="28" width="200" height="36" rx="3" fill="none" stroke="var(--mm-ink)" stroke-width="1.3"/>
+          <text x="360" y="51" text-anchor="middle" fill="var(--mm-ink)" font-size="12">ツール ≠ 検証済</text>
+          <rect x="480" y="28" width="200" height="36" rx="3" fill="none" stroke="var(--mm-muted)" stroke-width="1.3"/>
+          <text x="580" y="51" text-anchor="middle" fill="var(--mm-muted)" font-size="12">ガード ≠ 完了</text>
+          <rect x="140" y="90" width="440" height="44" rx="4" fill="rgba(112,183,150,0.12)" stroke="var(--mm-green)" stroke-width="1.5"/>
           <text x="360" y="117" text-anchor="middle" fill="var(--mm-green)" font-size="13" font-weight="700">人間最終 · 外側検証 · 価値の選定</text>
         </svg>
         <figcaption>一括りに「賢いから OK」としない。保証範囲は層ごとに違う。</figcaption>
