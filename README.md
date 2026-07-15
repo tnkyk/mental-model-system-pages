@@ -4,6 +4,10 @@ Public GitHub Pages artifacts exported from the private `mental-model-system` so
 
 Published pages:
 
+- `llm-from-first-principles.html` (rewrite: next-token prediction stack, 16 nodes, 6 labs, expert-atlas dissent)
 - `bitcoin-from-first-principles.html` (v6 store-of-value + Faza-parity essay)
-- `llm-from-first-principles.html`
 - `quantum-computing-from-first-principles.html`
+
+Archived (not in active catalog primary list; kept under `archive/`):
+
+- `archive/llm-from-first-principles/llm-from-first-principles.html` (archived 2026-07-15; superseded by the rewrite above)

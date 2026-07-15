@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decoding Procedure Lab | Mental Model Studio</title>
+<style>
+  :root{color-scheme:dark;--mm-ink:#f2f3f0;--mm-muted:#c2c3bf;--mm-paper:#151716;--mm-white:#1e201e;--mm-line:#393b38;
+    --mm-blue:#6eb6e8;--mm-gold:#d4a017;--mm-green:#35d0bb;--mm-red:#e07072;
+    --mm-blue-soft:rgba(22,119,184,.22);--mm-gold-soft:rgba(183,121,18,.24);--mm-green-soft:rgba(53,208,187,.16);--mm-red-soft:rgba(181,71,73,.24);--mm-gray-soft:#242624;}
+  body{margin:0;font:14px/1.6 system-ui,"Noto Sans JP",sans-serif;color:var(--mm-ink);background:var(--mm-paper);padding:20px;}
+  .sim-root{border:1px solid var(--mm-line);background:var(--mm-white);padding:18px;max-width:760px;margin:0 auto;}
+  h1{font-size:17px;margin:0 0 10px;}
+  .sim-hard-claim{padding:10px 12px;background:var(--mm-gold-soft);border-left:3px solid var(--mm-gold);font-size:13px;margin:0 0 14px;}
+  fieldset{border:1px solid var(--mm-line);margin:0 0 10px;padding:8px 10px;}
+  legend{color:var(--mm-muted);font-size:12px;padding:0 4px;}
+  label.opt{display:inline-block;margin:2px 12px 2px 0;font-size:13px;cursor:pointer;}
+  .sim-controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:10px 0;}
+  .sim-controls label{font-size:13px;color:var(--mm-muted);}
+  input[type=range]{width:min(220px,55vw);}
+  input:disabled, input:disabled + span{opacity:.35;}
+  .sim-btn{border:1px solid var(--mm-line);background:var(--mm-paper);color:var(--mm-ink);padding:6px 12px;cursor:pointer;font:inherit;margin-right:6px;}
+  .sim-btn:hover{background:var(--mm-blue-soft);}
+  .row{display:grid;grid-template-columns:130px 1fr 56px;gap:8px;align-items:center;margin:6px 0;}
+  .track{height:13px;background:var(--mm-gray-soft);border:1px solid var(--mm-line);}
+  .bar{height:100%;background:var(--mm-blue);}
+  .bar.cut{opacity:.22;background:var(--mm-gray-soft);}
+  .bar.wrong{background:var(--mm-red);}
+  .bar.repeat{background:var(--mm-gold);}
+  .meta{color:var(--mm-muted);font-size:13px;margin:8px 0;}
+  .genlog{font-family:ui-monospace,Consolas,monospace;font-size:14px;padding:10px;background:var(--mm-paper);border:1px solid var(--mm-line);margin:10px 0;letter-spacing:1px;}
+  .sim-status{margin-top:10px;padding:10px 12px;background:var(--mm-green-soft);font-size:13px;}
+  .sim-status.caution{background:var(--mm-gold-soft);}
+  .sim-status.reject{background:var(--mm-red-soft);}
+  .sim-fallback{margin-top:10px;padding:10px 12px;background:var(--mm-gray-soft);font-size:12px;color:var(--mm-muted);}
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <h1>Decoding Procedure Lab（教育用トイ・固定多項分布）</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> 温度とtop-p/top-kは同じ条件付き分布から異なる切り出し方をする決定手順であり、貪欲デコードは反復的退行を招きやすい；「モデルの性格」ではなく「選んだ決定手順」の効果である。</p>
+    <p class="meta">固定の文脈（例:「猫は＿＿」の次トークン分布、logit は固定）。決定手順だけを変えて、同じ分布から何が切り出されるかを見る。</p>
+
+    <fieldset>
+      <legend>決定手順</legend>
+      <label class="opt"><input type="radio" name="method" value="greedy" checked> Greedy（常にargmax）</label>
+      <label class="opt"><input type="radio" name="method" value="temp"> Temperature のみ</label>
+      <label class="opt"><input type="radio" name="method" value="topk"> Top-k</label>
+      <label class="opt"><input type="radio" name="method" value="topp"> Top-p (nucleus)</label>
+    </fieldset>
+
+    <div class="sim-controls">
+      <label>Temperature <span id="tVal">1.0</span></label>
+      <input type="range" id="temp" min="0.1" max="2.0" step="0.1" value="1.0">
+      <label>Top-k <span id="kVal">3</span></label>
+      <input type="range" id="topk" min="1" max="8" step="1" value="3">
+      <label>Top-p <span id="pVal">0.90</span></label>
+      <input type="range" id="topp" min="0.05" max="1.0" step="0.05" value="0.90">
+    </div>
+
+    <div id="rows"></div>
+    <p class="meta">切り捨てられた確率質量（元の分布に対して）: <strong id="cutMass">—</strong> ／ 残った候補数: <strong id="kept">—</strong></p>
+
+    <div class="sim-controls">
+      <button type="button" class="sim-btn" id="sampleOnce">1トークンサンプル</button>
+      <button type="button" class="sim-btn" id="gen5">5ステップ生成（同じ設定を5回適用）</button>
+      <button type="button" class="sim-btn" id="resetLog">ログ消去</button>
+    </div>
+    <div class="genlog" id="genlog">生成ログ: —</div>
+
+    <div class="sim-status" id="st">—</div>
+
+    <p class="sim-fallback">
+      <strong>簡略化の開示：</strong> ここでの8候補・logit値は固定のトイであり、実モデルの語彙・文脈依存の分布ではありません。5ステップ生成も「毎ステップ同じ固定分布から選ぶ」という簡略化（実際は前のトークンで分布自体が変わる）です。固定したいのは「同じ分布に対して、決定手順（貪欲／温度／top-k／top-p）を変えるだけで、選ばれるトークン集合と多様性が変わる」という点、および「貪欲は同じ分布から毎回同じ argmax を選ぶため、繰り返し可能な文脈では反復に陥りやすい」という点だけです。
+    </p>
+  </div>
+<script>
+(function(){
+  var TOY = [
+    { id:'かわいい',   logit: 3.0 },
+    { id:'元気',       logit: 2.6 },
+    { id:'眠っている', logit: 2.3 },
+    { id:'大きい',     logit: 1.4 },
+    { id:'青い',       logit: 0.6, wrong:true },
+    { id:'机',         logit: 0.1, wrong:true },
+    { id:'猫',         logit: -0.4, wrong:true },
+    { id:'###',        logit: -1.6, wrong:true }
+  ];
+
+  function softmax(logits, T){
+    var scaled = logits.map(function(l){ return l / T; });
+    var m = Math.max.apply(null, scaled);
+    var exps = scaled.map(function(s){ return Math.exp(s - m); });
+    var sum = exps.reduce(function(a,b){ return a+b; }, 0);
+    return exps.map(function(e){ return e / sum; });
+  }
+
+  function currentDist(){
+    var method = document.querySelector('input[name=method]:checked').value;
+    var T = +document.getElementById('temp').value;
+    var k = +document.getElementById('topk').value;
+    var p = +document.getElementById('topp').value;
+    var logits = TOY.map(function(t){ return t.logit; });
+
+    if (method === 'greedy') {
+      var argmax = 0;
+      for (var i = 1; i < logits.length; i++) if (logits[i] > logits[argmax]) argmax = i;
+      var full = softmax(logits, 1.0);
+      var keep = TOY.map(function(_, i){ return i === argmax; });
+      var kept = full.map(function(pr, i){ return keep[i] ? 1 : 0; });
+      return { probsFull: full, keep: keep, probsFinal: kept, method: method };
+    }
+
+    var full = softmax(logits, T);
+    var keep, kept;
+    if (method === 'temp') {
+      keep = TOY.map(function(){ return true; });
+      kept = full.slice();
+    } else if (method === 'topk') {
+      var idxSorted = full.map(function(pr, i){ return i; }).sort(function(a,b){ return full[b]-full[a]; });
+      var keepSet = {};
+      for (var j = 0; j < Math.min(k, idxSorted.length); j++) keepSet[idxSorted[j]] = true;
+      keep = TOY.map(function(_, i){ return !!keepSet[i]; });
+      kept = full.map(function(pr, i){ return keep[i] ? pr : 0; });
+    } else { // topp
+      var idxSorted2 = full.map(function(pr, i){ return i; }).sort(function(a,b){ return full[b]-full[a]; });
+      var cum = 0, keepSet2 = {};
+      for (var jj = 0; jj < idxSorted2.length; jj++) {
+        keepSet2[idxSorted2[jj]] = true;
+        cum += full[idxSorted2[jj]];
+        if (cum >= p) break;
+      }
+      keep = TOY.map(function(_, i){ return !!keepSet2[i]; });
+      kept = full.map(function(pr, i){ return keep[i] ? pr : 0; });
+    }
+    var sumKept = kept.reduce(function(a,b){ return a+b; }, 0);
+    var norm = kept.map(function(v){ return sumKept > 0 ? v / sumKept : 0; });
+    return { probsFull: full, keep: keep, probsFinal: norm, method: method };
+  }
+
+  function sampleFrom(probsFinal){
+    var r = Math.random(), acc = 0;
+    for (var i = 0; i < probsFinal.length; i++) {
+      acc += probsFinal[i];
+      if (r <= acc) return i;
+    }
+    return probsFinal.length - 1;
+  }
+
+  function updateControlEnabled(){
+    var method = document.querySelector('input[name=method]:checked').value;
+    document.getElementById('temp').disabled = (method === 'greedy');
+    document.getElementById('topk').disabled = (method !== 'topk');
+    document.getElementById('topp').disabled = (method !== 'topp');
+  }
+
+  function render(){
+    updateControlEnabled();
+    document.getElementById('tVal').textContent = (+document.getElementById('temp').value).toFixed(1);
+    document.getElementById('kVal').textContent = document.getElementById('topk').value;
+    document.getElementById('pVal').textContent = (+document.getElementById('topp').value).toFixed(2);
+
+    var dist = currentDist();
+    var rowsEl = document.getElementById('rows');
+    rowsEl.innerHTML = '';
+    var order = TOY.map(function(t,i){ return i; }).sort(function(a,b){ return dist.probsFull[b]-dist.probsFull[a]; });
+    order.forEach(function(i){
+      var t = TOY[i];
+      var pctFull = Math.round(dist.probsFull[i]*1000)/10;
+      var pctFinal = Math.round(dist.probsFinal[i]*1000)/10;
+      var row = document.createElement('div');
+      row.className = 'row';
+      var label = document.createElement('span');
+      label.textContent = t.id + (dist.keep[i] ? '' : ' (cut)');
+      var track = document.createElement('div');
+      track.className = 'track';
+      var bar = document.createElement('div');
+      bar.className = 'bar' + (!dist.keep[i] ? ' cut' : (t.wrong ? ' wrong' : ''));
+      bar.style.width = (dist.keep[i] ? pctFinal : pctFull) + '%';
+      track.appendChild(bar);
+      var pctSpan = document.createElement('span');
+      pctSpan.textContent = (dist.keep[i] ? pctFinal : pctFull) + '%';
+      row.appendChild(label); row.appendChild(track); row.appendChild(pctSpan);
+      rowsEl.appendChild(row);
+    });
+
+    var removedMass = 0;
+    TOY.forEach(function(_, i){ if (!dist.keep[i]) removedMass += dist.probsFull[i]; });
+    document.getElementById('cutMass').textContent = Math.round(removedMass*1000)/10 + '%';
+    document.getElementById('kept').textContent = dist.keep.filter(Boolean).length + ' / ' + TOY.length;
+
+    var st = document.getElementById('st');
+    if (dist.method === 'greedy') {
+      st.className = 'sim-status caution';
+      st.textContent = 'Greedy は毎回同じ argmax を選ぶ。5ステップ生成を押すと同じトークンが5回続くのを確認できる — これが反復的退行の最小モデル。';
+    } else {
+      var wrongTopMass = 0;
+      TOY.forEach(function(t,i){ if (t.wrong && dist.keep[i]) wrongTopMass += dist.probsFinal[i]; });
+      if (wrongTopMass > 0.05) {
+        st.className = 'sim-status caution';
+        st.textContent = '誤り／不自然な候補（wrong系）が切り捨てられずに残っている（残存確率 ' + Math.round(wrongTopMass*1000)/10 + '%）。切り出し方を変えても「正しさ」は保証されない。';
+      } else {
+        st.className = 'sim-status';
+        st.textContent = 'この設定では誤り系候補はほぼ排除された。ただしこれは分布の形状を切り出した結果であり、モデルが「判断」したわけではない。';
+      }
+    }
+  }
+
+  var genLog = [];
+  function pushLog(id, method){
+    genLog.push(id);
+    if (genLog.length > 12) genLog.shift();
+    document.getElementById('genlog').textContent = '生成ログ (' + method + '): ' + genLog.join(' → ');
+  }
+
+  document.getElementById('sampleOnce').onclick = function(){
+    var dist = currentDist();
+    var i = sampleFrom(dist.probsFinal);
+    pushLog(TOY[i].id, document.querySelector('input[name=method]:checked').value);
+  };
+  document.getElementById('gen5').onclick = function(){
+    genLog = [];
+    var method = document.querySelector('input[name=method]:checked').value;
+    for (var s = 0; s < 5; s++) {
+      var dist = currentDist();
+      var i = sampleFrom(dist.probsFinal);
+      genLog.push(TOY[i].id);
+    }
+    document.getElementById('genlog').textContent = '生成ログ (' + method + ', 5ステップ): ' + genLog.join(' → ');
+    var uniq = {}; genLog.forEach(function(x){ uniq[x] = 1; });
+    var st = document.getElementById('st');
+    if (Object.keys(uniq).length === 1 && method === 'greedy') {
+      st.className = 'sim-status reject';
+      st.textContent = '5ステップとも同じトークン「' + genLog[0] + '」— Greedy は分布が変わらない限り毎回同じ argmax に落ち、反復（degeneration）を招く。';
+    } else {
+      st.className = 'sim-status';
+      st.textContent = '5ステップで ' + Object.keys(uniq).length + ' 種類のトークンが出た。確率的な決定手順は同じ分布からでも多様な出力を許す。';
+    }
+  };
+  document.getElementById('resetLog').onclick = function(){ genLog = []; document.getElementById('genlog').textContent = '生成ログ: —'; };
+
+  document.querySelectorAll('input[name=method]').forEach(function(e){ e.onchange = render; });
+  ['temp','topk','topp'].forEach(function(id){ document.getElementById(id).oninput = render; });
+  render();
+})();
+</script>
+</body>
+</html>

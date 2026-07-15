@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prefill / Decode Asymmetry Lab | Mental Model Studio</title>
+<style>
+  :root{color-scheme:dark;--mm-ink:#f2f3f0;--mm-muted:#c2c3bf;--mm-paper:#151716;--mm-white:#1e201e;--mm-line:#393b38;
+    --mm-blue:#6eb6e8;--mm-gold:#d4a017;--mm-green:#35d0bb;--mm-red:#e07072;
+    --mm-blue-soft:rgba(22,119,184,.22);--mm-gold-soft:rgba(183,121,18,.24);--mm-green-soft:rgba(53,208,187,.16);--mm-red-soft:rgba(181,71,73,.24);--mm-gray-soft:#242624;}
+  body{margin:0;font:14px/1.6 system-ui,"Noto Sans JP",sans-serif;color:var(--mm-ink);background:var(--mm-paper);padding:20px;}
+  .sim-root{border:1px solid var(--mm-line);background:var(--mm-white);padding:18px;max-width:760px;margin:0 auto;}
+  h1{font-size:17px;margin:0 0 10px;}
+  .sim-hard-claim{padding:10px 12px;background:var(--mm-gold-soft);border-left:3px solid var(--mm-gold);font-size:13px;margin:0 0 14px;}
+  .sim-controls{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin:10px 0;}
+  .sim-controls label{font-size:13px;color:var(--mm-muted);}
+  input[type=range]{width:min(260px,60vw);}
+  .sim-btn{border:1px solid var(--mm-line);background:var(--mm-paper);color:var(--mm-ink);padding:6px 12px;cursor:pointer;font:inherit;margin-right:6px;}
+  .sim-btn:hover{background:var(--mm-blue-soft);}
+  .row{display:grid;grid-template-columns:150px 1fr 90px;gap:8px;align-items:center;margin:8px 0;}
+  .track{height:16px;background:var(--mm-gray-soft);border:1px solid var(--mm-line);}
+  .bar{height:100%;}
+  .bar.blue{background:var(--mm-blue);}
+  .bar.gold{background:var(--mm-gold);}
+  .cards{display:flex;gap:12px;margin:14px 0;flex-wrap:wrap;}
+  .card{flex:1;min-width:170px;border:1px solid var(--mm-line);background:var(--mm-paper);padding:10px 12px;}
+  .card .num{font-size:19px;color:var(--mm-gold);}
+  .card .lbl{font-size:12px;color:var(--mm-muted);}
+  .sim-status{margin-top:10px;padding:10px 12px;background:var(--mm-green-soft);font-size:13px;}
+  .sim-status.caution{background:var(--mm-gold-soft);}
+  .sim-status.reject{background:var(--mm-red-soft);}
+  .sim-fallback{margin-top:10px;padding:10px 12px;background:var(--mm-gray-soft);font-size:12px;color:var(--mm-muted);}
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <h1>Prefill / Decode Asymmetry Lab（教育用トイ）</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> prefillは並列化可能な計算束縛フェーズ、decodeは一トークンずつのメモリ帯域束縛フェーズであり、この非対称がレイテンシとコストの構造を決める。</p>
+
+    <div class="sim-controls">
+      <label>入力トークン（Prefill） <span id="inVal">3000</span></label>
+      <input type="range" id="inTok" min="10" max="6000" step="10" value="3000">
+      <label>出力トークン（Decode） <span id="outVal">50</span></label>
+      <input type="range" id="outTok" min="1" max="2000" step="1" value="50">
+      <label>同時バッチ <span id="batchVal">1</span></label>
+      <input type="range" id="batch" min="1" max="32" step="1" value="1">
+    </div>
+    <div class="sim-controls">
+      <button type="button" class="sim-btn" id="modeA">Mode A: 長い入力・短い出力（要約）</button>
+      <button type="button" class="sim-btn" id="modeB">Mode B: 短い入力・長い出力（長文生成）</button>
+    </div>
+
+    <div class="row"><span>Prefill 時間</span><div class="track"><div class="bar blue" id="barP" style="width:0%"></div></div><span id="pTxt">—</span></div>
+    <div class="row"><span>Decode 時間（合計）</span><div class="track"><div class="bar gold" id="barD" style="width:0%"></div></div><span id="dTxt">—</span></div>
+
+    <div class="cards">
+      <div class="card"><div class="num" id="cardLatency">—</div><div class="lbl">1リクエストの総レイテンシ (ms)</div></div>
+      <div class="card"><div class="num" id="cardStepLatency">—</div><div class="lbl">Decode 1ステップの時間 (ms)（バッチで微増＝帯域共有）</div></div>
+      <div class="card"><div class="num" id="cardThroughput">—</div><div class="lbl">バッチ全体のDecodeスループット（tok/s）</div></div>
+    </div>
+
+    <div class="sim-status" id="st">—</div>
+
+    <p class="sim-fallback">
+      <strong>簡略化の開示：</strong> Prefillのトークンあたり時間（0.02ms、並列・計算束縛）とDecodeの1ステップ時間（25ms、メモリ帯域束縛、バッチで微増）は教育用の目安であり、実際のGPU・モデル規模・実装（PagedAttention等）の実測値ではありません。固定したいのは「Prefillは入力長に比例するがバッチをまとめて処理でき計算が支配的」「Decodeは出力トークン数×ほぼ一定のステップ時間で、各ステップは重み読み出しのメモリ帯域に縛られる」という非対称の構造だけです。
+    </p>
+  </div>
+<script>
+(function(){
+  var T_PREFILL_PER_TOK = 0.02; // ms/token, parallel compute-bound
+  var BASE_DECODE_MS = 25;      // ms/token/step, memory-bandwidth-bound
+
+  function compute(){
+    var inTok = +document.getElementById('inTok').value;
+    var outTok = +document.getElementById('outTok').value;
+    var batch = +document.getElementById('batch').value;
+
+    var prefillTime = inTok * T_PREFILL_PER_TOK; // roughly batch-agnostic (already parallel)
+    var decodeStepTime = BASE_DECODE_MS * (1 + 0.03 * (batch - 1)); // shared bandwidth -> mild increase
+    var decodeTotalTime = outTok * decodeStepTime;
+    var totalLatency = prefillTime + decodeTotalTime;
+    var throughput = (batch * 1000) / decodeStepTime;
+
+    return { inTok, outTok, batch, prefillTime, decodeStepTime, decodeTotalTime, totalLatency, throughput };
+  }
+
+  function fmt(ms){
+    if (ms >= 1000) return (ms/1000).toFixed(2) + ' s';
+    return Math.round(ms) + ' ms';
+  }
+
+  function render(){
+    var r = compute();
+    document.getElementById('inVal').textContent = r.inTok;
+    document.getElementById('outVal').textContent = r.outTok;
+    document.getElementById('batchVal').textContent = r.batch;
+
+    var maxT = Math.max(r.prefillTime, r.decodeTotalTime, 1);
+    document.getElementById('barP').style.width = Math.max(1, Math.round(r.prefillTime / maxT * 100)) + '%';
+    document.getElementById('barD').style.width = Math.max(1, Math.round(r.decodeTotalTime / maxT * 100)) + '%';
+    document.getElementById('pTxt').textContent = fmt(r.prefillTime);
+    document.getElementById('dTxt').textContent = fmt(r.decodeTotalTime);
+
+    document.getElementById('cardLatency').textContent = fmt(r.totalLatency);
+    document.getElementById('cardStepLatency').textContent = r.decodeStepTime.toFixed(1) + ' ms';
+    document.getElementById('cardThroughput').textContent = Math.round(r.throughput).toLocaleString() + ' tok/s';
+
+    var st = document.getElementById('st');
+    var decodeShare = r.decodeTotalTime / r.totalLatency;
+    if (decodeShare > 0.85) {
+      st.className = 'sim-status caution';
+      st.textContent = '総レイテンシの' + Math.round(decodeShare*100) + '%がDecodeに占められている。入力を' + r.inTok + 'トークン処理するPrefillはほぼ一瞬（並列・計算束縛）だが、出力を1トークンずつ作るDecodeは重み読み出しの帯域に縛られ、出力長にほぼ線形に効いてくる。';
+    } else if (r.batch > 8) {
+      st.className = 'sim-status';
+      st.textContent = 'バッチを増やすと1ステップの時間はわずかに伸びるだけだが、バッチ全体のスループット（tok/s）は大きく伸びる——同じメモリ読み出しを多くの出力トークンで分け合えるため。個々のレイテンシとバッチ全体のコスト効率は別の軸である。';
+    } else {
+      st.className = 'sim-status';
+      st.textContent = 'Prefillは入力長に比例するが並列処理で速い。Decodeは出力トークンごとに一定のステップ時間がかかり、これが総レイテンシの構造を決める。';
+    }
+  }
+
+  document.getElementById('inTok').oninput = render;
+  document.getElementById('outTok').oninput = render;
+  document.getElementById('batch').oninput = render;
+  document.getElementById('modeA').onclick = function(){ document.getElementById('inTok').value = 3000; document.getElementById('outTok').value = 50; document.getElementById('batch').value = 1; render(); };
+  document.getElementById('modeB').onclick = function(){ document.getElementById('inTok').value = 50; document.getElementById('outTok').value = 1500; document.getElementById('batch').value = 1; render(); };
+  render();
+})();
+</script>
+</body>
+</html>
