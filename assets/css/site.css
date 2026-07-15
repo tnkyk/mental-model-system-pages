@@ -10,7 +10,8 @@ body {
   overflow-x: hidden;
 }
 a { color: var(--mm-green); text-underline-offset: 3px; overflow-wrap: anywhere; }
-a:hover { color: #8ec9ad; }
+a:hover { color: #9fd6b8; }
+strong { color: var(--mm-ink); }
 code {
   font: 14px/1.55 var(--mm-mono);
   background: var(--mm-code-bg);
@@ -254,9 +255,19 @@ figure.sourced img {
   border: 1px solid var(--mm-line);
   background: #fff;
 }
+figure.sourced.paper-fig {
+  max-width: 380px;
+  margin-left: auto;
+  margin-right: auto;
+}
 figure.sourced.paper-fig img {
+  width: auto;
+  max-width: 100%;
+  max-height: 420px;
+  margin: 0 auto;
   background: #f7f7f5;
-  padding: 12px;
+  padding: 10px;
+  object-fit: contain;
 }
 figure.sourced figcaption {
   margin-top: 14px;
@@ -269,7 +280,7 @@ figure.sourced .fig-source {
   margin-top: 6px;
   font-size: 12px;
   font-family: var(--mm-sans);
-  color: var(--mm-gray);
+  color: var(--mm-muted);
 }
 
 .fn-ref {
