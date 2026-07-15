@@ -656,6 +656,31 @@
     </section>
     <section class="section" id="frame">
       <h2><span class="node-num">2.</span> 記号列の予測へ立て直し、検索と翻訳として圧縮する</h2>
+      <p>前章で共有した問い——「結局何ができて、どう使えばいいか」——に答えるには、まず製品カタログや「賢い相手」という見方を置き換える必要がある。本章では、大規模言語モデル（LLM）が<strong>実際に扱っているもの</strong>を一文の型で固定し、利用者向けに<strong>検索＋翻訳</strong>という圧縮フレームへ写す。中身の機構語（注意・自己回帰・トークン化）は次章以降で開く。ここでは、判断のための型と写像先の辞書だけを残す。</p>
+      <h3>まず型だけ：モデルが扱うもの</h3>
+      <p>モデルが扱うのは、離散記号（トークン）の列 \(x = (x_1, x_2, \ldots)\) 上の<strong>条件付き分布</strong>である。与えられた前文 \(x_{<t} = (x_1, \ldots, x_{t-1})\) に対し、次の記号 \(x_t\) がどれだけありそうかを表す確率 \(P(x_t \mid x_{<t})\) を出力し、選ばれた1トークンを前文に足して、また次を予測する——この左から順への延長が<strong>自己回帰</strong>である<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a>。大規模言語モデルの事前学習は、インターネット規模のテキストで、この「次のトークン当て」を繰り返し学習させる方式に帰着する<a class="fn-ref" href="#ref-2">(*2)</a>。</p>
+      <p>ここで固定したいのは、出力が「考えた結果」や「理解の表明」ではない、という点だ。モデルは与えた記号列（プロンプトや会話の窓内テキスト）から、<strong>統計的にらしい続き</strong>を1トークンずつ選んでいる。流暢で自信に満ちた文体は、学習データ上でその続きがよく見られたパターンだから起きうる。前章の『自信満々な誤答』の予告どおり、<strong>上手い＝正しい</strong>ではない。</p>
+      <p>最適化対象——いわゆる次トークン交差エントロピー（CE）——が押し上げるものと、押し上げないものを先に分けておく。</p>
+      <table class="ladder">
+        <tr><th>CE が（主に）押し上げる</th><th>CE が直保証しない</th></tr>
+        <tr><td>前文に続く<strong>らしい</strong>トークン列（流暢さ・体裁・タスクらしい形式）</td><td>事実の真正性・数値の正確さ</td></tr>
+        <tr><td>与えた条件（指示・例示・文体）に沿った<strong>表現変換</strong></td><td>読み手の意図・権限・組織内の決裁</td></tr>
+        <tr><td>窓内に載った材料との<strong>表面的な整合</strong></td><td>材料の網羅性・取得元の検証済み保証</td></tr>
+        <tr><td>会話として自然な<strong>続き</strong></td><td>「完了」「承認済み」などの<strong>業務上の確定</strong></td></tr>
+      </table>
+      <p>「相手が考えている」のではなく、<strong>型（条件付き次トークン）</strong> が見える状態——それが本章の第一の出口である。</p>
+      <h3>なぜ今こういう形か（短い lineage）</h3>
+      <p>系列を扱うモデルは、長い依存関係（前の語が後の語に効く）を取り込みたい。かつ現代の学習は、GPU上で<strong>並列に</strong>大量のデータを回したい。初期の再帰型ニューラルネット（RNN）系は、時刻ごとに隠れ状態を更新するため、<strong>訓練時の並列化</strong>が苦しく、長距離の結合も情報が段階的に薄まりやすかった。CNN＋注意の系統もあったが、可変長依存のコストや並列性のトレードオフは残っていた。</p>
+      <p>2017年の Transformer は、再帰（recurrence）を外し、<strong>注意（attention）だけ</strong>で系列変換を行う設計を示した<a class="fn-ref" id="fnref-3" href="#ref-3">(*3)</a>。各位置が他位置との<strong>加重関連づけ</strong>を学び、距離に依存しにくく依存を結べる。位置情報は別途注入する（注意自体は順序不変だからである）<a class="fn-ref" href="#ref-3">(*3)</a>。デコーダ側は自己回帰で、過去に出力したトークンを次の入力として消費する<a class="fn-ref" href="#ref-3">(*3)</a>。</p>
+      <p>年表やアーキテクチャ博物館はここでは要らない。読者が持ち帰るべき必然は一点だけ——<strong>学習の並列化と長距離依存</strong>の圧力から、今の主流が「注意＋自己回帰の条件付き生成」に寄った、ということである。理解のためではなく、<strong>学習と推論のコスト構造</strong>の話として lineage を短く切る。</p>
+      <h3>利用者向けに圧縮：検索と翻訳</h3>
+      <p>この記事の圧縮として、利用者は LLM を<strong>検索</strong>と<strong>翻訳</strong>の二部品に分けて考えてよい。これは一次論文の正式用語ではない。下の写像は、後章で出てくる機構語への<strong>辞書</strong>として使う。</p>
+      <p><strong>「検索」に写るもの——材料を窓に載せる二経路</strong></p>
+      <p><strong>内部のソフト検索（窓内）</strong> プロンプトと生成済みテキストが載る<strong>有限の窓</strong>のなかで、どの部分をどれだけ強く参照するかを重み付けするのが、注意機構の役割である<a class="fn-ref" href="#ref-3">(*3)</a>。ハードな索引を叩くのではなく、<strong>ソフトな関連づけ</strong>で「今の出力に効きそうな材料」を選ぶ——利用者語の「検索」はここに写る。</p>
+      <p><strong>外側の検索（窓外）</strong> パラメータ（重み）に焼き込まれた記憶だけでは、更新・出典・社内文書の網羅に限界がある。そこで<strong>非パラメトリックな索引</strong>から段落や条文を取り出し、生成の条件テキストに足す方式がある——Retrieval-Augmented Generation（RAG）として定式化された<a class="fn-ref" id="fnref-4" href="#ref-4">(*4)</a>。取得した段落は生成の<strong>条件の一部</strong>であり、それだけで真正性が保証されるわけではない<a class="fn-ref" href="#ref-4">(*4)</a>。</p>
+      <p><strong>「翻訳」に写るもの——条件付き生成</strong></p>
+      <p>拾った材料と与えた指示を、<strong>別表現のトークン列</strong>へ写すプロセスが、利用者語の「翻訳」である。要約、言い換え、形式変換（箇条書き化、表への整形）、文体の変更、会話の<strong>続き</strong>の生成——いずれも \(P(x_t \mid x_{<t})\) 上の条件付き生成として同型に扱える<a class="fn-ref" href="#ref-2">(*2)</a>。機械翻訳製品の双方向アライメントや BLEU 最適化パイプラインそのものではない。<strong>自己回帰言語モデルが、与えた条件から統計的に別表現を吐く</strong>、というラベルに過ぎない。</p>
+      <p>この写像は下の図にまとめる。</p>
 
       <figure class="diagram" aria-label="検索と翻訳のパイプライン">
         <p class="fig-title">検索＋翻訳 — 利用者向けの圧縮</p>
@@ -679,37 +704,7 @@
         </svg>
         <figcaption>思考主体ではなく部品。上手い出力も、検証なしでは信頼にならない。</figcaption>
       </figure>
-      <p>前章で共有した問い——「結局何ができて、どう使えばいいか」——に答えるには、まず製品カタログや「賢い相手」という見方を置き換える必要がある。本章では、大規模言語モデル（LLM）が<strong>実際に扱っているもの</strong>を一文の型で固定し、利用者向けに<strong>検索＋翻訳</strong>という圧縮フレームへ写す。中身の機構語（注意・自己回帰・トークン化）は次章以降で開く。ここでは、判断のための型と写像先の辞書だけを残す。</p>
-      <h3>まず型だけ：モデルが扱うもの</h3>
-      <p>モデルが扱うのは、離散記号（トークン）の列 \(x = (x_1, x_2, \ldots)\) 上の<strong>条件付き分布</strong>である。与えられた前文 \(x_{<t} = (x_1, \ldots, x_{t-1})\) に対し、次の記号 \(x_t\) がどれだけありそうかを表す確率 \(P(x_t \mid x_{<t})\) を出力し、選ばれた1トークンを前文に足して、また次を予測する——この左から順への延長が<strong>自己回帰</strong>である<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a>。大規模言語モデルの事前学習は、インターネット規模のテキストで、この「次のトークン当て」を繰り返し学習させる方式に帰着する<a class="fn-ref" href="#ref-2">(*2)</a>。</p>
-      <p>ここで固定したいのは、出力が「考えた結果」や「理解の表明」ではない、という点だ。モデルは与えた記号列（プロンプトや会話の窓内テキスト）から、<strong>統計的にらしい続き</strong>を1トークンずつ選んでいる。流暢で自信に満ちた文体は、学習データ上でその続きがよく見られたパターンだから起きうる。前章の『自信満々な誤答』の予告どおり、<strong>上手い＝正しい</strong>ではない。</p>
-      <p>最適化対象——いわゆる次トークン交差エントロピー（CE）——が押し上げるものと、押し上げないものを先に分けておく。</p>
-      <table class="ladder">
-        <tr><th>CE が（主に）押し上げる</th><th>CE が直保証しない</th></tr>
-        <tr><td>前文に続く<strong>らしい</strong>トークン列（流暢さ・体裁・タスクらしい形式）</td><td>事実の真正性・数値の正確さ</td></tr>
-        <tr><td>与えた条件（指示・例示・文体）に沿った<strong>表現変換</strong></td><td>読み手の意図・権限・組織内の決裁</td></tr>
-        <tr><td>窓内に載った材料との<strong>表面的な整合</strong></td><td>材料の網羅性・取得元の検証済み保証</td></tr>
-        <tr><td>会話として自然な<strong>続き</strong></td><td>「完了」「承認済み」などの<strong>業務上の確定</strong></td></tr>
-      </table>
-      <p>「相手が考えている」のではなく、<strong>型（条件付き次トークン）</strong> が見える状態——それが本章の第一の出口である。</p>
-      <h3>なぜ今こういう形か（短い lineage）</h3>
-      <p>系列を扱うモデルは、長い依存関係（前の語が後の語に効く）を取り込みたい。かつ現代の学習は、GPU上で<strong>並列に</strong>大量のデータを回したい。初期の再帰型ニューラルネット（RNN）系は、時刻ごとに隠れ状態を更新するため、<strong>訓練時の並列化</strong>が苦しく、長距離の結合も情報が段階的に薄まりやすかった。CNN＋注意の系統もあったが、可変長依存のコストや並列性のトレードオフは残っていた。</p>
-      <p>2017年の Transformer は、再帰（recurrence）を外し、<strong>注意（attention）だけ</strong>で系列変換を行う設計を示した<a class="fn-ref" id="fnref-3" href="#ref-3">(*3)</a>。各位置が他位置との<strong>加重関連づけ</strong>を学び、距離に依存しにくく依存を結べる。位置情報は別途注入する（注意自体は順序不変だからである）<a class="fn-ref" href="#ref-3">(*3)</a>。デコーダ側は自己回帰で、過去に出力したトークンを次の入力として消費する<a class="fn-ref" href="#ref-3">(*3)</a>。</p>
-      <p>年表やアーキテクチャ博物館はここでは要らない。読者が持ち帰るべき必然は一点だけ——<strong>学習の並列化と長距離依存</strong>の圧力から、今の主流が「注意＋自己回帰の条件付き生成」に寄った、ということである。理解のためではなく、<strong>学習と推論のコスト構造</strong>の話として lineage を短く切る。</p>
-      <h3>利用者向けに圧縮：検索と翻訳</h3>
-      <p>Intent 上の著者圧縮として、利用者は LLM を<strong>検索</strong>と<strong>翻訳</strong>の二部品に分けて考えてよい。これは一次論文の正式用語ではない。下の写像は、後章で出てくる機構語への<strong>辞書</strong>として使う。</p>
-      <p><strong>「検索」に写るもの——材料を窓に載せる二経路</strong></p>
-      <ol class="rules-list">
-        <li><strong>内部のソフト検索（窓内）</strong></li>
-      </ol>
-      <p>プロンプトと生成済みテキストが載る<strong>有限の窓</strong>のなかで、どの部分をどれだけ強く参照するかを重み付けするのが、注意機構の役割である<a class="fn-ref" href="#ref-3">(*3)</a>。ハードな索引を叩くのではなく、<strong>ソフトな関連づけ</strong>で「今の出力に効きそうな材料」を選ぶ——利用者語の「検索」はここに写る。</p>
-      <ol class="rules-list">
-        <li><strong>外側の検索（窓外）</strong></li>
-      </ol>
-      <p>パラメータ（重み）に焼き込まれた記憶だけでは、更新・出典・社内文書の網羅に限界がある。そこで<strong>非パラメトリックな索引</strong>から段落や条文を取り出し、生成の条件テキストに足す方式がある——Retrieval-Augmented Generation（RAG）として定式化された<a class="fn-ref" id="fnref-4" href="#ref-4">(*4)</a>。取得した段落は生成の<strong>条件の一部</strong>であり、それだけで真正性が保証されるわけではない<a class="fn-ref" href="#ref-4">(*4)</a>。</p>
-      <p><strong>「翻訳」に写るもの——条件付き生成</strong></p>
-      <p>拾った材料と与えた指示を、<strong>別表現のトークン列</strong>へ写すプロセスが、利用者語の「翻訳」である。要約、言い換え、形式変換（箇条書き化、表への整形）、文体の変更、会話の<strong>続き</strong>の生成——いずれも \(P(x_t \mid x_{<t})\) 上の条件付き生成として同型に扱える<a class="fn-ref" href="#ref-2">(*2)</a>。機械翻訳製品の双方向アライメントや BLEU 最適化パイプラインそのものではない。<strong>自己回帰言語モデルが、与えた条件から統計的に別表現を吐く</strong>、というラベルに過ぎない。</p>
-      <p>この写像は下の図にまとめる。検索（窓内）は注意によるソフト関連づけ<a class="fn-ref" href="#ref-3">(*3)</a>、検索（窓外）は RAG／索引＋取得<a class="fn-ref" href="#ref-4">(*4)</a>、翻訳は条件付きトークン列生成<a class="fn-ref" href="#ref-2">(*2)</a>——それぞれ後章で内部実装と拡張を開く。</p>
+      <p>検索（窓内）は注意によるソフト関連づけ<a class="fn-ref" href="#ref-3">(*3)</a>、検索（窓外）は RAG／索引＋取得<a class="fn-ref" href="#ref-4">(*4)</a>、翻訳は条件付きトークン列生成<a class="fn-ref" href="#ref-2">(*2)</a>——それぞれ後章で内部実装と拡張を開く。</p>
       <p>「ただの確率ごっこ」と「検索＋翻訳フレームが有用」は矛盾しない。型が \(P(x_t \mid x_{<t})\) であることと、部品としての使い分けは別レイヤの話だ——圧縮は<strong>判断のため</strong>にある。</p>
       <h3>たとえの限界と、できない依頼</h3>
       <p><strong>ディスclaimer（必ず一度は言い切る）:</strong> 「検索」「翻訳」は pedagogical compression（学習用の圧縮たとえ）である。Google や Bing の検索エンジン（PageRank、クリックログ、広告入札）と同一ではない。DeepL や Google 翻訳の製品パイプラインとも同一ではない。注意の重み付けやベクトル索引は<strong>類似メタファー</strong>にすぎず、製品仕様をそのまま持ち込むと誤解が生じる。</p>
@@ -742,6 +737,7 @@
     </section>
     <section class="section" id="mechanism">
       <h2><span class="node-num">3.</span> 中で何が起きているか——トークン、注意、自己回帰</h2>
+      <p>前章で固定した型——記号列上の条件付き予測 <code>P(x_t|x_&lt;t)</code> と、利用者向けの <strong>検索＋翻訳</strong>——は、まだ写像の宣言にすぎない。本章はその箱を開ける。操作可能な部品は三つだけ——<strong>切る</strong>（離散トークン化）、<strong>関連づける</strong>（注意）、<strong>順に出す</strong>（自己回帰）——であり、以後の章で出てくる窓設計・目的関数・切り出し・速度の話は、すべてこの三つが重なった上に載る。</p>
 
       <figure class="diagram" aria-label="トークンから次トークンへ">
         <p class="fig-title">切る → 関連づける → 順に出す</p>
@@ -765,7 +761,6 @@
         </svg>
         <figcaption>検索メタファーは注意、翻訳は逐次生成。どちらも有限窓の上でしか起きない。</figcaption>
       </figure>
-      <p>前章で固定した型——記号列上の条件付き予測 <code>P(x_t|x_&lt;t)</code> と、利用者向けの <strong>検索＋翻訳</strong>——は、まだ写像の宣言にすぎない。本章はその箱を開ける。操作可能な部品は三つだけ——<strong>切る</strong>（離散トークン化）、<strong>関連づける</strong>（注意）、<strong>順に出す</strong>（自己回帰）——であり、以後の章で出てくる窓設計・目的関数・切り出し・速度の話は、すべてこの三つが重なった上に載る。</p>
       <h3>まず離散化——テキストを記号列に切る</h3>
       <p>コンピュータが扱えるのは有限の記号列である。連続的なテキストをそのまま渡せないので、最初の段で <strong>離散トークン列</strong> へ落とす。ここが全処理の入口であり、検索も翻訳も、この列の上でしか起きない。</p>
       <p>語彙は有限である必要がある。語彙が無限だと、次トークン予測の出力空間が定義できず、学習も推論も計算不能になる。現実の大規模モデルは、数万から数十万の <strong>トークン ID</strong> からなるカタログを持ち、入力テキストをその ID の列へ写す。問題は、自然言語の単語境界とトークン境界は一致しないことだ。英語の "unhappiness" が一塊か断片か、日本語の助詞が前の語と同じトークンか別か、型番や数字が何個の記号に割れるか——いずれも <strong>設計選択</strong> の結果であり、言語やドメインによって不利な切れ方が生まれる。</p>
@@ -811,12 +806,52 @@
       <h3>翻訳は1トークンずつ——学習並列と推論逐次</h3>
       <p>前章の <strong>翻訳</strong> メタファーの起源が、自己回帰である。列全体の確率は、各位置の条件付き確率の積 <code>P(x)=Π P(x_t|x_&lt;t)</code> として分解される（<a class="fn-ref" id="fnref-7" href="#ref-7">(*7)</a>）。生成は左から右へ、一度に一トークン。出したトークンは列に追記され、それが次の条件になる——これが「翻訳」が逐次になる理由だ。</p>
       <p>学習時と推論時で、時間の使い方は非対称だ。<strong>学習</strong> では正解の全文が与えられ、各位置の次トークンを <strong>同時に</strong> 予測して損失を計算する（教師強制）。並列に見えるのは、正解列を入力に足し込んでいるからだ。<strong>推論</strong> では、自分が出したトークンだけが次の入力に足される。一トークン出すたびに列が伸び、全体をやり直す。同じ重みを使いながら、学習はバッチ並列、推論は逐次——混同すると「遅いのは考えているから」と誤帰属しやすい（速度の話は後章へ）。</p>
+      <p>学習時は教師強制で各位置を並列に当て、推論時は自分が出したトークンを逐次に足す——この対比は下の図にまとめる。</p>
+
+      <figure class="diagram" aria-label="学習の並列と推論の逐次">
+        <p class="fig-title">学習は並列 · 推論は逐次</p>
+        <div class="fig-legend">
+          <span><span class="swatch gold"></span>学習（教師強制）</span>
+          <span><span class="swatch blue"></span>推論（自己回帰）</span>
+          <span><span class="swatch gray"></span>インフラ／時間</span>
+        </div>
+        <svg viewBox="0 0 720 200" role="img" xmlns="http://www.w3.org/2000/svg">
+          <text x="180" y="28" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">Train — 位置を並列に当てる</text>
+          <rect x="40" y="48" width="70" height="44" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
+          <text x="75" y="75" text-anchor="middle" fill="var(--mm-gold)" font-size="12">t₁</text>
+          <rect x="120" y="48" width="70" height="44" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
+          <text x="155" y="75" text-anchor="middle" fill="var(--mm-gold)" font-size="12">t₂</text>
+          <rect x="200" y="48" width="70" height="44" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
+          <text x="235" y="75" text-anchor="middle" fill="var(--mm-gold)" font-size="12">t₃</text>
+          <rect x="280" y="48" width="70" height="44" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
+          <text x="315" y="75" text-anchor="middle" fill="var(--mm-gold)" font-size="12">t₄</text>
+          <text x="180" y="118" text-anchor="middle" fill="#c2c3bf" font-size="11">正解列が与えられ、各位置の損失を同時計算</text>
+          <rect x="40" y="132" width="310" height="28" rx="3" fill="rgba(169,170,165,0.14)" stroke="var(--mm-gray)"/>
+          <text x="195" y="151" text-anchor="middle" fill="var(--mm-gray)" font-size="11">バッチ並列 · GPU 上で一括</text>
+          <text x="540" y="28" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">Infer — 1トークンずつ足す</text>
+          <rect x="400" y="48" width="56" height="36" rx="3" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)"/>
+          <text x="428" y="71" text-anchor="middle" fill="var(--mm-blue)" font-size="12">x₁</text>
+          <path d="M456 66 H478" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <rect x="478" y="48" width="56" height="36" rx="3" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)"/>
+          <text x="506" y="71" text-anchor="middle" fill="var(--mm-blue)" font-size="12">x₂</text>
+          <path d="M534 66 H556" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <rect x="556" y="48" width="56" height="36" rx="3" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)"/>
+          <text x="584" y="71" text-anchor="middle" fill="var(--mm-blue)" font-size="12">x₃</text>
+          <path d="M612 66 H634" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <rect x="634" y="48" width="56" height="36" rx="3" fill="rgba(22,119,184,0.12)" stroke="var(--mm-blue)" stroke-dasharray="3 2"/>
+          <text x="662" y="71" text-anchor="middle" fill="var(--mm-blue)" font-size="12">…</text>
+          <text x="545" y="118" text-anchor="middle" fill="#c2c3bf" font-size="11">自分が出したトークンが次の条件になる</text>
+          <rect x="400" y="132" width="290" height="28" rx="3" fill="rgba(169,170,165,0.14)" stroke="var(--mm-gray)"/>
+          <text x="545" y="151" text-anchor="middle" fill="var(--mm-gray)" font-size="11">逐次 decode · 時間は列に比例</text>
+          <text x="360" y="188" text-anchor="middle" fill="#c2c3bf" font-size="11">同じ重みでも、時間の使い方は非対称——「遅い＝考えている」ではない</text>
+        </svg>
+        <figcaption>学習並列／推論逐次。遅さの帰属は後章の KV・帯域へ渡す。</figcaption>
+      </figure>
       <div class="callout-example">
         <p class="cap-label">具体例</p>
         <p><strong>トークン化:</strong> 「Quarterly revenue grew 12%」と「四半期売上は前年比12%増」は、人間には同趣旨だが、トークン列長と切れ目は一致しない。後者は1文字の漢字や助詞のせいで列が長くなり、同じコンテキスト窓に入る <strong>論点の数</strong> が減る。型番 <code>XJ-4092-v3</code> を含む依頼文は、数字と記号が細切れになり、稀語は <code>un</code> + <code>happiness</code> のように既知断片へ割れる——いずれも単語数とは無関係に <strong>列コスト</strong> が変わる例だ。</p>
-        <p><strong>注意:</strong> 7トークン程度の窓に <code>[目的] … [制約] … [例外] … [要約せよ]</code> が並ぶとする。生成クエリが末尾の「要約せよ」側へ強く引かれると、中央の「制約」ブロックへの重みが薄れる模式が起きうる。流暢な要約は出るが、論点の芯は別のきれいな文へすり替わる——『資料なのに論点落ち』の手触りが、注意の色分け模式図と Lab の A/B で一度に掴める。</p>
+        <p><strong>注意:</strong> 7トークン程度の窓に <code>[目的] … [制約] … [例外] … [要約せよ]</code> が並ぶとする。生成クエリが末尾の「要約せよ」側へ強く引かれると、中央の「制約」ブロックへの重みが薄れる模式が起きうる。流暢な要約は出るが、論点の芯は別のきれいな文へすり替わる——『資料なのに論点落ち』の手触りは、下の Lab の A/B で一度に掴める。</p>
         <p><strong>自己回帰:</strong> 「The cat sat on the ___」を考える。学習時は <code>The cat sat on the mat</code> まで一括で与え、各位置の次トークン損失を並列計算する。推論時は <code>The</code> → <code>cat</code> → <code>sat</code> → … と、一度に一つだけ選び、選んだものを入力に足す。</p>
-        <p>学習時は教師強制で各位置を並列に当て、推論時は自分が出したトークンを逐次に足す——この対比は下の図にまとめる。</p>
       </div>
       <h3>章末——自信満々な誤答と論点落ちを機構語で読み直す</h3>
       <p><strong>自信満々な誤答</strong>を、いま持った部品で読む。逐次生成は、窓内の関連づけだけを材料に、<strong>次に来やすい記号</strong> を一つずつ選ぶ。真偽ラベルや出典検証のビットは列にない。だから形式が整い語尾が断定的でも、それは「調べた／正しい」の証拠にはならない——流暢さが有能感を生むのは、翻訳側の副作用として説明できる。ただし、<strong>何を最適化して、分布からどう一つを切り出すか</strong> はまだ本章の外だ。次トークン交差エントロピーが何を押し上げ、温度やサンプリングが何を増やすかは、次章の仕事である。</p>
@@ -846,7 +881,7 @@
       <p>「パラメータ数が大きいモデルほど賢い」という信仰は、CE 時代のスケーリング研究とセットで語られる。Kaplan らの第一世代の直感では、固定計算予算のもと <strong>比較的大きめのモデルに、比較的少なめのデータ</strong> を当てる配分が推奨された <a class="fn-ref" id="fnref-10" href="#ref-10">(*10)</a>。これは歴史的な位置づけとして覚えておけば足りる——本丸の論争にはしない。</p>
       <p>その後、Chinchilla 系の分析は <strong>同じ FLOP 予算なら、モデル規模と訓練トークン数を同程度に伸ばす</strong> 配分が計算最適に近い、と修正する <a class="fn-ref" id="fnref-11" href="#ref-11">(*11)</a>。多くの公開モデルは「同じ計算で十分なトークンを学んだか」という観点で <strong>undertrained</strong> 側に寄りうる、という指摘もここに含まれる。読者向けの実務的な読み方はシンプルだ。<strong>パラメータ数だけを見て賢さを語らない。同じ計算予算で何トークン学んだかもセットで見る。</strong> ただし配分係数はコーパスやアーキテクチャに依存し、無限外挿の公式ではない。スケール改善を「単一の賢さ指数」に圧縮しない——それも CE 代理と保証の分離の延長線上にある。</p>
       <h3>パラメータは多いのに、1トークンあたりの計算は増やさない</h3>
-      <p>MoE（Mixture of Experts）——Switch Transformer など——は、入力ごとに <strong>パラメータの部分集合だけを活性化</strong> し、総パラメータ数と <strong>1トークンあたりの計算量</strong> を分離しうる別レバーだ <a class="fn-ref" id="fnref-18" href="#ref-18">(*18)</a>。ルータが少数の expert FFN へ振り分ける模式図は、容量と計算のトレードオフを変える注記として1枚で足りる。要点は次のとおり。<strong>MoE は「賢さ」の定義や CE の保証外項目を置き換えない。</strong> パラメータが増えても、事実の真正性やユーザ意図への追従が自動で解決するわけではない。製品比較やルーティングレシピの深掘りは本章の範囲外——「別次元のレバーがある」と知っていれば十分だ。</p>
+      <p>MoE（Mixture of Experts）——Switch Transformer など——は、入力ごとに <strong>パラメータの部分集合だけを活性化</strong> し、総パラメータ数と <strong>1トークンあたりの計算量</strong> を分離しうる別レバーだ <a class="fn-ref" id="fnref-18" href="#ref-18">(*18)</a>。ルータが少数の expert FFN へ振り分ける流れは、概念として1枚で足りる（図は省略）。要点は次のとおり。<strong>MoE は「賢さ」の定義や CE の保証外項目を置き換えない。</strong> パラメータが増えても、事実の真正性やユーザ意図への追従が自動で解決するわけではない。製品比較やルーティングレシピの深掘りは本章の範囲外——「別次元のレバーがある」と知っていれば十分だ。</p>
       <h3>丁寧さや従順さはどこで付くか</h3>
       <p>チャットで体験する <strong>丁寧な口調</strong>、<strong>指示への追従</strong>、<strong>拒否応答の型</strong> は、CE 事前学習とは <strong>別工程</strong> の post-training で調整される。InstructGPT の報告がはっきり示す核心は、次の一文に尽きる。<strong>モデルを大きくするだけでは、ユーザ意図への追従は本質的に改善しない</strong> <a class="fn-ref" id="fnref-12" href="#ref-12">(*12)</a>。同じ基地モデルに対し、比較的小規模な指示付き微調整（SFT）と人間選好に基づく RLHF を経たモデルが、大規模な基地モデル単体より好まれる——という結果は、<strong>規模≠意図</strong> の反例として記憶に値する <a class="fn-ref" id="fnref-13" href="#ref-13">(*13)</a>。</p>
       <p>パイプラインを名詞羅列せず、層として理解しよう。まず <strong>SFT</strong> で、指示と模範応答のデモを模倣させる。次に <strong>選好適応</strong>（RLHF など）で、複数候補のうち人間が好む方へ分布を寄せる。どちらも CE とは <strong>目的もデータも異なる</strong>。口調や従順さを「内面の人格」と読む必要はない——<strong>適応層</strong> の出力形式だ。真正性・権限・タスク完了の定義は、表の右列のまま外側に残る。</p>
@@ -854,6 +889,33 @@
       <p>推論時、学習済みの条件付き分布 <code>P(x_t | x_&lt;t)</code> は固定されていても、<strong>次にどのトークンを選ぶか</strong> は別の手順——<strong>decoding／sampling</strong>——で決まる。ここが <strong>切り出し層</strong> だ。</p>
       <p><strong>温度（temperature）</strong> は softmax の尖りを変えるノブだ。低いと高確率トークンに集中し、高いと尾部も拾いやすくなる。<strong>top-p（nucleus sampling）</strong> は、累積確率が閾値 p に達するまでのトークン集合からサンプルし、低確率の尾部を切り落とす <a class="fn-ref" id="fnref-14" href="#ref-14">(*14)</a>。Holtzman らが指摘した <strong>degeneration</strong>——尤度最大化や貪欲なビーム探索に近い切り出しで、反復・平板な続きが増える——は、手順が出力性質を変えることの古典的な例だ <a class="fn-ref" id="fnref-15" href="#ref-15">(*15)</a>。温度・top-p は <strong>同じ分布からの決定手順</strong> であり、モデルの「性格」や「気分」ではない。</p>
       <p>読者が得る体験は一つ——<strong>分布は同じでも、手順を変えると出力列の多様性・反復度が変わる。</strong> <strong>ぶれは性格ではない。切り出し層のレバー。</strong></p>
+      <p>模式図で足りる流れは次のとおり。softmax 出力 →（温度で尖り変更）→（top-p で尾部切除）→ 1トークン選択 → 自己回帰で次へ。人格アイコンは置かない。</p>
+
+      <figure class="diagram" aria-label="切り出しの流れ">
+        <p class="fig-title">分布は同じ · 手順が出力を変える</p>
+        <div class="fig-legend">
+          <span><span class="swatch gray"></span>分布／ノブ</span>
+          <span><span class="swatch gold"></span>選択（切り出し）</span>
+        </div>
+        <svg viewBox="0 0 720 120" role="img" xmlns="http://www.w3.org/2000/svg">
+          <rect x="24" y="36" width="110" height="48" rx="4" fill="rgba(169,170,165,0.15)" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <text x="79" y="65" text-anchor="middle" fill="var(--mm-gray)" font-size="12" font-weight="700">softmax</text>
+          <path d="M134 60 H158" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <rect x="158" y="36" width="110" height="48" rx="4" fill="rgba(169,170,165,0.12)" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <text x="213" y="65" text-anchor="middle" fill="var(--mm-gray)" font-size="12" font-weight="700">温度</text>
+          <path d="M268 60 H292" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <rect x="292" y="36" width="110" height="48" rx="4" fill="rgba(169,170,165,0.12)" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <text x="347" y="65" text-anchor="middle" fill="var(--mm-gray)" font-size="12" font-weight="700">top-p</text>
+          <path d="M402 60 H426" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <rect x="426" y="36" width="140" height="48" rx="4" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)" stroke-width="1.5"/>
+          <text x="496" y="65" text-anchor="middle" fill="var(--mm-gold)" font-size="12" font-weight="700">1トークン選択</text>
+          <path d="M566 60 H590" stroke="var(--mm-gray)" stroke-width="1.4"/>
+          <rect x="590" y="36" width="110" height="48" rx="4" fill="rgba(183,121,18,0.12)" stroke="var(--mm-gold)" stroke-width="1.4"/>
+          <text x="645" y="65" text-anchor="middle" fill="var(--mm-gold)" font-size="12" font-weight="700">次へ</text>
+          <text x="360" y="108" text-anchor="middle" fill="#c2c3bf" font-size="11">人格アイコンは置かない — 切り出しは性格ではない</text>
+        </svg>
+        <figcaption>温度・top-p は同じ分布からの決定手順。ぶれは気分ではなくレバー。</figcaption>
+      </figure>
 
       <details class="lab-embed" open>
         <summary>
@@ -869,7 +931,6 @@
         </div>
       </details>
       <p>冒頭の『長いと遅い・ぶれる』——同じプロンプトで答えが変わる——はここで初めて機構語に回収できる。固定重み・同条件なら分布の型は同型；違いはサンプリングの乱数経路にある。<strong>「今日は機嫌が悪い」ではなく、切り出しを疑う。</strong> 長文になると遅く壊れやすい、という『長いと遅い・ぶれる』の残部は、学習目的や切り出しでは説明しきれない——次章で KV と帯域の話へ渡す。</p>
-      <p>模式図で足りる流れは次のとおり。softmax 出力 →（温度で尖り変更）→（top-p で尾部切除）→ 1トークン選択 → 自己回帰で次へ。人格アイコンは置かない。</p>
       <h3>適応の経路は一つではない</h3>
       <p>post-training のレシピは、現場では RLHF だけに収束していない。<strong>DPO（Direct Preference Optimization）</strong> は、選好整合を明示的な RL ループなしに、分類損失として直接最適化しうる別経路だ <a class="fn-ref" id="fnref-16" href="#ref-16">(*16)</a>。<strong>DeepSeek-R1</strong> のような系譜は、推論らしい行動パターンを CE とは別の post-training や test-time スケール——大規模 RL を含みうる——の対象として示す <a class="fn-ref" id="fnref-17" href="#ref-17">(*17)</a>。どちらも「思考主体が完成した」証拠ではない。経路は増えているが、<strong>層は同じ</strong>——適応は「従う／従わない・口調・選好」の調整であり、真正性・権限・完了は依然モデル外だ。勝者判定や製品名攻略の叙事は不要。<strong>複数経路が open 集合として存在する</strong> という事実だけを持ち帰ればよい。</p>
       <div class="callout-example">
@@ -885,6 +946,9 @@
     </section>
     <section class="section" id="stacks">
       <h2><span class="node-num">5.</span> 学習と推論でハードとアプリをどう往復するか</h2>
+      <p>前章までで、モデルは「次トークン分布を学び、適応で癖づき、切り出しでぶれる」ことが分かった。ここから先は、<strong>同じ Transformer を回しても、学習時とチャット推論時では資源の使い方が正反対</strong>だ、という話になる。</p>
+      <p>日常で「AI が遅い」「高い」「長いと壊れる」と感じる場面の多くは、<strong>推論（チャット）側</strong>の話だ。一方、事前学習や SFT を想像するときに頭に浮かぶのは、巨大クラスタで何週間も回す <strong>学習</strong> のイメージだ。これらを一枚岩の「GPU が頑張っている」にまとめると、帰属が必ずズレる——アプリのせい、モデルのせい、回線のせい、「考え込んでいるから重い」のせい、と混線する。</p>
+      <p>本章では <strong>二枚の地図</strong> を持つ。左が学習スタック、右が推論スタックだ。どちらも「アプリ目的（または条件）→ ランタイム → ハードウェア → 戻り」の往復だが、<strong>律速の場所が違う</strong>。GPU の型番比較やカーネルチューニング手順はここでは扱わない。読者が持ち帰るのは、<strong>どのフェーズで何を疑うか</strong> という会計の型だけだ。</p>
 
       <figure class="diagram" aria-label="学習スタックと推論スタック">
         <p class="fig-title">学習 vs 推論 — 縦はスタック、左右は別経路</p>
@@ -912,9 +976,6 @@
         </svg>
         <figcaption>アプリ条件 → ランタイム → ハードの往復。律速の場所を混同しない。</figcaption>
       </figure>
-      <p>前章までで、モデルは「次トークン分布を学び、適応で癖づき、切り出しでぶれる」ことが分かった。ここから先は、<strong>同じ Transformer を回しても、学習時とチャット推論時では資源の使い方が正反対</strong>だ、という話になる。</p>
-      <p>日常で「AI が遅い」「高い」「長いと壊れる」と感じる場面の多くは、<strong>推論（チャット）側</strong>の話だ。一方、事前学習や SFT を想像するときに頭に浮かぶのは、巨大クラスタで何週間も回す <strong>学習</strong> のイメージだ。これらを一枚岩の「GPU が頑張っている」にまとめると、帰属が必ずズレる——アプリのせい、モデルのせい、回線のせい、「考え込んでいるから重い」のせい、と混線する。</p>
-      <p>本章では <strong>二枚の地図</strong> を持つ。左が学習スタック、右が推論スタックだ。どちらも「アプリ目的（または条件）→ ランタイム → ハードウェア → 戻り」の往復だが、<strong>律速の場所が違う</strong>。GPU の型番比較やカーネルチューニング手順はここでは扱わない。読者が持ち帰るのは、<strong>どのフェーズで何を疑うか</strong> という会計の型だけだ。</p>
       <h3>学習の往復：目的が GEMM と勾配更新に落ちる</h3>
       <p>学習時の往復は、下から上へ、また下へ戻る。</p>
       <p><strong>アプリ層</strong>では、損失——典型的には次トークンの交差エントロピー——とデータ混合、必要なら SFT や選好の目的が、「どの方向に重みを動かすか」を決める。前章の CE がここに接続する。流暢さはこの目的の副産物であり、チャットの「待ち時間」とは別物だ。</p>
@@ -1005,6 +1066,12 @@
     </section>
     <section class="section" id="limits-map">
       <h2><span class="node-num">6.</span> できないことの地図——評価・規範・主体誤認</h2>
+      <h3>はじめに — できる側のあとに戻る引力</h3>
+      <p>前章までで、学習と推論は別スタックで往復し、遅さやコストは KV や提供の会計に帰属することが見えた。同時に第4章では、次トークンの交差エントロピーが押し上げるのは流暢な続きであり、事実の真正性や意図の読み取りを直最適化しないことも固定した。第2章で一度おりた「思考している相手」フレームが、製品体験の滑らかさと数字の並びに触れると、また戻ってくる。</p>
+      <p>ベンチマークの順位表を見て「これが一番賢い」と感じる。開発チームが LLM-as-judge のスコアを並べて「品質が上がった」と報告する。製品ページに Safety Guard のバッジが付いている。モデルが丁寧に拒否し、根拠らしい段落を返す——そのとき、第1章で触れた「上手いのに信用できない」が別の形で再燃する。本章は、<strong>できる側の地図のあとに、できない側の地図を一枚足す</strong> 章である。否定は冷笑ではない。検索と翻訳は有効なまま、<strong>載せ方と止め方</strong> が変わる。</p>
+      <p>三つの誤帰属を先に名指しする。<strong>評価の誤帰属</strong> — ベンチ順位や judge スコアを「本当に賢い／安全／公正」の証拠と読む。<strong>規範の誤帰属</strong> — ガードや憲法的訓練を「もう安全だから検証不要」と読む。<strong>主体の誤帰属</strong> — 流暢な翻訳を「理解した主体の結論」と読む。整った推薦文や要約は、条件付き分布からの翻訳であり、理解した主体の結論ではない <a class="fn-ref" id="fnref-28" href="#ref-28">(*28)</a>。この再固定を保ったまま、三つを外に出す。</p>
+      <h3>否定地図 — 何がモデルの外に残るか</h3>
+      <p>利用者が求めがちな機能を行に、モデル内で近似できるものと外側に残るものを列に並べる。下の図はこの表の一枚絵版である。</p>
 
       <figure class="diagram" aria-label="モデルの外にあるもの">
         <p class="fig-title">モデル内（中央）とモデル外（四隅）</p>
@@ -1027,12 +1094,6 @@
         </svg>
         <figcaption>流暢さは四隅を保証しない。載せ方と止め方が変わる。</figcaption>
       </figure>
-      <h3>はじめに — できる側のあとに戻る引力</h3>
-      <p>前章までで、学習と推論は別スタックで往復し、遅さやコストは KV や提供の会計に帰属することが見えた。同時に第4章では、次トークンの交差エントロピーが押し上げるのは流暢な続きであり、事実の真正性や意図の読み取りを直最適化しないことも固定した。第2章で一度おりた「思考している相手」フレームが、製品体験の滑らかさと数字の並びに触れると、また戻ってくる。</p>
-      <p>ベンチマークの順位表を見て「これが一番賢い」と感じる。開発チームが LLM-as-judge のスコアを並べて「品質が上がった」と報告する。製品ページに Safety Guard のバッジが付いている。モデルが丁寧に拒否し、根拠らしい段落を返す——そのとき、第1章で触れた「上手いのに信用できない」が別の形で再燃する。本章は、<strong>できる側の地図のあとに、できない側の地図を一枚足す</strong> 章である。否定は冷笑ではない。検索と翻訳は有効なまま、<strong>載せ方と止め方</strong> が変わる。</p>
-      <p>三つの誤帰属を先に名指しする。<strong>評価の誤帰属</strong> — ベンチ順位や judge スコアを「本当に賢い／安全／公正」の証拠と読む。<strong>規範の誤帰属</strong> — ガードや憲法的訓練を「もう安全だから検証不要」と読む。<strong>主体の誤帰属</strong> — 流暢な翻訳を「理解した主体の結論」と読む。整った推薦文や要約は、条件付き分布からの翻訳であり、理解した主体の結論ではない <a class="fn-ref" id="fnref-28" href="#ref-28">(*28)</a>。この再固定を保ったまま、三つを外に出す。</p>
-      <h3>否定地図 — 何がモデルの外に残るか</h3>
-      <p>利用者が求めがちな機能を行に、モデル内で近似できるものと外側に残るものを列に並べる。直前の図はこの表の一枚絵版である。</p>
       <table class="ladder">
         <tr><th>求めること</th><th>モデル内で近似できる</th><th>モデル外（人間・制度・検証手続き必須）</th><th>典型の誤帰属</th></tr>
         <tr><td>材料の関連づけ・拾い（検索）</td><td>窓内注意＋ RAG／ツール結果の取り込み</td><td>索引の鮮度・権限・出典の真正性</td><td>「渡した＝使えた」</td></tr>
@@ -1096,6 +1157,34 @@
     </section>
     <section class="section" id="context">
       <h2><span class="node-num">7.</span> だから Context Engineering</h2>
+      <p>前章で、できないことの地図——真正性保証、権限裁定、業務完了の定義、価値選定——をモデルの外側に置いた。それは禁欲ではなく、利用を始めるための前提だ。しかし地図だけでは、あなたの手は空のままだ。資料を貼ったのに論点だけ落ち、返ってきたのはきれいな別の文だった——そんな『資料なのに論点落ち』の経験は、人格やプロンプトの丁寧さだけでは説明しきれない。</p>
+      <p>第2章で固定した「検索＋翻訳」の型に戻ろう。モデルは窓の中の材料を関連づけて拾い、その分布を文字列に翻訳する。第3章で見た注意は一様な全体走査ではなく、ソフトな検索だった。第5章で有限窓と KV が律速になることも触れた。これらを <strong>利用者が触れるレバー</strong> に落とすのが Context Engineering である。流行のラベルではなく、有限 attention の下で検索材料の効用を設計する必然だ <a class="fn-ref" id="fnref-34" href="#ref-34">(*34)</a><a class="fn-ref" id="fnref-35" href="#ref-35">(*35)</a>。</p>
+      <h3>プロンプトは窓の一部である</h3>
+      <p>まず用語を一本に揃える。<strong>Context</strong> とは、推論（サンプリング）のときモデルへ渡される <strong>トークン集合全体</strong> である——指示、会話履歴、貼り付けた資料、ツールの返り値、システムメッセージをすべて含む <a class="fn-ref" href="#ref-34">(*34)</a>。<strong>Context Engineering</strong> は、その集合を LLM の制約の下で効用が最大になるようキュレーションする戦略群だ <a class="fn-ref" href="#ref-35">(*35)</a>。</p>
+      <p>ここで多くの人が止まる。<strong>Prompt engineering</strong>——指示の書き方、 few-shot の例、出力形式の指定——は OpenAI も公式に「単一（または少数）の呼び出しにおける条件トークンの設計」と位置づける <a class="fn-ref" id="fnref-36" href="#ref-36">(*36)</a>。重要なのは包含関係である。</p>
+      <p>この包含関係（prompt ⊂ context）は下の図にまとめる。</p>
+
+      <figure class="diagram" aria-label="prompt は context の部分集合">
+        <p class="fig-title">prompt ⊂ context</p>
+        <div class="fig-legend">
+          <span><span class="swatch gray"></span>Context（窓全体）</span>
+          <span><span class="swatch gold"></span>Prompt（指示・例）</span>
+        </div>
+        <svg viewBox="0 0 720 200" role="img" xmlns="http://www.w3.org/2000/svg">
+          <rect x="80" y="36" width="560" height="140" rx="6" fill="rgba(169,170,165,0.12)" stroke="var(--mm-gray)" stroke-width="1.6"/>
+          <text x="100" y="58" fill="var(--mm-gray)" font-size="13" font-weight="700">Context — 推論時に渡すトークン集合全体</text>
+          <text x="100" y="78" fill="#c2c3bf" font-size="11">履歴 · 資料 · ツール返り値 · システム文 …</text>
+          <rect x="160" y="96" width="280" height="56" rx="4" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)" stroke-width="1.5"/>
+          <text x="300" y="122" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">Prompt</text>
+          <text x="300" y="140" text-anchor="middle" fill="#c2c3bf" font-size="11">指示 · few-shot · 出力形式</text>
+          <text x="480" y="128" fill="#c2c3bf" font-size="11">← 磨いても、外側の材料が効く</text>
+        </svg>
+        <figcaption>指示の上手さだけでは足りない。窓全体のキュレーションが本丸。</figcaption>
+      </figure>
+      <p><strong>prompt ⊂ context</strong>。指示を磨いても、履歴に古い版が混ざっていたり、80 ページの PDF が中央に論点を置いたまま載っていたりすれば、足りない。第6章以降に「じゃあどう書けばいい？」と Tips カタログを求めるのは自然だが、本章が渡すのは <strong>書き方10選</strong> ではなく、窓の点検器だ。</p>
+      <h3>入れた＝使える、ではない</h3>
+      <p>長文脈が使えるモデルが増え、「載せれば拾う」という信仰が強まった。Liu らの <em>Lost in the Middle</em> は、この直感を体系的に崩す。関連情報が <strong>先頭または末尾</strong> にあるとき性能は高いが、<strong>中央</strong> に置かれると大きく落ちる——実効利用は U 字の模式を描く <a class="fn-ref" id="fnref-37" href="#ref-37">(*37)</a>。</p>
+      <p>先頭・末尾が有利で中央が谷になる U 字の模式は、下の図にまとめる。</p>
 
       <figure class="diagram" aria-label="Lost in the Middle のU字">
         <p class="fig-title">窓内の位置（横）と実効利用（縦）</p>
@@ -1118,16 +1207,6 @@
         </svg>
         <figcaption>入れた＝使える、ではない。増やす前に削る／移す／端に置く。</figcaption>
       </figure>
-      <p>前章で、できないことの地図——真正性保証、権限裁定、業務完了の定義、価値選定——をモデルの外側に置いた。それは禁欲ではなく、利用を始めるための前提だ。しかし地図だけでは、あなたの手は空のままだ。資料を貼ったのに論点だけ落ち、返ってきたのはきれいな別の文だった——そんな『資料なのに論点落ち』の経験は、人格やプロンプトの丁寧さだけでは説明しきれない。</p>
-      <p>第2章で固定した「検索＋翻訳」の型に戻ろう。モデルは窓の中の材料を関連づけて拾い、その分布を文字列に翻訳する。第3章で見た注意は一様な全体走査ではなく、ソフトな検索だった。第5章で有限窓と KV が律速になることも触れた。これらを <strong>利用者が触れるレバー</strong> に落とすのが Context Engineering である。流行のラベルではなく、有限 attention の下で検索材料の効用を設計する必然だ <a class="fn-ref" id="fnref-34" href="#ref-34">(*34)</a><a class="fn-ref" id="fnref-35" href="#ref-35">(*35)</a>。</p>
-      <h3>プロンプトは窓の一部である</h3>
-      <p>まず用語を一本に揃える。<strong>Context</strong> とは、推論（サンプリング）のときモデルへ渡される <strong>トークン集合全体</strong> である——指示、会話履歴、貼り付けた資料、ツールの返り値、システムメッセージをすべて含む <a class="fn-ref" href="#ref-34">(*34)</a>。<strong>Context Engineering</strong> は、その集合を LLM の制約の下で効用が最大になるようキュレーションする戦略群だ <a class="fn-ref" href="#ref-35">(*35)</a>。</p>
-      <p>ここで多くの人が止まる。<strong>Prompt engineering</strong>——指示の書き方、 few-shot の例、出力形式の指定——は OpenAI も公式に「単一（または少数）の呼び出しにおける条件トークンの設計」と位置づける <a class="fn-ref" id="fnref-36" href="#ref-36">(*36)</a>。重要なのは包含関係である。</p>
-      <p>この包含関係（prompt ⊂ context）は下の図にまとめる。</p>
-      <p><strong>prompt ⊂ context</strong>。指示を磨いても、履歴に古い版が混ざっていたり、80 ページの PDF が中央に論点を置いたまま載っていたりすれば、足りない。第6章以降に「じゃあどう書けばいい？」と Tips カタログを求めるのは自然だが、本章が渡すのは <strong>書き方10選</strong> ではなく、窓の点検器だ。</p>
-      <h3>入れた＝使える、ではない</h3>
-      <p>長文脈が使えるモデルが増え、「載せれば拾う」という信仰が強まった。Liu らの <em>Lost in the Middle</em> は、この直感を体系的に崩す。関連情報が <strong>先頭または末尾</strong> にあるとき性能は高いが、<strong>中央</strong> に置かれると大きく落ちる——実効利用は U 字の模式を描く <a class="fn-ref" id="fnref-37" href="#ref-37">(*37)</a>。</p>
-      <p>先頭・末尾が有利で中央が谷になる U 字の模式は、下の図にまとめる。</p>
       <p>これは第3章の写像である。注意はソフト検索だが <strong>均等ではない</strong>。窓に入れたトークンは、同じ重みでモデルの「意識」に並ぶわけではない。中央に置いた論点は、形式的には条件付き分布の支持に含まれるのに、実効的には落ちやすい。</p>
       <p>さらに Anthropic は <strong>context rot</strong> と呼ぶ現象を指摘する。トークン数が増えるほど、とくに中間に置いた情報の実効利用が劣化しうる <a class="fn-ref" id="fnref-38" href="#ref-38">(*38)</a>。材料を増やすことは、親切であると同時に <strong>コスト</strong>（第5章の KV・遅延）と <strong>リスク</strong>（拾われない論点）の両方を増やす操作だ。「たくさん貼れば安全」は成り立たない。</p>
       <h3>業務で起きる：仕様書の真ん中を落とす</h3>
@@ -1160,6 +1239,14 @@
     </section>
     <section class="section" id="workflow">
       <h2><span class="node-num">8.</span> 使い方の本丸はワークフロー設計</h2>
+      <h3>窓だけでは業務は閉じない</h3>
+      <p>前章までで、窓に何を・どこに・いつ載せるか——Context Engineering のレバーは手に入った。仕様書の中央に論点を置かない、増やす前に削る、といった点検もできるようになった。それでも、窓を整えた <strong>1回のチャット呼び出し</strong> だけでは、多くの業務は閉じない。</p>
+      <p>理由は単純だ。モデルの1ステップは <strong>次のトークンを出す</strong> ことに尽きる。社内規程を引いてくる、顧客にメールを送る、法務に承認を取る——こうした <strong>環境操作</strong> はモデルの外側が担い、その結果だけが窓へ戻ってくる。第6章の否定地図が示したとおり、真正性の裁定、権限の行使、完了の定義、価値の選定はモデル外に残る。窓最適化は必要だが <strong>不十分</strong> である。</p>
+      <p>だから利用法の本丸は、プロンプトの書き方技巧ではなく <strong>ワークフロー設計</strong> に移る。どの段に検索を置き、どの段に翻訳を置き、誰が止めて誰が検証するか——この外側の手続きを先に描かないと、RAG も function calling も MCP も「魔法の配線」に見えてしまう。『ツール後も検証が残る』と『一発プロンプト依存』が刺さっている読者は、ここで一度立ち止まるべき地点にいる。</p>
+      <h3>基本ループ：考える・動く・観測する</h3>
+      <p>多段タスクの学術的な骨格は、ReAct が示す <strong>reason → act → observe</strong> のインターリーブだ<a class="fn-ref" id="fnref-40" href="#ref-40">(*40)</a>。モデルは推論トレース（考える）と行動呼び出し（動く）を交互に出し、外側が実行した結果（観測）が窓へ戻る。1回の Chain-of-Thought だけでは環境は更新されない——観測を取り込むループが要る。</p>
+      <p>製品や実務では、Anthropic が <strong>workflow</strong>（コードが制御フローを握る）と <strong>agent</strong>（LLM が動的に次の手を選ぶ）を区別する<a class="fn-ref" id="fnref-45" href="#ref-45">(*45)</a>。どちらにせよ、多段タスクは <strong>外側制御フローで合成する</strong> 必然は変わらない。retrieval・tools・memory を載せた augmented LLM を基本単位に、chaining や routing、evaluator-optimizer といったパターンを組み合わせる——だが、ここではカタログを並べるより <strong>ループの単位</strong> を掴むことが先だ。</p>
+      <p>図で固定したいのは二点だけだ。第一に、1回の生成は世界を更新しない。第二に、<strong>停止条件は誰が持つか</strong>。モデルが「完了しました」と宣言しても、それは業務完了ではない。テストが通ったか、法務が OK を出したか、差分がレビューされたか——検証可能な完了条件は <strong>ハーネス</strong> 側に置く<a class="fn-ref" id="fnref-46" href="#ref-46">(*46)</a>。長時間のエージェント作業では、窓をまたぐと記憶が消え、早期完了宣言ややりすぎが起きる。進捗ファイル、git の状態、feature list のような <strong>セッション間状態</strong> もモデル外に残すのが当然だ<a class="fn-ref" href="#ref-46">(*46)</a>。</p>
 
       <figure class="diagram" aria-label="検索・翻訳・検証のループ">
         <p class="fig-title">検索 → 翻訳 → 検証（権限は外側）</p>
@@ -1186,14 +1273,6 @@
         </svg>
         <figcaption>AI はループ内の部品。止める・検証する・権限を渡すのはワークフロー側。</figcaption>
       </figure>
-      <h3>窓だけでは業務は閉じない</h3>
-      <p>前章までで、窓に何を・どこに・いつ載せるか——Context Engineering のレバーは手に入った。仕様書の中央に論点を置かない、増やす前に削る、といった点検もできるようになった。それでも、窓を整えた <strong>1回のチャット呼び出し</strong> だけでは、多くの業務は閉じない。</p>
-      <p>理由は単純だ。モデルの1ステップは <strong>次のトークンを出す</strong> ことに尽きる。社内規程を引いてくる、顧客にメールを送る、法務に承認を取る——こうした <strong>環境操作</strong> はモデルの外側が担い、その結果だけが窓へ戻ってくる。第6章の否定地図が示したとおり、真正性の裁定、権限の行使、完了の定義、価値の選定はモデル外に残る。窓最適化は必要だが <strong>不十分</strong> である。</p>
-      <p>だから利用法の本丸は、プロンプトの書き方技巧ではなく <strong>ワークフロー設計</strong> に移る。どの段に検索を置き、どの段に翻訳を置き、誰が止めて誰が検証するか——この外側の手続きを先に描かないと、RAG も function calling も MCP も「魔法の配線」に見えてしまう。『ツール後も検証が残る』と『一発プロンプト依存』が刺さっている読者は、ここで一度立ち止まるべき地点にいる。</p>
-      <h3>基本ループ：考える・動く・観測する</h3>
-      <p>多段タスクの学術的な骨格は、ReAct が示す <strong>reason → act → observe</strong> のインターリーブだ<a class="fn-ref" id="fnref-40" href="#ref-40">(*40)</a>。モデルは推論トレース（考える）と行動呼び出し（動く）を交互に出し、外側が実行した結果（観測）が窓へ戻る。1回の Chain-of-Thought だけでは環境は更新されない——観測を取り込むループが要る。</p>
-      <p>製品や実務では、Anthropic が <strong>workflow</strong>（コードが制御フローを握る）と <strong>agent</strong>（LLM が動的に次の手を選ぶ）を区別する<a class="fn-ref" id="fnref-45" href="#ref-45">(*45)</a>。どちらにせよ、多段タスクは <strong>外側制御フローで合成する</strong> 必然は変わらない。retrieval・tools・memory を載せた augmented LLM を基本単位に、chaining や routing、evaluator-optimizer といったパターンを組み合わせる——だが、ここではカタログを並べるより <strong>ループの単位</strong> を掴むことが先だ。</p>
-      <p>図で固定したいのは二点だけだ。第一に、1回の生成は世界を更新しない。第二に、<strong>停止条件は誰が持つか</strong>。モデルが「完了しました」と宣言しても、それは業務完了ではない。テストが通ったか、法務が OK を出したか、差分がレビューされたか——検証可能な完了条件は <strong>ハーネス</strong> 側に置く<a class="fn-ref" id="fnref-46" href="#ref-46">(*46)</a>。長時間のエージェント作業では、窓をまたぐと記憶が消え、早期完了宣言ややりすぎが起きる。進捗ファイル、git の状態、feature list のような <strong>セッション間状態</strong> もモデル外に残すのが当然だ<a class="fn-ref" href="#ref-46">(*46)</a>。</p>
       <h3>検索段の三つの顔（RAG・ツール・プロトコル）——境界は同じ</h3>
       <p>検索段には、見た目の違う三つの顔がある。RAG は非パラメトリックな記憶（索引・ベクトルストア）から関連文書を取り、生成条件へ注入する<a class="fn-ref" id="fnref-41" href="#ref-41">(*41)</a>。function calling や Toolformer 系のツール使用は、モデルが呼び出しトークンを出し、アプリが API を実行して output を窓へ戻す<a class="fn-ref" id="fnref-42" href="#ref-42">(*42)</a><a class="fn-ref" id="fnref-43" href="#ref-43">(*43)</a>。MCP は Host／Client／Server が JSON-RPC で <strong>コンテキスト交換の配線</strong> を揃えるプロトコルだ——tools・resources・prompts の形を標準化するが、LLM の使い方や受け取ったコンテキストの信頼裁定は規定しない<a class="fn-ref" id="fnref-44" href="#ref-44">(*44)</a>。</p>
       <p>三つを並べると、違いは <strong>配線の仕方</strong> であり、モデルから見れば同型だ。どれも <strong>窓への追加トークン</strong> である。RAG の検索結果も、ツールの JSON 出力も、MCP 経由の resource も、モデルにとっては区別のない文字列として条件に入る。出自の真正性、権限の OK、十分性の検証——これらをモデルが機構的に保証する項はない。第6章で外に置いた制約の延長だ。</p>
@@ -1262,7 +1341,7 @@
       <div class="callout-next">
         <p class="cap-label">次の限界</p>
         <p>本章で骨格は見えた。AI は検索／翻訳の段に置く部品であり、完了・検証・停止・権限は外側——配置の手順まで手に職が移った。それでも、読者の中にはまだ <strong>「で、結局どう信頼を層ごとに置き、生産性という言葉の先で何を自分の価値とするか」</strong> というもやもや（生産性語の空洞）が残るだろう。</p>
-        <p>ワークフローを描けても、層ごとの信頼の置き方——モデル、judge、ガード、人間、組織——を一枚の判断図にまとめる作業は、まだこれからだ。次章では第1章からここまでを <strong>合成</strong> し、Intent の持ち帰りメンタルモデルと、幸福・価値といった技術外の開かれた問いで記事を閉じる。出口の一文を先に置く。<strong>配置はできた。次は層別信頼と life placement の回収へ。</strong></p>
+        <p>ワークフローを描けても、層ごとの信頼の置き方——モデル、judge、ガード、人間、組織——を一枚の判断図にまとめる作業は、まだこれからだ。次章では第1章からここまでを <strong>合成</strong> し、持ち帰り用のメンタルモデルと、幸福・価値といった技術外の開かれた問いで記事を閉じる。出口の一文を先に置く。<strong>配置はできた。次は層別の信頼と、自分の仕事・生活への置き方の回収へ。</strong></p>
       </div>
     </section>
     <section class="section" id="synthesis">
