@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tokenizer Trade-off Lab | Mental Model Studio</title>
+<style>
+  :root{color-scheme:dark;--mm-ink:#f2f3f0;--mm-muted:#c2c3bf;--mm-paper:#151716;--mm-white:#1e201e;--mm-line:#393b38;
+    --mm-blue:#6eb6e8;--mm-gold:#d4a017;--mm-green:#35d0bb;--mm-red:#e07072;--mm-gray:#a9aaa5;
+    --mm-blue-soft:rgba(22,119,184,.22);--mm-gold-soft:rgba(183,121,18,.24);--mm-green-soft:rgba(53,208,187,.16);--mm-red-soft:rgba(181,71,73,.24);--mm-gray-soft:#242624;}
+  body{margin:0;font:14px/1.6 system-ui,"Noto Sans JP",sans-serif;color:var(--mm-ink);background:var(--mm-paper);padding:20px;}
+  .sim-root{border:1px solid var(--mm-line);background:var(--mm-white);padding:18px;max-width:760px;margin:0 auto;}
+  h1{font-size:17px;margin:0 0 10px;}
+  .sim-hard-claim{padding:10px 12px;background:var(--mm-gold-soft);border-left:3px solid var(--mm-gold);font-size:13px;margin:0 0 14px;}
+  fieldset{border:1px solid var(--mm-line);border-radius:0;margin:0 0 10px;padding:8px 10px;}
+  legend{color:var(--mm-muted);font-size:12px;padding:0 4px;}
+  label.opt{display:inline-block;margin:2px 12px 2px 0;font-size:13px;color:var(--mm-ink);cursor:pointer;}
+  .sim-controls{display:flex;flex-wrap:wrap;gap:16px;margin:10px 0;}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0;min-height:40px;padding:10px;background:var(--mm-paper);border:1px solid var(--mm-line);}
+  .chip{padding:5px 7px;border:1px solid var(--mm-line);background:var(--mm-blue-soft);font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--mm-ink);white-space:pre;}
+  .chip.fb{background:var(--mm-red-soft);color:var(--mm-red);border-color:var(--mm-red);}
+  .meta{color:var(--mm-muted);font-size:13px;margin:8px 0;}
+  .meta strong{color:var(--mm-ink);}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin:12px 0;}
+  td,th{border:1px solid var(--mm-line);padding:6px 8px;text-align:center;}
+  th{color:var(--mm-muted);font-weight:600;}
+  td.cur{background:var(--mm-gold-soft);color:var(--mm-gold);font-weight:700;}
+  td.hi{color:var(--mm-red);}
+  .sim-status{margin-top:10px;padding:10px 12px;background:var(--mm-green-soft);font-size:13px;}
+  .sim-status.caution{background:var(--mm-gold-soft);}
+  .sim-caption{color:var(--mm-muted);font-size:12px;margin-top:14px;}
+  .sim-fallback{margin-top:10px;padding:10px 12px;background:var(--mm-gray-soft);font-size:12px;color:var(--mm-muted);}
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <h1>Tokenizer Trade-off Lab（教育用トイ）</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> トークン化は可逆でなく、圧縮効率と歪み（稀語の断片化・言語間の不均衡なコスト）の間のトレードオフを固定する。</p>
+
+    <fieldset>
+      <legend>同じ意味の文（内容を選ぶ）</legend>
+      <label class="opt"><input type="radio" name="content" value="en" checked> EN: "The cat sat on the warm mat."</label>
+      <label class="opt"><input type="radio" name="content" value="jp"> JP: 「猫が暖かいマットの上に座った。」（同じ意味）</label>
+      <label class="opt"><input type="radio" name="content" value="rare"> 稀語＋数字: "Rendezvous with XBB.1.5 costs $1,234.56."</label>
+    </fieldset>
+    <fieldset>
+      <legend>語彙ポリシー（分割方針）</legend>
+      <label class="opt"><input type="radio" name="policy" value="coarse" checked> Coarse（大きな語彙・単語/塊単位のマージ多め）</label>
+      <label class="opt"><input type="radio" name="policy" value="fine"> Fine（小さな語彙・断片/文字フォールバック多め）</label>
+    </fieldset>
+
+    <p class="meta">選択中の分割結果（<span id="curLabel"></span>）:</p>
+    <div class="chips" id="chips"></div>
+    <p class="meta">トークン数: <strong id="count">—</strong> ／ 文字数: <strong id="chars">—</strong> ／ 断片化率(トークン/文字): <strong id="rate">—</strong> ／ 赤=語彙に無く1文字単位へフォールバックしたトークン</p>
+
+    <table id="matrix">
+      <tr><th>内容 \ ポリシー</th><th>Coarse</th><th>Fine</th></tr>
+      <tr><td>EN</td><td id="m_en_coarse"></td><td id="m_en_fine"></td></tr>
+      <tr><td>JP（同義文）</td><td id="m_jp_coarse"></td><td id="m_jp_fine"></td></tr>
+      <tr><td>稀語＋数字</td><td id="m_rare_coarse"></td><td id="m_rare_fine"></td></tr>
+    </table>
+
+    <div class="sim-status" id="st">—</div>
+
+    <p class="sim-fallback">
+      <strong>簡略化の開示：</strong> ここで使う「Coarse/Fine」語彙は実際に学習された BPE/Unigram トークナイザーではなく、教育用に手で作った最長一致（greedy longest-match）分割器のトイ語彙です。語彙に一致する文字列がなければ、その位置は1文字ずつのフォールバックになります（赤色チップ）。実際の商用トークナイザーの語彙サイズ・分割境界・具体的なトークン数はこれとは異なります。ここで固定したいのは「圧縮（トークン数を減らす語彙）を優先すると、語彙に無い文字列（稀語・技術用語・数字列・訓練データで少数派だった言語）ほど断片化して不利になる」という構造だけです。
+    </p>
+    <p class="sim-caption">Static fallback: JS 非対応環境では、上のマトリクス表を静止画として「EN/JP/稀語＋数字 × Coarse/Fine の6セル」の傾向（稀語＋数字は常に高い／Fineでは全体が上がる）として読める。</p>
+  </div>
+<script>
+(function(){
+  var SENT = {
+    en:  'The cat sat on the warm mat.',
+    jp:  '猫が暖かいマットの上に座った。',
+    rare:'Rendezvous with XBB.1.5 costs $1,234.56.'
+  };
+  var LABEL = { en:'EN', jp:'JP（同義文）', rare:'稀語＋数字' };
+
+  // Coarse: 大きめの語彙。英語の一般語＋JPの単語チャンクは1トークンでカバーできるが、
+  // 稀語（Rendezvous）・型番（XBB.1.5）・桁の大きい数字は語彙に無く断片化する。
+  var COARSE = ['The',' cat',' sat',' on',' the',' warm',' mat','.',
+                '猫が','暖かい','マット','の上','に座った','。',
+                ' with',' costs','$',','];
+
+  // Fine: 小さめの語彙。英語の高頻度2文字断片はいくらか救われるが、
+  // JP・稀語・数字には専用の断片が無く、ほぼ1文字ずつのフォールバックになる。
+  var FINE = ['Th','th','he','e ','t ','ar','wa','ma','at','on',' t',
+              'Re','nd','ez','vo','us',' w',' c','os','ts'];
+
+  var VOCAB = { coarse: COARSE, fine: FINE };
+
+  function tokenize(text, vocab){
+    var sorted = vocab.slice().sort(function(a,b){ return b.length - a.length; });
+    var toks = [], i = 0;
+    while (i < text.length) {
+      var matched = null;
+      for (var k = 0; k < sorted.length; k++) {
+        var v = sorted[k];
+        if (v.length && text.indexOf(v, i) === i) { matched = v; break; }
+      }
+      if (matched) { toks.push({ t: matched, fb: false }); i += matched.length; }
+      else { toks.push({ t: text.charAt(i), fb: true }); i += 1; }
+    }
+    return toks;
+  }
+
+  function chip(t){
+    var span = document.createElement('span');
+    span.className = 'chip' + (t.fb ? ' fb' : '');
+    span.textContent = JSON.stringify(t.t).slice(1, -1);
+    return span;
+  }
+
+  function countFor(contentKey, policyKey){
+    return tokenize(SENT[contentKey], VOCAB[policyKey]).length;
+  }
+
+  function render(){
+    var content = document.querySelector('input[name=content]:checked').value;
+    var policy = document.querySelector('input[name=policy]:checked').value;
+    var text = SENT[content];
+    var toks = tokenize(text, VOCAB[policy]);
+
+    document.getElementById('curLabel').textContent = LABEL[content] + ' / ' + (policy === 'coarse' ? 'Coarse' : 'Fine');
+    var chipsEl = document.getElementById('chips');
+    chipsEl.innerHTML = '';
+    toks.forEach(function(t){ chipsEl.appendChild(chip(t)); });
+
+    document.getElementById('count').textContent = toks.length;
+    document.getElementById('chars').textContent = text.length;
+    document.getElementById('rate').textContent = (toks.length / text.length).toFixed(2);
+
+    var cells = {};
+    ['en','jp','rare'].forEach(function(c){
+      ['coarse','fine'].forEach(function(p){
+        cells[c + '_' + p] = countFor(c, p);
+      });
+    });
+    Object.keys(cells).forEach(function(key){
+      var el = document.getElementById('m_' + key);
+      el.textContent = cells[key];
+      el.className = (key === content + '_' + policy) ? 'cur' : '';
+      if (cells[key] >= 25) el.className += ' hi';
+    });
+
+    var st = document.getElementById('st');
+    if (content === 'rare') {
+      st.className = 'sim-status caution';
+      st.textContent = '稀語・型番・数字列は Coarse でも語彙に無く断片化する（' + cells.rare_coarse + '→' + cells.rare_fine + ' トークン）。圧縮効率を優先した語彙ほど、訓練データで少数派だった文字列にこの断片化コストを押し付ける。';
+    } else if (content === 'jp') {
+      st.className = 'sim-status caution';
+      st.textContent = 'Fine 語彙は英語の高頻度断片は救うが JP 専用の断片を持たない。JP: Coarse ' + cells.jp_coarse + '→Fine ' + cells.jp_fine + ' トークン（EN: Coarse ' + cells.en_coarse + '→Fine ' + cells.en_fine + '）。同じ意味の文でも、語彙が想定していない言語は不均衡にコストを払う。';
+    } else {
+      st.className = 'sim-status';
+      st.textContent = 'EN は Coarse ' + cells.en_coarse + '→Fine ' + cells.en_fine + ' トークン。語彙が小さくなる（Fine）ほど、同じ意味を表すのに必要なトークン数（＝計算・メモリコスト）が増える。「1トークン=1単語」ではない。';
+    }
+  }
+
+  document.querySelectorAll('input[name=content]').forEach(function(e){ e.onchange = render; });
+  document.querySelectorAll('input[name=policy]').forEach(function(e){ e.onchange = render; });
+  render();
+})();
+</script>
+</body>
+</html>
