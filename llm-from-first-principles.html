@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="LLMを探索・変換・検証・権限の分離として、不完全系列モデルの系譜から観測尤度・Attention・Prefill/Decode・Tool権限・証拠梯子まで再構築する長文記事（5 Lab・Faza parity v6）。">
-  <title>LLM from First Principles | 探索・変換・検証・権限</title>
+  <meta name="description" content="LLMを送信からシリコンまで必然性の鎖で再構築する長文（tokenizeize→Transformer→学習→Prefill/KV→プロトコル→Press Send→検証/権限）。7 Labs。Faza-grade machine tour v7。">
+  <title>LLM from First Principles | 送信からシリコンまで</title>
   <link rel="stylesheet" href="./assets/css/site.css">
   <link rel="stylesheet" href="./assets/css/sim-kit.css">
   <style>
     .layer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-    .layer-card { border: 1px solid var(--mm-line); padding: 14px; min-height: 120px; }
+    .layer-card { border: 1px solid var(--mm-line); padding: 14px; min-height: 100px; }
     .layer-card b { display: block; margin-bottom: 6px; font-size: 14px; }
     .layer-card span { display: block; color: var(--mm-muted); font-size: 13px; line-height: 1.5; }
     .layer-card.blue { border-top: 4px solid var(--mm-blue); background: var(--mm-blue-soft); }
@@ -18,59 +18,43 @@
     .layer-card.red { border-top: 4px solid var(--mm-red); background: var(--mm-red-soft); }
     .ladder { width: 100%; border-collapse: collapse; font-size: 14px; margin: 18px 0; }
     .ladder th, .ladder td { border-bottom: 1px solid var(--mm-line); padding: 10px 8px; text-align: left; vertical-align: top; }
-    .ladder th { background: var(--mm-gray-soft); font-size: 13px; }
     .callout { margin: 22px 0; padding: 16px 18px; border-left: 4px solid var(--mm-green); background: var(--mm-green-soft); }
-    .callout.warning { border-left-color: var(--mm-red); background: var(--mm-red-soft); }
     .sim-embed { margin: 24px 0; }
     .sim-hard-claim { margin: 0 0 10px; padding: 8px 10px; background: var(--mm-gold-soft); border-left: 3px solid var(--mm-gold); font-size: 13px; }
     .sim-status { margin-top: 10px; padding: 10px; background: var(--mm-green-soft); font-size: 13px; }
     .sim-status.reject { background: var(--mm-red-soft); }
     .sim-status.caution { background: var(--mm-gold-soft); }
-    .sim-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .sim-panel { padding: 12px; border: 1px solid var(--mm-line); background: var(--mm-paper); }
-    .sim-panel h4 { margin: 0 0 8px; font-size: 14px; }
-    .ctx-token { padding: 10px; border: 1px solid var(--mm-line); margin-bottom: 8px; font-size: 13px; }
-    .ctx-token.fact-a { border-left: 3px solid var(--mm-blue); }
-    .ctx-token.fact-b { border-left: 3px solid var(--mm-green); }
-    .ctx-token.distractor { border-left: 3px solid var(--mm-red); }
-    .contrib-row { display: grid; grid-template-columns: 100px 1fr 48px; gap: 8px; align-items: center; margin: 8px 0; font-size: 13px; }
-    .contrib-track { height: 14px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); }
-    .contrib-bar { height: 100%; background: var(--mm-blue); }
-    .contrib-bar.gold { background: var(--mm-gold); }
-    .contrib-bar.red { background: var(--mm-red); }
-    .logit-row { display: grid; grid-template-columns: 120px 1fr 56px; gap: 8px; align-items: center; margin: 6px 0; font-size: 13px; }
-    .logit-track { height: 12px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); }
-    .logit-bar { height: 100%; background: var(--mm-blue); }
-    .logit-bar.wrong { background: var(--mm-red); }
+    .contrib-row, .logit-row, .row { display: grid; grid-template-columns: 110px 1fr 48px; gap: 8px; align-items: center; margin: 8px 0; font-size: 13px; }
+    .contrib-track, .logit-track, .track { height: 14px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); }
+    .contrib-bar, .logit-bar, .bar { height: 100%; background: var(--mm-blue); }
+    .contrib-bar.gold, .bar.gold, .logit-bar.correct { background: var(--mm-gold); }
+    .contrib-bar.red, .bar.red, .logit-bar.wrong { background: var(--mm-red); }
+    .bar.green { background: var(--mm-green); }
     .logit-bar.correct { background: var(--mm-green); }
-    .causal-ladder { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 16px 0; }
+    .causal-ladder { display: grid; gap: 8px; margin: 16px 0; }
     .causal-rung { padding: 12px 14px; border: 1px solid var(--mm-line); border-left-width: 4px; }
     .causal-rung.l1 { border-left-color: var(--mm-blue); background: var(--mm-blue-soft); }
     .causal-rung.l2 { border-left-color: var(--mm-gold); background: var(--mm-gold-soft); }
     .causal-rung.l3 { border-left-color: var(--mm-red); background: var(--mm-red-soft); }
-    .causal-rung b { display: block; margin-bottom: 4px; }
-    .causal-rung span { color: var(--mm-muted); font-size: 13px; }
-    .research-map td:first-child { font-weight: 700; white-space: nowrap; }
-    .eq { font-family: var(--mm-mono); font-size: 14px; padding: 12px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); overflow-x: auto; }
+    .eq { font-family: var(--mm-mono, ui-monospace, monospace); font-size: 14px; padding: 12px; background: var(--mm-gray-soft); border: 1px solid var(--mm-line); }
     .role-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 10px 0 14px; font-size: 13px; color: var(--mm-muted); }
     .role-legend i.swatch { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; }
     .role-legend .swatch.blue { background: var(--mm-blue); }
     .role-legend .swatch.gold { background: var(--mm-gold); }
     .role-legend .swatch.green { background: var(--mm-green); }
     .role-legend .swatch.red { background: var(--mm-red); }
-    .stage-btns { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
-    .stage-btns button[aria-pressed="true"] { outline: 2px solid var(--mm-accent); background: var(--mm-blue-soft); }
-    .claim-box { padding: 12px; border: 1px dashed var(--mm-line); background: var(--mm-paper); font-size: 15px; margin: 10px 0; }
-
-    .sim-label { display:block; margin:10px 0; color:var(--mm-muted); font-size:13px; }
-    .sim-label input[type=range] { width:100%; display:block; margin-top:6px; }
-    .sim-meta { color:var(--mm-muted); font-size:13px; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; margin:12px 0; }
+    .chip { padding:6px 8px; border:1px solid var(--mm-line); background: var(--mm-blue-soft); font-family: ui-monospace, monospace; font-size:12px; }
+    .chip.alt { background: var(--mm-gold-soft); }
+    .send-flow { display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; list-style:none; padding:0; margin:12px 0; }
+    .send-flow li { border:1px solid var(--mm-line); padding:10px; font-size:12px; background: var(--mm-gray-soft); }
+    .figcaption { color: var(--mm-muted); font-size: 13px; margin: 8px 0 14px; }
+    .diagram-title { font-weight: 700; margin-bottom: 8px; }
+    .thesis-inline { border-left: 4px solid var(--mm-accent); padding-left: 14px; color: var(--mm-ink); }
     @media (max-width: 720px) {
-      .layer-grid, .sim-grid-2 { grid-template-columns: 1fr; }
-      .ladder { display: block; overflow-x: auto; }
-      .contrib-row, .logit-row { grid-template-columns: 80px 1fr 40px; }
+      .layer-grid, .send-flow { grid-template-columns: 1fr; }
     }
-  </style>
+</style>
 </head>
 <body>
   <header class="site-header">
@@ -81,7 +65,7 @@
         <a class="toc-only" href="#agency">不安</a>
         <a class="toc-only" href="#model">モデル</a>
         <a class="toc-only" href="#wonder">不思議</a>
-        <a class="toc-only" href="#ladder">道筋</a>
+        <a class="toc-only" href="#press-send">送信</a>
         <a class="toc-only" href="#sim-attn">Lab</a>
         <a class="toc-only" href="#references">出典</a>
       </nav>
@@ -90,955 +74,580 @@
 
   <header class="article-head">
     <div class="wrap">
-      <p class="kicker">AI systems · Mental Model Studio · Faza-parity v6 · 2026-07-15</p>
+      <p class="kicker">AI systems · Mental Model Studio · machine-tour v7 · 2026-07-15</p>
       <h1>LLM from First Principles</h1>
-      <p class="dek">画面の向こうの奇妙さから始め、不完全だった系列モデルの欠落、観測尤度、Attention、Prefill/Decode、Tool権限、証拠梯子までを一本の鎖で再構築する（5 Labs）。</p>
-      <p class="meta">Mental Model Studio · 2026-07-15 · compared with Faza software/networking pedagogy · 投資・製品ランキング予言ではない</p>
+      <p class="dek">送信ボタンからシリコンまで——tokenizeize、埋め込みと位置、Transformer、学習、サンプリング、Prefill/KV、プロトコル、そして外側の検証と権限を一本の必然性の鎖で再構築する（7 Labs）。</p>
+      <p class="meta">Mental Model Studio · 2026-07-15 · Faza software/networking 対話に基づく機械ツアー · 投資・製品ランキング予言ではない</p>
     </div>
   </header>
 
-  <section class="thesis-band" id="model">
+  <section class="thesis-band" id="model-band">
     <div class="reading">
       <p class="thesis-label">最終メンタルモデル</p>
-      <p class="thesis">LLMは、重み・文脈・外部情報から次の出力に役立つパターンを探索し、質問・仕様・コード・Tool結果などの表現を別の表現へ変換する仕組みである。学習は主に観測系列の予測であり、真偽・因果介入・責任を直接保証しない。したがって実用では探索と変換を機械に担わせ、検証・権限・人間の承認を外側に置く。</p>
-      <p class="eq" style="margin-top:14px;">有用なAIシステム = 探索 + 変換 + 検証 + 権限 + 人間の責任</p>
+      <p class="thesis">LLM本体は、トークン列を埋め込み・位置付き注意・MLPの積み重ねで変換し、次トークン分布を出す条件付き系列機械である。学習は主に観測尤度、推論は Prefill/KV/Decode とシリコン帯域に縛られ、チャットや Tool はその上のプロトコルである。真偽・因果・実行許可は機械の外側——検証と権限と人間の責任——に残る。</p>
+      <p class="eq" style="margin-top:14px;">有用なAIシステム = （探索＋変換の機械）＋（検証＋権限＋人間の責任）</p>
     </div>
   </section>
 
   <main class="article">
-    <section class="section reading" id="wonder">
-      <h2>画面の向こうで起きている奇妙さ</h2>
-      <p>チャットに返事が数百ミリ秒で現れるとき、背後で起きていることを忘れるのは簡単である。あなたの一文は離散記号の列へ割れ、巨大な行列とキャッシュの読み書きを何度もくぐり、次にありそうな続きが一つずつ選ばれて画面に流れる。そこに「賢い主体」は必須ではない。あるのは、観測された系列の次を当てるよう最適化された関数と、それを運ぶ資源の束である。</p>
-      <p>それでも現代の仕事は、この仕組みにナレッジ検索・設計下書き・コード修正・調査要約を委ねつつある。魔法を剥がさないまま任せるほど、流暢さ・説明・自信を、正しさ・因果・権限の代理変数にしてしまう。Software や Networking が電子とケーブルの拘束から識字を組み立てるように、この記事は LLM を「保証なき候補生成器＋外側の検証と権限」として再構築する。</p>
-      <p>読み終えるころには、次の日常の謎が一本の地図に載るはずである。なぜ自信ありげな答えが後から誤るか。なぜ Temperature を下げても嘘が消えないか。なぜ「考えた様子」の文章が正しさの証明に見えるか。なぜ長い文脈を入れても重要箇所を落とすか。なぜ Agent が危険な変更を流暢に提案するか。なぜ絶対語で LLM を語りたくなるか。</p>
-    </section>
+<section class="section reading" id="wonder">
+<h2>画面の向こうで起きている奇妙さ</h2>
+<p>チャットに返事が数百ミリ秒で流れるとき、背後で起きていることを忘れやすい。あなたの一文は離散記号の列へ割れ、巨大な行列とキャッシュの読み書きを何度もくぐり、次にありそうな続きが一つずつ選ばれて画面に現れる。そこに「賢い主体」は必須ではない。あるのは、観測された系列の次を当てるよう最適化された関数と、それを運ぶ資源の束である。</p>
+<p>それでも現代の仕事は、この仕組みにナレッジ検索・設計下書き・コード修正・調査要約を委ねつつある。Software が岩石を計算機械へ、Networking がケーブル上の雑音を共有プロトコルへ降ろしたように、この記事は LLM を <strong>送信ボタンからシリコンまでの必然性の鎖</strong>として再構築する。流暢さ・説明・自信を、正しさ・因果・権限の代理変数にしてしまう前に、機械の解像度を一段ずつ上げる。</p>
+<p>読み終えるころには、次の日常の謎が一本の地図に載るはずである。なぜ自信ありげな答えが後から誤るか。なぜ Temperature を下げても嘘が消えないか。なぜ「考えた様子」の文章が正しさの証明に見えるか。なぜ長い文脈を入れても重要箇所を落とすか。なぜ Agent が危険な変更を流暢に提案するか。なぜ絶対語で LLM を語りたくなるか。</p>
+</section>
 
-    <section class="section reading" id="agency">
-      <h2>すでに触れている裂け目（Lived stake）</h2>
-      <p>一つ目の場面。社内のナレッジチャットに「このAPIの現行の認証方式は何か」と聞く。答えは滑らかで、自信ありげで、用語も正しい。三日後、実装を見たらそのAPIは既に別方式へ移行していた。画面上の流暢さは、正しさの代理変数ではなかった。あなたは「嘘をつく主体」に騙されたのではなく、観測系列から次にありそうな続きを出したプログラムのふるまいに、信用を渡しすぎた。</p>
-      <p>二つ目の場面。モデルが長い手順を「まずは〜を確認し、次に〜を検討し、結論として〜」と書き連ねる。文章は思考の跡に見える。レビュー会で誰かが「Chain of Thoughtがあるから大丈夫」と言い、検証を後回しにした。見える推論文は出力チャネルの一つであり、内部活性化や因果計算の完全な転写ではない。もっともらしい手順書は、正しさの証明書ではない。</p>
-      <p>三つ目の場面。Coding Agentが差分を提案する。「このロックは冗長です。削除します」と説明し、自信を持ってパッチを出す。そのロックは稀なレース条件を防いでいた。Agentは探索と変換は得意でも、本番への到達範囲と承認の境界は自動では与えられない。危険な変更提案は、モデルが「悪い」からではなく、権限レイヤが流暢さに引きずられたときに起きる。</p>
-      <p>これらは「AIが賢いかどうか」の話ではない。あなたがすでに感じている<strong>流暢さ・説明・自信</strong>と、<strong>正しさ・因果・権限</strong>の裂け目である。</p>
+<section class="section reading" id="agency">
+<h2>すでに触れている裂け目</h2>
+<p>一つ目の場面。社内のナレッジチャットに「このAPIの現行の認証方式は何か」と聞く。答えは滑らかで、自信ありげで、用語も正しい。三日後、実装を見たらそのAPIは既に別方式へ移行していた。画面上の流暢さは、正しさの代理変数ではなかった。あなたは「嘘をつく主体」に騙されたのではなく、観測系列から次にありそうな続きを出したプログラムのふるまいに、信用を渡しすぎた。</p>
+<p>二つ目の場面。モデルが長い手順を「まずは〜を確認し、次に〜を検討し、結論として〜」と書き連ねる。文章は思考の跡に見える。レビュー会で誰かが「Chain of Thoughtがあるから大丈夫」と言い、検証を後回しにした。見える推論文は出力チャネルの一つであり、内部活性化や因果計算の完全な転写ではない。もっともらしい手順書は、正しさの証明書ではない。</p>
+<p>三つ目の場面。Coding Agentが差分を提案する。「このロックは冗長です。削除します」と説明し、自信を持ってパッチを出す。そのロックは稀なレース条件を防いでいた。Agentは候補を出すのは得意でも、本番への到達範囲と承認の境界は自動では与えられない。危険な変更提案は、モデルが「悪い」からではなく、権限レイヤが流暢さに引きずられたときに起きる。</p>
+<p>これらは「AIが賢いかどうか」の話ではない。あなたがすでに感じている <strong>流暢さ・説明・自信</strong> と、<strong>正しさ・因果・権限</strong> の裂け目である。この裂け目を埋めるには、先に機械が何であるかを梯子で上る必要がある。判断の型——探索・変換・検証・権限——は、梯子の頂上で回収する。</p>
+</section>
 
-      <h3>この記事がすること／しないこと</h3>
-      <p><strong>すること</strong>：上の三つの裂け目と、不完全だった系列モデルが欠けていたものを、再構築可能な機構へ分解する。なぜ「保証なき候補生成」が選ばれ、どこで検証と権限が外側に残るかを鎖で説明する。Attention / Sampling / Prefill–Decode / Permission Gate / Evidence の各 Lab（教育用トイ）と接続し、Everyday phenomena（P1–P6）を回収する。</p>
-      <p><strong>しないこと</strong>：価格・投資・採用ROI・どの製品が一位かの予言。プロンプト技のカタログや、閉鎖frontierの非公開回路を事実扱いすること。意識・道徳的地位の結論。RAGや長期記憶製品の完全仕様。</p>
-      <p>読み終えたとき、あなたは「このモデルは信じられるか」ではなく、「自分は今、探索・変換・検証・権限のどの層に立ち、何を機械に任せ、何を外側に残しているか」を説明できるはずである。</p>
+<section class="section reading" id="contract">
+<h2>この記事がすること／しないこと</h2>
+<p><strong>すること</strong></p>
+<ul><li>送信からシリコンまでを、前の層が壊れる場所だけを継ぎ目にして連続説明する（tokenizeize → 埋め込み／位置 → Transformer → 学習 → サンプリング → Prefill/KV/Decode → GPU → チャット／Tool プロトコル → 送信一発の合成）</li><li>不完全だった系列モデルが何を欠けていたかから、なぜ Attention 並列混合が必然かを鎖で示す</li><li>Tokenizer / Attention / Sampling / Prefill–Decode / KV成長 / Permission / Evidence の各 Lab（教育用トイ）で bottleneck を感じ、途中で日常の謎を場面として回収する</li><li>機械梯子のあとで、検証と権限を外側に置く判断地図を畳む</li></ul>
+<p><strong>しないこと</strong></p>
+<ul><li>価格・投資・採用ROI・どの製品が一位かの予言（性能予言は性質の再構築の外）</li><li>プロンプト技のカタログや、閉鎖 frontier の非公開回路を事実扱いすること</li><li>意識・道徳的地位の結論（機能と現象を混同しやすい）</li><li>RAGや長期記憶製品の完全仕様（外部観測の必要性まで；設計は別Issue）</li></ul>
+<p>読み終えたとき、あなたは「このモデルは信じられるか」ではなく、「自分は今、token・layer・KV・silicon・protocol・permission のどの層に立ち、何を機械に任せ、何を外側に残しているか」を説明できるはずである。</p>
+</section>
 
-      <h3>約束する現象（Everyday phenomena）</h3>
-      <table class="ladder">
-        <thead><tr><th>id</th><th>現象</th><th>mid-callback</th><th>最終回収</th></tr></thead>
-        <tbody>
-          <tr><td>P1</td><td>自信ありげな答えが後から誤りだった</td><td>N4–N6, N8</td><td>N15</td></tr>
-          <tr><td>P2</td><td>Temperature を下げても嘘が消えない</td><td>N8 Sampling Lab</td><td>N8, N15</td></tr>
-          <tr><td>P3</td><td>「考えた様子」の文章が正しさの証明に見えてしまう</td><td>N6, N12</td><td>N15</td></tr>
-          <tr><td>P4</td><td>長い文脈を入れたのに重要な箇所を見落とす</td><td>N7 Attention Lab, N9</td><td>N9, N15</td></tr>
-          <tr><td>P5</td><td>Agent が自信を持って危険な変更を提案する</td><td>N11, N14</td><td>N14, N15</td></tr>
-          <tr><td>P6</td><td>絶対語で LLM を語ってしまう</td><td>N2, N12</td><td>N15</td></tr>
-        </tbody>
-      </table>
+<section class="section reading" id="phenomena">
+<h2>日常の謎を先に約束する</h2>
+<p>導入の三場面は、記事の途中で同じ景色として戻ってくる。自信ありげな古いAPI回答は、訓練分布とサンプリングの話に戻る。長い「考えた様子」は後訓練と因果の限界に戻る。ロック削除の提案は Tool／権限 Lab に戻る。Temperature、長い文脈、絶対語の誘惑も同様である。ここでは表に閉じ込めず、各層の崖で回収する。</p>
+</section>
 
-      <h3>探索の三層（モデル補足）</h3>
-      <ul>
-        <li><strong>重み内探索</strong>: 重みに圧縮されたパターンから、現在の文脈に合う続きを活性化する（parametric）</li>
-        <li><strong>文脈内探索</strong>: Attention がプロンプト・履歴・取得文書・Tool結果の関連位置を選ぶ（context）</li>
-        <li><strong>外部探索</strong>: Web・リポジトリ・DB・ファイル・実行環境を Tool で観測する</li>
-        <li><strong>変換</strong>: ある表現を別の表現へ写す（質問→回答、仕様→コード、ログ→修正案、計画→Tool呼び出し）</li>
-      </ul>
-      <p>これは「内部で候補を総当たりしている」という字義どおりの主張ではない。能力の型を理解するためのメンタルモデルである。</p>
-    </section>
+<section class="section reading" id="model">
+<h2>最終メンタルモデル</h2>
+<blockquote class="thesis-inline"><p>LLM本体は、トークン列を埋め込み・位置付き注意・MLPの積み重ねで変換し、次トークン分布を出す条件付き系列機械である。学習は主に観測尤度、推論は Prefill/KV/Decode とシリコン帯域に縛られ、チャットや Tool はその上のプロトコルである。真偽・因果・実行許可は機械の外側——検証と権限と人間の責任——に残る。</p></blockquote>
+<p>短く畳むと次になる。</p>
+<p class="eq">有用なAIシステム = （探索＋変換の機械）＋（検証＋権限＋人間の責任）</p>
+<p>探索は Web Search だけではない。重みに圧縮されたパターンの活性化、Attention による文脈内選択、Tool による外部観測、の三チャネルとして読む。変換は言語間翻訳だけではない。質問→回答、仕様→コード、ログ→修正案、計画→Tool呼び出しも同じ型である。</p>
+<p>ここから先は、この一文を <strong>組み立て直すための梯子</strong> である。棚卸し表ではない。前の層が足りない場所だけを登る。</p>
+</section>
 
-    <section class="section reading" id="ladder">
-      <h2>この記事の道筋</h2>
-      <p>著者用の棚卸し表ではない。前の層が壊れる場所だけを、上から順にたどる。</p>
-      <table class="ladder">
-        <thead>
-          <tr><th>順</th><th>読者が掴むこと</th><th>前層の失敗</th><th>Lab / 視覚</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>1</td><td>流暢さ≠信用・権限</td><td>すでに損をしうる裂け目</td><td>wonder + 三場面</td></tr>
-          <tr><td>2</td><td>主目的は観測尤度</td><td>正しさを直接学習できる幻想</td><td>—</td></tr>
-          <tr><td>3</td><td>四役割の分離</td><td>検索／翻訳で役割が潰れる</td><td>四役割図</td></tr>
-          <tr><td>3b</td><td>n-gram/RNN の欠落</td><td>長距離依存と逐次ボトルネック</td><td>lineage</td></tr>
-          <tr><td>4</td><td>Tokenizer + next-token CE</td><td>原子が曖昧だと検証も曖昧</td><td>—</td></tr>
-          <tr><td>5</td><td>compute–data 配分</td><td>玩具規模では広範パターンが出ない</td><td>—</td></tr>
-          <tr><td>6</td><td>後訓練は真理保証ではない</td><td>Baseだけでは指示追従が安定しない</td><td>—</td></tr>
-          <tr><td>7</td><td>Attention混合・MLP変換</td><td>系列変換の並列必要</td><td>Attention Lab</td></tr>
-          <tr><td>8</td><td>Temp/Top-p は形だけ変える</td><td>1トークン選定</td><td>Sampling Lab</td></tr>
-          <tr><td>9</td><td>Prefill/Decode・KV</td><td>「入れて答え」では遅さの形が説明不能</td><td>Prefill/Decode Lab</td></tr>
-          <tr><td>10</td><td>行列積とメモリ支配</td><td>抽象では資源束縛が残る</td><td>—</td></tr>
-          <tr><td>11</td><td>Toolは権威を付与しない</td><td>現在状態が重みにない</td><td>Permission Gate Lab</td></tr>
-          <tr><td>12</td><td>語ること≠因果同定</td><td>因果語が流暢でも保証はない</td><td>Causal ladder</td></tr>
-          <tr><td>13</td><td>複数制約への攻撃</td><td>一位表だけ見るとレバーが消える</td><td>Research map</td></tr>
-          <tr><td>14</td><td>証拠梯子</td><td>流暢さで段を飛ばす</td><td>Evidence Lab</td></tr>
-          <tr><td>15</td><td>自分の立ち位置</td><td>地図が生活に落ちない</td><td>合成表</td></tr>
-        </tbody>
-      </table>
-    </section>
+<section class="section reading" id="tradeoff">
+<h2>なぜ「保証なき候補生成」が工学的に選ばれるか</h2>
+<p>裂け目を感じた瞬間、人は「正しいことだけを出力する機械」を欲しがる。だが世界の真偽を直接最適化する損失関数は、インターネット規模のテキストにはなかなか載せられない。ラベル付きの「この文は真／偽」を全てに貼るのは不可能に近く、仮に貼れてもラベル自体が古く、分野依存で、敵対的になる。</p>
+<p>代わりに工学が選んだのは、すでに溢れている観測——人間が書いたテキストの続き——を当てる目的である。次に来るトークンの条件付き確率を高くする。すると機械は、文法・スタイル・よくある事実パターン・議論の型を大量に圧縮できる。その代償として、出力は <strong>尤もらしい候補</strong> であり、真理関数の値ではない。<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a><a class="fn-ref" id="fnref-3" href="#ref-3">(*3)</a></p>
+<p>ここが協会と真理の混線点である。「コーパスでよく共起する」は「介入しても成り立つ因果」でも「今日の社内APIの真実」でもない。最初の場面——自信ありげな古い認証方式——は、主体の悪意ではなく、この目的関数の succeess metric が信用ではなかったことに由来する。</p>
+<p>次の限界はこれだ。観測系列を当てるとしても、系列をどう表現し、長い依存をどう扱うかは別問題である。局所的な統計だけでは足りなかった。</p>
+</section>
 
-    <section class="section reading" id="n1">
-      <h2>1. N1 — Lived stake: 流暢さと信頼の裂け目</h2>
-      <p>（冒頭の三場面が N1 本体である。）</p>
-      <p>読者が最初に固定すべき契約は一つだけである。流暢な文章・自信ありげな口調・長い手順書・「私は確かだ」というメタ発言は、いずれも<strong>信用や権限の代理変数ではない</strong>。それらは生成されたトークン系列の見た目である。この記事の以降の節は、なぜそうなるかを機構から再構築し、どこから検証と権限が外側に残るかを示す。N1 は「用語の定義」ではなく、あなたがすでに損をしうる裂け目の命名である。</p>
-      <h3>次の限界</h3>
-      <p>裂け目を感じたあとで最初に落ちる罠は、「ではLLMはダメだ／万能だ」の二択である。次節は、なぜ観測系列の予測という目的が工学的に選ばれ、その目的が何を保証しないかを先に置く。</p>
-    </section>
+<section class="section reading" id="lineage">
+<h2>不完全だった系列モデル：局所統計と逐次が欠けていたもの</h2>
+<p>言語の次を当てる試みは、Transformer 以前からあった。古典的な n-gram は、直前の数トークンのカウントで次を予測する。短い窓では驚くほど動く。だが窓の外の束縛（「さっき述べた認証方式」や「この関数の引数」）は原理的に見えない。窓を広げると組み合わせ爆発が待ち受け、希少な長い依存は統計的に死ぬ。</p>
+<p>再帰型ネットワーク（RNN / LSTM 系）は、隠れ状態を時間方向に更新して長い文脈を運ぼうとした。理論上は無限の過去を圧縮できる。実践では、勾配が遠い過去へ届きにくく、各ステップが前ステップに依存するため学習時の並列化も難しかった。長い依存と大規模並列学習の両方で、壁が見えた。</p>
+<p>Attention Is All You Need が示したのは、再帰や畳み込みに頼らず、系列内の位置同士を内容に応じて直接混ぜられることである。<a class="fn-ref" id="fnref-1" href="#ref-1">(*1)</a> 学習時には多くの位置をまとめて計算でき、長距離の依存も「何ステップ経ったか」ではなく「関連する位置へのアクセス」として書ける。これが次の層——離散系列上の巨大な混合／変換機械——への必然である。</p>
+<p>歴史は博物館展示ではない。n-gram が欠けていたのは視野、RNN が苦しんだのは遠い信号と並列性。その欠落が、のちのブロック設計を要求した。</p>
+</section>
 
-    <section class="section reading" id="n2">
-      <h2>2. N2 — 観測的予測のトレードオフ：なぜ「保証なき候補生成」が選ばれるか</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N1 の裂け目だけを見ると、「正しさを直接最適化すればよいのに」と感じる。だが実務が直面する制約は別である。世界の真偽ラベル付きコーパスを、あらゆる質問とあらゆる未来状態について用意することはできない。その一方で、人間が書いたテキスト・コード・対話の山は、すでに大量に存在する。工学は「真理関数を直接学習する神託」ではなく、「観測された系列の次を当てる」方向へ進んだ——それが主目的を観測尤度に置く理由である。</p>
-      <h3>仕組み</h3>
-      <p>一般的な事前学習の目的は、観測系列 <code>x₁,…,x_T</code> に対して、条件付き確率 <code>P(x_{t+1}|x_{≤t})</code> を高くすることである。これは連想（association）の言語に近い。テキスト上で「Aの近くにBが来る」「エラーメッセージの次に修正案の型が来る」といった統計を、巨大な関数近似器に圧縮する。真偽判定器や因果同定器を直接損失にしていないため、流暢な誤答・表面相関の再生産・因果語彙の模倣が同じ最適化の裏で起きうる<a class="fn-ref" id="fnref-9" href="#ref-9">(*9)</a>。</p>
-      <p>ここで重要なのは、「だから役に立たない」ではない。観測尤度の最適化は、<strong>候補生成の広大な空間</strong>を一度に開く。自然言語・コード・表・Tool呼び出し形式など、同じ「次トークン」の器に載る表現を多種学べる。その代償として、正しさ・介入効果・実行許可は自動では同定されない——それが N2 の hard claim である。</p>
-      <p>Association と truth を混ぜると P6 が生まれる。「ブロックチェーンだから改ざん不可」に似た絶対語（「学習済みだから正しい」「推論したから正しい」）で LLM を語ると、観測目的が保証する範囲を超える。</p>
-      <div class="callout">
-        <p>ここでP6が回収され始める: 絶対語は性質の誤読である。観測尤度の最適化は、改ざん耐性や真理保証のアルゴリズムではない。</p>
-      </div>
-      <h3>worked example</h3>
-      <p>社内Wikiに古い認証方式の説明が残っている世界を考える。事前学習や検索でその文章を多く見れば、モデルは現行の正しい方式より、古い方式の言い回しを流暢に再生産しやすい。損失が「観測テキスト上の尤度」なら、それはバグというより目的関数の素直な帰結である。正しさが欲しいなら、現行仕様という別チャネルの検証が要る——それが後の N14 につながる。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「予測だから単純」→ 目的は単純でも、最適化された関数の内部表現は複雑になりうる。単純な目的＝単純な能力ではない。</li>
-        <li>「予測だから真理不能」→ 不可能の全面宣言ではない。識別条件・実験・外部検証がなければ保証されない、という話である<a class="fn-ref" id="fnref-9b" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10" href="#ref-10">(*10)</a>。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>観測尤度だけで「回答機械」を作ると、検索・翻訳・検証・権限が一つの流暢な吹き出しに潰れる。次節で四つの役割を分離する。</p>
-    </section>
+<section class="section reading" id="tokenize">
+<h2>文字を離散化する：トークンという学習空間</h2>
+<p>連続する文字をそのまま実数の海で扱う代わりに、現代の LLM はテキストを <strong>語彙上の離散 ID 列</strong> に写す。SentencePiece のようなサブワード方式は、生コーパスから分割規則を学び、語彙にないレアな表記も断片へ割れる。<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a> モデルが見るのは「意味の原子としての単語」ではなく、この規則が定義した記号列である。</p>
+<p>同じ文字列でも分割が変われば、系列長が変わり、境界に乗る情報が変わり、損失の単位も変わる。「JWT」が一トークンか三トークンかは、見た目の単語ではなく学習された断片化の問題である。長いプロンプトが「高い」と感じるとき、あなたはしばしば文字数ではなくトークン数と Prefill コストを支払っている。</p>
+<p>学習の主目的は、文脈トークン列 (x_{&lt;t}) が与えられたとき次トークン (x_t) の負の対数尤度——クロスエントロピー——を下げることである。成功は「正しい世界」ではなく「訓練分布上で尤もらしい続き」として定義される。だから最初の場面の古いAPI回答は、目的関数が信用を最大化していなかったことの症状として読める（P1）。</p>
+<h3 id="sim-tokenizer">Lab — Tokenizer Split（教育用トイ）</h3>
+<div class="sim-root sim-embed">
+    <h1 style="font-size:16px;margin:0 0 8px;">Tokenizer Split Lab</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> 同じ文字列でも分割規則が変われば長さと境界が変わり、モデルの学習空間が変わる。</p>
+    <p class="meta">入力（固定）: <code id="src">HTTPS://api.example.com/v2/auth JWT</code></p>
+    <label><input type="radio" name="mode" value="coarse" checked> 粗い分割（語っぽい塊）</label>
+    <label><input type="radio" name="mode" value="fine"> 細かい分割（文字寄り断片）</label>
+    <p style="margin-top:12px;">
+      <button type="button" id="btnA">Mode A: 粗い</button>
+      <button type="button" id="btnB">Mode B: 細い</button>
+    </p>
+    <div class="chips" id="chips"></div>
+    <p class="meta">トークン数: <strong id="count">—</strong> · Prefill コスト感（相対）: <strong id="cost">—</strong></p>
+    <div class="sim-status" id="st">—</div>
+    <p class="note">教育用トイ。実 tokenizer（BPE/Unigram）の学習結果ではありません。画面の「単語」とモデルの離散空間が一致しないことを示す。</p>
+  </div>
+<script>
+  var S = 'HTTPS://api.example.com/v2/auth JWT';
+  var COARSE = ['HTTPS', '://', 'api', '.', 'example', '.', 'com', '/', 'v2', '/', 'auth', ' ', 'JWT'];
+  var FINE = ['H','T','T','P','S',':','/','/','api','.','ex','ample','.','com','/','v','2','/','au','th',' ','J','W','T'];
+  function render(){
+    var fine = document.querySelector('input[name=mode]:checked').value === 'fine';
+    var toks = fine ? FINE : COARSE;
+    var chips = document.getElementById('chips');
+    chips.innerHTML = '';
+    toks.forEach(function(t,i){
+      var d = document.createElement('span');
+      d.className = 'chip' + (fine ? ' alt' : '');
+      d.textContent = JSON.stringify(t).slice(1,-1);
+      chips.appendChild(d);
+    });
+    document.getElementById('count').textContent = toks.length;
+    document.getElementById('cost').textContent = fine ? '高い（断片が多い）' : '低い（塊が少ない）';
+    var st = document.getElementById('st');
+    st.textContent = fine
+      ? 'Mode B: 同じURLでも断片が増え、長さと境界コストが上がる。見た目の単語数ではない。'
+      : 'Mode A: 粗い塊。境界が変われば「JWT」が一片か三片かも変わりうる。';
+    st.className = 'sim-status' + (fine ? ' caution' : '');
+  }
+  document.querySelectorAll('input[name=mode]').forEach(function(e){ e.onchange = render; });
+  btnA.onclick = function(){ document.querySelector('input[value=coarse]').checked = true; render(); };
+  btnB.onclick = function(){ document.querySelector('input[value=fine]').checked = true; render(); };
+  render();
+  </script>
+<p>Hard claim: <strong>同じ文字列でも分割が変われば長さと境界コストが変わる。</strong> 画面上の単語感覚とモデルの離散空間は一致しない。</p>
+<p>（埋め込み先: <code>10_simulations/llm-first-principles/tokenizer/</code>）</p>
+<p>混同をここで釘付けにする。「トークン＝単語」「トークン化はただの圧縮で意味に触れない」——どちらも誤りである。分割は学習空間の定義そのものだ。次に必要なのは、その ID を計算可能な幾何へ載せることである。</p>
+</section>
 
-    <section class="section reading" id="n3">
-      <h2>3. N3 — 四つの役割：探索・変換・検証・権限</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N2 までで「候補を出すエンジン」であることは見えた。だが日常語の「検索」「翻訳」だけで説明すると、Roleが潰れる。Web検索だけが探索ではなく、仕様→コードだけが変換でもない。さらに、候補を現実の結果や行為へ落とすとき、検証と権限が同じ吹き出しの中で勝手に済む、という誤解が残る。有用なシステムは、探索・変換・検証・権限の分離を要する——これが N3 の hard claim である。</p>
-      <h3>仕組み</h3>
-      <p>四役割を、Chat画面の見た目ではなく、システム境界として定義する。</p>
-      <figure class="diagram" aria-label="四役割図">
-        <p class="diagram-title">四つの役割は別物である</p>
-        <div class="role-legend">
-          <span><i class="swatch blue"></i>探索</span>
-          <span><i class="swatch gold"></i>変換</span>
-          <span><i class="swatch green"></i>検証</span>
-          <span><i class="swatch red"></i>権限</span>
-        </div>
-        <div class="layer-grid">
-          <div class="layer-card blue"><b>探索</b><span>次の変換に使う材料を集める。重み内・文脈内・外部の三層（N4–N8, N11）。</span></div>
-          <div class="layer-card gold"><b>変換</b><span>材料を別表現へ写す。Transformerブロックと LM Head が担う中核（N7–N8）。</span></div>
-          <div class="layer-card green"><b>検証</b><span>受け入れ条件を別チャネルで測る。Test・出典突合・型検査・ヒューマンレビュー。モデル自身の「正しそう」は検証チャネルではない。</span></div>
-          <div class="layer-card red"><b>権限</b><span>どの行為がどの到達範囲で許されるか。削除・デプロイ・決済・秘密アクセスは流暢な提案とは別ゲート<a class="fn-ref" id="fnref-16" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17" href="#ref-17">(*17)</a>。</span></div>
-        </div>
-        <figcaption class="caption">Lesson: 「検索と翻訳」一語では潰れる四役割。正しさと責任は検証・権限レイヤに残す。</figcaption>
-      </figure>
-      <h3>worked example</h3>
-      <p>「このバグを直して」という一文依頼を、四役割に分解する。</p>
-      <ul>
-        <li>探索: 失敗ログ、関連ファイル、既存Testを集める</li>
-        <li>変換: 仮説→パッチ案、ログ→次の調査手順</li>
-        <li>検証: 再現Testと関連スイートの結果</li>
-        <li>権限: ネットワーク制限下の sandbox、workspace外書き込み禁止、本番への到達を承認制にする<a class="fn-ref" id="fnref-17b" href="#ref-17">(*17)</a></li>
-      </ul>
-      <p>同じ「パッチ提案」でも、検証なし・権限なしならそれはまだテキストである。有用な Agent システムとは、四役割を workflow として設計したものである。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「Toolを付ければ検証済み」→ Toolは探索と行為を増やす。検証は受け入れ条件を別チャネルで測る工程である（N11/N14）。</li>
-        <li>「人間が最後に見る＝権限」→ 見るだけでは不十分。破壊的操作には明示的な承認境界が要る<a class="fn-ref" id="fnref-16b" href="#ref-16">(*16)</a>。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>役割を分離しても、機械側が実際に何を最適化しているかが不明なままでは、任せる範囲が決まらない。その前に、系列を扱う古典的解が何を欠けていたかを固定する。不完全解が次の抽象を強制する。</p>
-    </section>
+<section class="section reading" id="embed">
+<h2>ベクトル空間に載せ、語順を注意へ焼き込む</h2>
+<p>トークン ID は整数のラベルにすぎない。それを固定長の実数ベクトル（埋め込み）へ引き出すことで、似た文脈で共起する記号が近い方向を持ちうる幾何が生まれる。埋め込み行列は巨大なルックアップテーブルであり、学習で動く重みの一部である。</p>
+<p>しかし袋に入れたベクトルの集合だけでは語順が消える。「犬が人を噛む」と「人が犬を噛む」を区別できない。初期の Transformer は三角関数の位置符号化を加算した。<a class="fn-ref" id="fnref-1" href="#ref-1">(*1)</a> 現代の多くのデコーダでは、絶対位置を Query/Key への回転として自己注意の内積に載せる RoPE 系が使われる。<a class="fn-ref" id="fnref-6" href="#ref-6">(*6)</a> 要点は実装の流行語ではなく、<strong>位置情報が注意のスコア計算に入らなければ順序が機械に見えない</strong>という必然である。</p>
+<p>ここで解像度が一段上がる。チャットの文字列は、すでに (1) 分割され (2) ベクトルになり (3) 位置の効いた表現として、次の混合層に入る準備ができた。</p>
+</section>
 
+<section class="section reading" id="transform">
+<h2>文脈を混ぜ、特徴を変換する：Transformer ブロック</h2>
+<p>位置付き埋め込みだけでは、まだ「どの文脈が今の続きに効くか」を解けない。各層はおおむね二つの仕事を繰り返す。<a class="fn-ref" id="fnref-1" href="#ref-1">(*1)</a></p>
+<p><strong>Attention（混合）を式の感触まで下ろす。</strong> 位置 (i) の表現から線形写像で Query (q_i) を作り、過去位置 (j \le i)（因果マスク下）の Key (k_j) と内積を取る。スコアを (\sqrt{d}) などでスケールし Softmax すると、合計1の重みになる。その重みで Value (v_j) を加重和したものが、位置 (i) の新しい混合表現である。RoPE が入っていれば、この内積自体が相対位置の関数でもある。<a class="fn-ref" id="fnref-6" href="#ref-6">(*6)</a> ここまでが「検索エンジン」ではなく <strong>いまのウィンドウ内の加重読み出し</strong> である理由だ。外部コーパスへ HTTP しているわけでも、行を SELECT しているわけでもない。</p>
+<p>Multi-Head は、同じ系列を複数の射影で並行混合する。あるヘッドは構文的な照応に寄り、別のヘッドは数値やコード識別子に寄る、といった分業が学習されることもあるが、ヘッド＝人間の認知モジュールと同一視しない。観測できるのは演算の構造であって、心理学的モジュール分割の証明ではない。</p>
+<p><strong>MLP / Feed-Forward（変換）</strong> は、Attention のあとに位置ごとへ入る。典型的には拡大線形→非線形→戻す線形で、その位置の特徴を組み替える。Attention が「どこを見るか」なら、MLP は「見たものをどの方向へ曲げるか」に近い。層を積み重ねるたびに、局所的な混合と局所的な変換が交互に深くなる。</p>
+<p><strong>残差接続と正規化</strong> が、この積み上げを学習可能にする。出力を「前の表現＋差分」として書くことで、深い層でも信号と勾配の通り道が残る。正規化はスケールを安定させる。積み上げの頂点近くで、LM Head（語彙への線形写像）が logits——次トークン候補の生スコア——を出す。ここまでが「一層のブロック」ではなく、<strong>同じ型のブロックを何十層も重ねた塔</strong>である。</p>
+<p>因果マスクの約束を再掲する。位置 (i) は未来を見ない。学習コーパス上でも、推論時の生成でも、「まだ書いていない続き」を盗めない。チャットで返答が左から右へ伸びる体験は、このマスクと自己回帰の公開面である。</p>
+<p>長い文脈をプロンプトに詰め込んでも安心できない理由も、ここで芽生える。Attention は均一に全部を「覚えている」のではなく、Softmax 重みの稀少なピークと長い尾である。重要な一文（「認証は既に mTLS へ移行した」）が、似た語彙の distractor（古い OAuth 手順書の抜粋）に負ければ、モデルは「文脈に書いてあるのに見落とす」（P4）。社内ドキュメントをそのまま貼ったのに結論がずれる現象は、まず記憶喪失や陰謀ではなく、<strong>混合の失敗</strong>として疑う。</p>
+<p>社内APIの場面へ少し戻る。プロンプトに現行仕様書と古いブログが同居しているとき、破綻は「モデルが嘘をついた」より先に、「どの位置の Value が勝ちやすいか」として記述できる。これが後で Permission や証拠梯子と合流する。まず機械の解像度をここに固定する。</p>
+<h3 id="sim-attn">Lab — Attention Mix（教育用トイ）</h3>
+<div class="sim-root sim-embed">
+    <h1 style="font-size:16px;margin:0 0 8px;">Attention Mix Lab</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> Attention mixes context positions; long context ≠ guaranteed correct focus.</p>
+    <p>Context: Fact A · Fact B · Distractor</p>
+    <label><input type="radio" name="qbias" value="a" checked> 事実A寄り</label>
+    <label><input type="radio" name="qbias" value="d"> distractor寄り</label>
+    <div class="contrib-row"><span>Fact A</span><div class="contrib-track"><div class="contrib-bar" id="barA" style="width:70%"></div></div><span id="pctA">70%</span></div>
+    <div class="contrib-row"><span>Fact B</span><div class="contrib-track"><div class="contrib-bar gold" id="barB" style="width:20%"></div></div><span id="pctB">20%</span></div>
+    <div class="contrib-row"><span>Distractor</span><div class="contrib-track"><div class="contrib-bar red" id="barD" style="width:10%"></div></div><span id="pctD">10%</span></div>
+    <div class="sim-status" id="st">事実Aに寄与が集まりやすい。</div>
+    <p class="note">Also embedded in llm-from-first-principles.html (Pages). Educational toy.</p>
+  </div>
+<script>
+  function render(){
+    var d=document.querySelector('input[name=qbias]:checked').value==='d';
+    var a=d?15:70,b=20,x=d?65:10;
+    barA.style.width=a+'%'; barB.style.width=b+'%'; barD.style.width=x+'%';
+    pctA.textContent=a+'%'; pctB.textContent=b+'%'; pctD.textContent=x+'%';
+    st.textContent=d?'Queryがdistractor寄り — 正しいFact Aがあっても寄与が流れる。':'事実Aに寄与が集まりやすい。長い文脈≠正しい焦点。';
+    st.className='sim-status'+(d?' reject':'');
+  }
+  document.querySelectorAll('input[name=qbias]').forEach(function(e){e.onchange=render;});
+  render();
+  </script>
+<p>Hard claim: <strong>Attention は文脈位置を混ぜる。長い文脈 ≠ 正しい焦点。</strong> Query の寄りどころが distractor に寄れば、正しい Fact があっても寄与が流れる。</p>
+<p>混同をここで釘付けにする。「Attention＝社内検索の代替」は、出典・鮮度・権限を消す危険な短縮である。「各層＝人間の思考ステップの逐語録」は、見える出力チャネルと内部活性化の混同である。層は変換の深さであって、議事録ではない。</p>
+<p>次の限界はこれだ。この塔の重みは、最初から賢く固定されているわけではない。観測系列の損失を通って、どうやって立ち上るのか。</p>
+</section>
 
-    <section class="section reading" id="n3b">
-      <h2>3b. 不完全だった系列モデル：局所統計と逐次が欠けていたもの</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>四役割まで見えても、いきなり Transformer 内部へ降りると Attention は用語の棚卸しになる。Networking が電信の継電と回線交換の無駄を先に見せるように、系列モデリングでも<strong>何が足りなかったか</strong>を先に固定する。n-gram／局所統計と RNN 逐次は、長距離依存と訓練時並列で破綻し、それが Attention 並列混合を要求した——ここでの hard claim である<a class="fn-ref" id="fnref-1lin" href="#ref-1">(*1)</a>。</p>
-      <h3>仕組み</h3>
-      <p>古典的な言語モデルの一つの極は、直前数トークンだけを見る n-gram／局所統計である。近い共起には強いが、文書の遠い前提や長いコード依存を文脈全体から選ぶ器を持たない。窓を広げれば表は爆発する。</p>
-      <p>別の極は、隠れ状態を左から右へ更新する再帰（RNN 系）である。長い履歴を状態に圧縮できる一方、長い依存の学習は勾配伝播の距離問題に突き当たりやすく、各位置が前位置の完了を待つため大規模並列訓練に向かない。畳み込みも局所カーネルの積み上げで受容野を伸ばすが、任意位置の遠い関連を一段階で結びつけるのはコストが高い。</p>
-      <p>Transformer の提案は、この欠落への直接の応答として読める。自己注意は（因果マスクの範囲で）系列内の位置同士を内容依存の重みで混合し、訓練時には系列方向の並列計算を開きうる<a class="fn-ref" id="fnref-1linb" href="#ref-1">(*1)</a>。必然は「新語の紹介」ではない。<strong>局所窓では届かない関連を選び、逐次状態更新の壁を迂回する混合器が要った</strong>、という失敗の帰結である。</p>
-      <div class="callout">
-        <p>「RNNは悪い／Transformerは神」ではない。不完全解が露わにした制約——長距離の選択と並列——が、のちの Attention 混合と Prefill/Decode の資源形に残る。</p>
-      </div>
-      <h3>worked example</h3>
-      <p>仕様書の先頭に正しい現行手順、真ん中に長い旧手順、末尾に曖昧な質問がある状況を想像する。局所窓だけなら質問直前の旧手順共起に引きずられやすい。逐次状態だけなら先頭の正しい一文は長い中盤で薄まりうる。Attention は少なくとも「遠くの正しい一文を内容に応じて再選択する」器を与える——ただし正しい位置へ重みが乗る保証はない（Attention Lab / P4）。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「Transformer以前は予測ができなかった」→ 局所統計も再帰も予測はする。欠けていたのは長距離選択と大規模並列の両立である<a class="fn-ref" id="fnref-1linc" href="#ref-1">(*1)</a>。</li>
-        <li>「Attentionが来たから真理が保証された」→ 混合の器が変わっても、目的が観測尤度なら保証は外側に残る。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>欠けていたものが「系列内のどこを混ぜるか」だと分かっても、学習の原子が人間の単語のままでは損失が定義できない。次節で離散トークンと next-token 目的へ降りる。</p>
-    </section>
+<section class="section reading" id="pretrain">
+<h2>広大なパターン圧縮：事前学習・勾配・スケール・並列</h2>
+<p>塔の形が決まっても、中身の数は観測から学ばねばならない。事前学習では、巨大コーパス上で次トークンのクロスエントロピーを下げる。<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a><a class="fn-ref" id="fnref-4" href="#ref-4">(*4)</a></p>
+<p>微視例を一分だけ長くする。語彙が極端に小さいトイ世界で、文脈トークン「認証は」のあと、コーパス上の正しい次が「Bearer」だとする。モデルが出した確率が (p(\text{Bearer}\mid\text{認証は})=0.05) なら、この一歩の損失は (-\log 0.05) と大きい。逆伝播は「この損失が埋め込み／QKV 射影／MLP／Head のどの成分にどれだけ依存したか」の感度を計算し、オプティマイザが一歩だけパラメータを動かす。一歩は微弱でも、トークン数が (10^{12}) 規模になると、文法、慣用句、コードの型、議論の型、誤りの型までが統計として沈殿する。ここが「次トークン予測は単純だから浅い」という誤解への最初の反論である。単純なのは保証の形であり、適合の深さではない。</p>
+<p>固定の計算予算では、パラメータ数と学習トークン数の配分が効く、というのが Chinchilla 系の示唆である。<a class="fn-ref" id="fnref-4" href="#ref-4">(*4)</a> 「とにかく巨大にすればよい」は性質の話としては粗い。データが相対的に薄ければ、巨大さを持て余し、同じ計算量でもっとトークンを読んだ方がよい領域がありうる。数値の最適点は時代とデータ混合で動く。脚注は <strong>配分というトレードオフが存在する</strong>ことの一次足場であり、あなたの製品の最適サイズの予言ではない。</p>
+<p>さらに、現代規模では <strong>一つの GPU に重み（と活性化、と勾配、とオプティマイザ状態）が載らない</strong>。Megatron 系が示したテンソル並列は、層内の大きな行列を複数 GPU に分割し、必要な箇所で集合通信する。<a class="fn-ref" id="fnref-7" href="#ref-7">(*7)</a> パイプライン並列は層の塔を段階に分け、マイクロバッチを流してデバイスを遊ばせにくくする。<a class="fn-ref" id="fnref-8" href="#ref-8">(*8)</a> データ並列は複製したモデルが異なるバッチを処理し、勾配を平均する。三つの軸は直交に近く、合成されて初めて「巨大モデルを現実のクラスタで回す」になる。巨大化はロマンではなく、メモリと通信の工学である。のちの Hardware 節で、同じ天井が推論時の KV にも姿を変えて現れる。</p>
+<p>それでも事前学習が最大化するのは観測尤度である。古いAPIの流暢な誤り（P1）は、圧縮された過去のパターンが、いまの社内真実より強く活性化したときに起きる。学習は「世界の現在」を購読していない。学習は「観測された続き」を圧縮している。</p>
+<p>次の限界: 生の続き予測分布は、指示に従うアシスタントとしても、安全な同僚としても、まだ形が粗い。振る舞いを別の信号で曲げる工程が要る。</p>
+</section>
 
-    <section class="section reading" id="n4">
-      <h2>4. N4 — Tokenization と next-token 目的：学習空間の定義</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N3 は役割を分けたが、モデルが見ている世界の原子がいまだ曖昧である。人間が見る「単語」や「意味」は、学習の直接の入力ではない。テキストはまず有限語彙上の離散トークン列へ写され、その列上で次トークン予測の損失が定義される。Tokenizer + next-token Cross-Entropy が学習空間を定義する——これが N4 の hard claim である。</p>
-      <p>四役割の話を先に置くと、「では機械は何を探索しているのか」が口語のまま残る。探索の対象が曖昧なままだと、検証も「なんとなく見た感じ」に戻る。だから機構の第一歩は、入力がどの記号列になり、何を正解と呼ぶかを固定することである。</p>
-      <h3>仕組み</h3>
-      <p><strong>Tokenizer</strong> は raw text をトークンID列へ変えるアルゴリズムである。トークンは必ずしも単語と一致しない。subword、句読点、空白、コード片が一つのトークンになりうる。SentencePiece は、生コーパスから言語に依存しにくいサブワード分割を学習・適用する枠組みを示した<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a>。同じ内容でも分割が変わればトークン数が変わり、context 消費と計算コストが変わる。</p>
-      <p>分割規則は「前処理の雑用」ではない。モデルが比較できるのは、最終的に並んだID列の統計である。空白の扱い、数字の割れ方、絵文字、INDENT、日本語の漢字かな混じり——これらは、人間の直感する「一文」とモデルの見る「系列長」をずらしうる。</p>
-      <p>decoder-only LLM の典型的な事前学習では、位置 <code>t</code> までの文脈から次トークン <code>x_{t+1}</code> を予測する。</p>
-      <ol>
-        <li>Forward で各位置の表現を積み上げ、語彙サイズ分の logit（Softmax 前のスコア）を出す</li>
-        <li>Softmax が合計1の確率分布へ変える</li>
-        <li>正解トークンの負の対数尤度（Cross-Entropy）を損失とする</li>
-        <li>誤差逆伝播が損失への寄与を各重みへ伝え、最適化器が少し更新する</li>
-      </ol>
-      <p>学習分布に現れない最新事実や、稀な失敗モードは学びにくい——これは能力不足のレッテル以前に、分布の問題である。</p>
-      <div class="callout">
-        <p>ここでP1が回収され始める: 自信ありげな誤答は、学習空間上で「ありそう」な続きが高い確率を持つことと両立する。尤度の高さと真理は別軸である。</p>
-      </div>
-      <h3>worked example</h3>
-      <p>文字列 <code>oauth2</code> と、内部で使っている古い商品名が混在する文書を考える。Tokenizer は前者を少数トークンにまとめても、後者を細かく割ることがある。モデルが「覚える」対象は、あなたの意味単位ではなく、分割後の記号列上の統計である。</p>
-      <p>コードでは、識別子の途中分割が長い文脈を消費し、見た目上短いファイルでも context を圧迫することがある。たとえば <code>VeryLongInternalServiceNameFactory</code> が多数の部分トークンへ割れると、同じ「ファイルを添付した」でも実効の系列長が伸び、のちの Prefill（N9）と Attention の混合（N7）にまで影響する。</p>
-      <p>別の例として、日付やバージョン番号を考える。人間は <code>2024-03</code> と <code>2026-07</code> を同じ「日付型」として比較するが、トークン列上では数字とハイフンの並びにすぎない。時系列の新旧が自動で保証されないのも、真理関数ではなく系列尤度だからである。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「トークン＝意味の原子」→ 実装上の離散記号である。意味は後段の表現学習が担う。</li>
-        <li>「損失が下がった＝正しい知識が増えた」→ 観測分布への当てはまりが良くなった、という主張までが安全である。</li>
-        <li>「語彙が大きいほど常に賢い」→ 語彙は空間の解像度であり、データと計算の配分（N5）なしに能力は決まらない。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>離散空間と損失が決まっても、広大なパターンを圧縮する段階が要る。次節は事前学習と計算・データの配分である。</p>
-    </section>
+<section class="section reading" id="posttrain">
+<h2>振る舞い分布を動かす：後訓練</h2>
+<p>指示追従・選好整合・ある種の推論様式は、しばしば別信号で後から形作られる。InstructGPT 系は、デモでの Supervised Fine-Tuning、比較データでの報酬モデル、強化学習による方策更新、というパイプラインを示した。<a class="fn-ref" id="fnref-3" href="#ref-3">(*3)</a> DPO のように、明示的報酬モデルと RL ループを経由せず選好対から方策を動かす経路もある。<a class="fn-ref" id="fnref-5" href="#ref-5">(*5)</a> 公開された Reasoning 系は、検証可能な報酬や長い生成を信号に使う例を報告する。<a class="fn-ref" id="fnref-16" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17" href="#ref-17">(*17)</a></p>
+<p>重要なのは、後訓練が「真理関数への置換」ではないことだ。変えられるのは生成方策の分布——どんな続きを出しやすいか——である。だから二番目の場面の長い推論文（P3）は、内部の完全な因果計算の写しというより、後訓練と復号が用意した <strong>出力チャネルのスタイル</strong> として先に疑う。もっともらしい手順は有用だが、証明書ではない。</p>
+<p>混同釘: 「RLHF 済み＝幻覚が消えた」「Thinking モード＝内部で証明した」。どちらも、分布の移動と保証の混同である。</p>
+<p>次の限界: 分布ができても、実行時にはその分布から <strong>一つの</strong> 系列を選ばねばならない。</p>
+</section>
 
-    <section class="section reading" id="n5">
-      <h2>5. N5 — Pre-training と compute–data：広大なパターン圧縮</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N4 の目的だけでは「小さなコーパスで次トークンを当てる玩具モデル」も作れる。実務の LLM が必要とするのは、多様な文脈で有用な続きを出せるだけの広範なパターン圧縮である。その段階が Pre-training であり、固定計算予算ではパラメータ数と訓練トークン数の配分が効く——これが N5 の hard claim である<a class="fn-ref" id="fnref-3" href="#ref-3">(*3)</a>。</p>
-      <h3>仕組み</h3>
-      <p>Pre-training は大量のトークン系列から general-purpose な重みを作る段階である。データ収集、品質フィルタ、重複除去、言語・コード・ドメインの混合物、ライセンスやプライバシー処理が、実際の <strong>Training distribution</strong> を作る。モデルは世界全体ではなく、この分布から損失を下げるパターンを学ぶ。分布に薄い領域は薄くしか学習されない。</p>
-      <p>多数GPUでは、Data / Tensor / Pipeline / Expert Parallel などを組み合わせ、勾配の集約（AllReduce 等）で同期する。低精度（BF16、FP8 等）はメモリと演算を節約するが、数値安定性の管理が要る<a class="fn-ref" id="fnref-18" href="#ref-18">(*18)</a>。並列化は「同じ損失を分散して最小化している」のであり、並列そのものが新しい目的関数を与えるわけではない。</p>
-      <div class="callout">
-        <p>パラメータを増やすほど賢い、という単調神話ではない。固定フロップ予算では、モデルを大きくしすぎてデータを相対的に薄くすると非効率になりうる。Chinchilla 研究は、計算最適の配分を議論するための一次足場である<a class="fn-ref" id="fnref-3b" href="#ref-3">(*3)</a>。以後のアーキテクチャ・データ混合で最適点はずれうる——経験則であり永遠の定数表ではない。</p>
-      </div>
-      <p>Mid-training（長く続ける事前学習寄り、長文脈・ドメイン混合、継続事前学習など）は製品ごとに置き方が違い、全モデル共通の標準工程ではない。だが思想は同じで、「すでに圧縮した分布を、別の方向へ延長する」である。</p>
-      <div class="callout">
-        <p>P1 の深さ: 事前学習で圧縮された相関が、後から誤りと判明する「ありそうな知識」の供給源になりうる。誤りは後訓練で上書きされることもあるが、保証ではない（→ N6）。事前学習は真実の倉庫ではなく、候補の広大な盆地を掘る工程である。</p>
-      </div>
-      <h3>worked example</h3>
-      <p>同じ計算予算で、(A) 極端に大きなモデルを相対的に少ないトークンで回す、(B) やや小さめのモデルをより多くのトークンで回す、を比較する思考実験をする。Chinchilla の論点は「B側が当時の慣行より良いことがありうる」という配分問題であり、特定製品の正確なトークン数を断言する材料ではない<a class="fn-ref" id="fnref-3c" href="#ref-3">(*3)</a>。</p>
-      <p>社内適用の例でも同じである。ドメイン特化のために「とにかく巨大モデルを買う」より先に、自社コーパスの品質・重複・期間・ライセンスを見ないなら、薄い分布の上で大きなパラメータを遊ばせることになりうる。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「公開ベンチで一位＝世界知識の網羅」→ ベンチは限定分布上の証拠である。</li>
-        <li>「パラメータ数が能力の唯一の軸」→ active compute、データ品質、後訓練、推論時計算が別レバーになる（N6, N13）。</li>
-        <li>「もっとデータを足せばハルシネーションは消える」→ 分布は変えられるが、観測尤度目的そのものは真理保証へ自動変換されない（N2）。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>広い生成能力ができても、ユーザー意図への追従・選好・検証可能な推論方策までは自動で揃わない。次節が Post-training である。</p>
-    </section>
+<section class="section reading" id="sample">
+<h2>分布から一つの続きを選ぶ：自己回帰サンプリング</h2>
+<p>推論の一歩は、logits を Softmax で確率にし、Temperature や Top-p などで形を整え、一つのトークン ID をサンプリング（または greedy に選ぶ）ことである。選ばれたトークンは文脈の末尾に繋がり、同じスタックが繰り返される。これが自己回帰である。誤りも、いったん選ばれれば次の文脈の一部になる。</p>
+<p>Temperature を下げると分布は尖り、毎回のばらつきは減る。だが尖る先が「真」である保証はない。訓練・文脈が支持する確からしい誤りへ収束しうる（P2）。低 Temperature はランダム性のノブであって、真理のノブではない。</p>
+<h3 id="sim-sample">Lab — Sampling（教育用トイ）</h3>
+<div class="sim-root sim-embed">
+    <h1 style="font-size:16px;margin:0 0 8px;">Next-Token Sampling Lab</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> Temp/Top-p change distribution shape, not truth.</p>
+    <label>Temperature <input type="range" id="temp" min="0.1" max="2" step="0.1" value="1"> <span id="tempVal">1.0</span></label>
+    <label>Top-p <input type="range" id="topp" min="0.1" max="1" step="0.05" value="1"> <span id="toppVal">1.00</span></label>
+    <button type="button" class="sim-btn" id="btnSample">Sample</button>
+    <button type="button" class="sim-btn" id="btnReset">Reset</button>
+    <div id="bars"></div>
+    <div class="sim-status" id="st">Sample で選ぶ。誤りが高ロジットなら残る。</div>
+    <p class="note">Also embedded in llm-from-first-principles.html. Educational toy.</p>
+  </div>
+<script>
+  var TOY=[{id:'WRONG',logit:3.2,wrong:1},{id:'CORRECT',logit:2.4,correct:1},{id:'OTHER',logit:0.5},{id:'NOISE',logit:-0.2}];
+  function softmax(L,T){var m=-1e9;L.forEach(function(x){m=Math.max(m,x/T);});var e=L.map(function(x){return Math.exp(x/T-m);});var s=e.reduce(function(a,b){return a+b;},0);return e.map(function(x){return x/s;});}
+  function topP(probs,p){var idx=probs.map(function(pr,i){return{i:i,p:pr};}).sort(function(a,b){return b.p-a.p;});var c=0,k={};for(var j=0;j<idx.length;j++){k[idx[j].i]=1;c+=idx[j].p;if(c>=p)break;}return k;}
+  var keep,probs;
+  function render(){
+    var T=+temp.value,p=+topp.value; tempVal.textContent=T.toFixed(1); toppVal.textContent=p.toFixed(2);
+    probs=softmax(TOY.map(function(t){return t.logit;}),T); keep=topP(probs,p);
+    bars.innerHTML='';
+    TOY.forEach(function(t,i){var pct=Math.round(probs[i]*1000)/10; var cls=t.wrong?'logit-bar wrong':(t.correct?'logit-bar correct':'logit-bar');
+      bars.innerHTML+='<div class="logit-row"><span>'+t.id+(keep[i]?'':' (cut)')+'</span><div class="logit-track"><div class="'+cls+'" style="width:'+(keep[i]?pct:0)+'%;opacity:'+(keep[i]?1:.25)+'"></div></div><span>'+pct+'%</span></div>';});
+    st.textContent=keep[0]?'WRONG が候補に残る。低温度でも誤りうる。':'Top-p が WRONG を除外（正しい保証ではない）。';
+    st.className='sim-status'+(keep[0]?' caution':'');
+  }
+  btnSample.onclick=function(){render();var mass=0,scaled=probs.map(function(pr,i){var v=keep[i]?pr:0;mass+=v;return v;});var r=Math.random()*mass,a=0,pick=0;for(var i=0;i<scaled.length;i++){a+=scaled[i];if(r<=a){pick=i;break;}}
+    var t=TOY[pick];st.textContent='Sampled: '+t.id+(t.wrong?' — 誤り採用':t.correct?' — 正しい側（保証ではない）':'');st.className='sim-status'+(t.wrong?' reject':'');};
+  btnReset.onclick=function(){temp.value=1;topp.value=1;render();};
+  temp.oninput=topp.oninput=render; render();
+  </script>
+<p>Hard claim: <strong>Temperature / Top-p は分布の形を変え、正しさを保証しない。</strong></p>
+<p>古いAPI回答の場面へ戻る。モデルが「自信ありげ」に見えるのは、しばしば確率質量が一つの尤もらしい続きへ寄っているだけである。社内の現行実装という介入可能な真実は、その尖りとは別チャネルにある。</p>
+<p>次の限界: 一トークンずつの一歩は、サービスとしては Prefill と Decode という位相の違う仕事になる。</p>
+</section>
 
-    <section class="section reading" id="n6">
-      <h2>6. N6 — Post-training：振る舞い分布を動かす別信号</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>Base model は文章を続けられても、安定して指示に従い、拒否すべきところで拒否し、読みやすい手順を出し、検証可能な課題で長く探索するとは限らない。指示追従・選好・検証可能推論は、別信号で方策を形作る——これが N6 の why_exists である。SFT / 選好最適化 / Reasoning RL は振る舞い分布を動かすが、真理保証ではない——hard claim である<a class="fn-ref" id="fnref-4" href="#ref-4">(*4)</a><a class="fn-ref" id="fnref-5" href="#ref-5">(*5)</a><a class="fn-ref" id="fnref-13" href="#ref-13">(*13)</a>。</p>
-      <h3>仕組み</h3>
-      <p><strong>Supervised Fine-Tuning（SFT）</strong> は、instruction と望ましい response の demonstration を模倣させる。InstructGPT は human feedback パイプラインの最初に SFT を置いた<a class="fn-ref" id="fnref-4b" href="#ref-4">(*4)</a>。教えるのは主に「この入力形式にはこの出力形式」という行動マッピングである。デモに誤りがあればその誤りも真似る。SFT は文章継続器を指示追従器へ寄せるが、デモ外の事実性や頑健性を保証しない。</p>
-      <p><strong>選好最適化</strong> は、一つのプロンプトに複数応答を作り、人間または AI judge がどちらを好むかを比較する。古典的な RLHF は選好から Reward Model を学び、PPO 等で報酬を上げつつ元方策から外れすぎないよう制約する<a class="fn-ref" id="fnref-4c" href="#ref-4">(*4)</a>。効きやすいのは、丁寧さ、拒否の仕方、説明の読みやすさ、曖昧依頼への補足である。一方、Reward Model が測っていない事実性や実運用の副作用までは保証しない。</p>
-      <p><strong>DPO</strong> は、preferred の相対尤度を rejected より高める分類型目的で、明示的報酬モデルと online RL を省ける経路を示した<a class="fn-ref" id="fnref-5b" href="#ref-5">(*5)</a>。経路が分岐すること自体が重要である。「RLHFという一語」で後訓練を片付けると、何が報酬で何が上書きされたかが見えなくなる。DPO も選好データの範囲で分布を動かす技術であり、選好が事実確認を含まなければ事実性は直接保証されない。</p>
-      <p><strong>Reasoning RL / Verifier / Distillation</strong> は、数学やコードのように答えを機械採点できる領域で強い。正答や Test pass を報酬にできれば、長い探索トレースを出す方策を強化しうる。DeepSeek-R1 は rule-based reward を含む大規模 RL を報告し<a class="fn-ref" id="fnref-13b" href="#ref-13">(*13)</a>、Qwen3 は thinking / non-thinking と thinking budget を公開した<a class="fn-ref" id="fnref-14" href="#ref-14">(*14)</a>。これは next-token generator を廃止したのではなく、どの系列を報酬するかと推論時の計算配分を変えている。Verifier が間違えば、物差しに適応する。自由記述や現実因果では報酬設計自体が難しい。</p>
-      <p>Distillation は、高価な Teacher の応答・推論例・出力分布を使い、軽い Student に似た振る舞いを移す。低コスト化や遅延削減には効くが、Teacher の誤りも引き継ぎうる。</p>
-      <div class="callout">
-        <p>ここでP3が回収される: 「考えた様子」の文章は、後訓練と推論テンプレートで読みやすく最適化されうる出力である。見える CoT は内部思考の完全記録ではない。正しさの証明に使うな。長くなったことが、介入検証（N12/N14）の代替にはならない。</p>
-      </div>
-      <p>Evaluation・red teaming・release gate は、benchmark スコアがその test distribution 上の証拠であることを思い出す段階である。実世界の全タスク保証ではない。</p>
-      <h3>worked example</h3>
-      <p>spec-to-code 能力は一phaseから生まれない。Pre-training でコードパターンを学び、SFT で指示形式を学び、選好で読みやすさを寄せ、Reasoning RL や Verifier で Test を通す方策を強め、Application 側が repository search と Test 実行を Tool として与える。レビューで「R1 だから正しい」と言うのは、報酬設計と検証チャネルを無視した飛ばし読みである<a class="fn-ref" id="fnref-13c" href="#ref-13">(*13)</a>。</p>
-      <p>同じモデル名でも、thinking mode の on/off と thinking budget が違えば、比較対象がすでに別レバーになっている<a class="fn-ref" id="fnref-14b" href="#ref-14">(*14)</a>。「先週より賢くなった」談話の前に、後訓練と推論制御のどのノブが動いたかを問うのが N6 の読み方である。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「RLHF＝真理アライメント」→ 選好と安全行動の再配分であり、真理関数の置換ではない<a class="fn-ref" id="fnref-4d" href="#ref-4">(*4)</a>。</li>
-        <li>「長い thinking ＝深い理解」→ 追加トークンと報酬付き探索であり、因果同定や権限とは別<a class="fn-ref" id="fnref-14c" href="#ref-14">(*14)</a>。</li>
-        <li>「Post-trainingで世界知識が丸ごと入る」→ 主に方策の再配分である。知識の更新はデータと目的次第であり、保証語にしない。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>振る舞いが形作られても、一回の応答が文脈のどこを見てどう変換するかが見えない。次節は Transformer ブロックである。</p>
-    </section>
+<section class="section reading" id="prefill">
+<h2>Prefill と Decode：同じモデル、違う拘束</h2>
+<p>プロンプト全体を初めて読む位相を Prefill、生成中に一トークンずつ進む位相を Decode と呼ぶことが多い。Prefill では入力系列に対してキー・バリューをまとめて計算し、KV cache に載せられる。Decode では新しいトークンについて計算し、過去の KV を再利用する。<a class="fn-ref" id="fnref-9" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10" href="#ref-10">(*10)</a></p>
+<p>同じ「トークン数」でも、位相が違えばレイテンシと資源の効き方が違う。長いシステムプロンプトと添付文書は Prefill を重くし、だらだら長い回答は Decode を伸ばす。ユーザー体験の「考えている間」と「文字が流れる間」は、しばしばこの位相差の感触である。</p>
+<h3 id="sim-prefill">Lab — Prefill / Decode Budget（教育用トイ）</h3>
+<div class="sim-root sim-embed">
+    <h1 style="font-size:16px;margin:0 0 8px;">Prefill / Decode Budget Lab</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> 同じ総トークン予算でも Prefill（長い入力）と Decode（長い出力）は別の束縛を作る。</p>
+    <label>入力トークン <span id="inVal">80</span></label>
+    <input type="range" id="inTok" min="8" max="160" value="80">
+    <label>出力トークン <span id="outVal">40</span></label>
+    <input type="range" id="outTok" min="4" max="160" value="40">
+    <p style="color:var(--mm-muted);font-size:13px;">合計: <strong id="sumVal">120</strong> · Modeボタンで対照</p>
+    <p>
+      <button type="button" id="modeA">Mode A: 長入力</button>
+      <button type="button" id="modeB">Mode B: 長出力</button>
+    </p>
+    <div class="row"><span>Prefill</span><div class="track"><div class="bar blue" id="barP"></div></div><span id="pctP">—</span></div>
+    <div class="row"><span>Decode</span><div class="track"><div class="bar gold" id="barD"></div></div><span id="pctD">—</span></div>
+    <div class="row"><span>KV圧力</span><div class="track"><div class="bar green" id="barK"></div></div><span id="pctK">—</span></div>
+    <div class="sim-status" id="st">—</div>
+    <p class="note">教育用トイ。実レイテンシ・品質・料金は測りません。Also embedded in llm-from-first-principles.html.</p>
+  </div>
+<script>
+  function render(){
+    var inn = +document.getElementById('inTok').value;
+    var out = +document.getElementById('outTok').value;
+    document.getElementById('inVal').textContent = inn;
+    document.getElementById('outVal').textContent = out;
+    document.getElementById('sumVal').textContent = inn + out;
+    var pref = inn, dec = out * 1.15, kv = inn + out * 0.7;
+    var m = Math.max(pref, dec, kv, 1);
+    function pct(v){ return Math.round(100 * v / m); }
+    var p = pct(pref), d = pct(dec), k = pct(kv);
+    barP.style.width = p + '%'; barD.style.width = d + '%'; barK.style.width = k + '%';
+    pctP.textContent = p + '%'; pctD.textContent = d + '%'; pctK.textContent = k + '%';
+    var dominant = pref >= dec && pref >= kv ? 'Prefill（長い入力の一括）' : (dec >= kv ? 'Decode（出力の逐次ステップ）' : 'KV圧力（文脈の保持）');
+    var st = document.getElementById('st');
+    st.textContent = '支配的束縛: ' + dominant + '。総トークンが同じでも位相で体験が変わる。';
+    st.className = 'sim-status' + (dominant.indexOf('Decode') >= 0 ? ' caution' : '');
+  }
+  inTok.oninput = outTok.oninput = render;
+  modeA.onclick = function(){ inTok.value = 100; outTok.value = 20; render(); };
+  modeB.onclick = function(){ inTok.value = 20; outTok.value = 100; render(); };
+  render();
+  </script>
+<p>Hard claim: <strong>同じトークン予算でも、Prefill と Decode で束縛が違う。</strong></p>
+<p>長い文脈を入れたのに重要箇所を落とす（P4）のは Attention の混合の話でもあり、同時に Prefill コストとノイズの話でもある。長さは能力の単調関数ではない。</p>
+<p>次の限界: 一人の対話ならまだしも、多数の要求が同時に来ると、KV の置き方が製品を支配し始める。</p>
+</section>
 
-    <section class="section reading" id="n7">
-      <h2>7. N7 — Transformer ブロック：文脈混合と特徴変換</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>ここまでの節は「何を最適化し、どう振る舞いを曲げるか」を扱った。不完全な系列モデルが長距離選択と並列で足りないことも固定してきた。しかしいまだ、一トークンを出す瞬間にモデルが文脈のどこを参照し、各位置の表現をどう書き換えているかは空洞である。文脈選択と位置ごとの変換が要る——Attention は文脈混合、MLP は特徴変換であり、literal な外部DB検索ではない<a class="fn-ref" id="fnref-1" href="#ref-1">(*1)</a>。これが N7 の hard claim である。</p>
-      <h3>仕組み</h3>
-      <p>元の Transformer は、再帰や畳み込みに頼らず、自己注意を中心に系列変換を行うアーキテクチャとして提案された<a class="fn-ref" id="fnref-1b" href="#ref-1">(*1)</a>。現代の多くのチャットLLMは因果マスク付き decoder-only だが、中核の演算は同じ家族である。典型的なブロックでは次が重なる（順序・正規化の詳細は実装差がある）。</p>
-      <ol>
-        <li><strong>Embedding</strong>: トークンIDを連続ベクトルへ</li>
-        <li><strong>位置情報（例: RoPE）</strong>: 相対位置を注意計算で使えるようにする</li>
-        <li><strong>正規化</strong>: LayerNorm / RMSNorm など</li>
-        <li><strong>Q/K/V 射影</strong>: 隠れ状態を Query・Key・Value へ線形変換</li>
-        <li><strong>Masked Self-Attention</strong>: <code>softmax(QKᵀ/√d)V</code> で、未来を見ずに過去文脈を混合<a class="fn-ref" id="fnref-1c" href="#ref-1">(*1)</a></li>
-        <li><strong>残差接続</strong>: 変換結果に入力を足し、情報流と最適化を安定させる</li>
-        <li><strong>MLP / FFN</strong>: 各位置で特徴を拡張・非線形変換・圧縮（SwiGLU 等）</li>
-        <li>（任意）<strong>MoE</strong>: Router がトークンごとに少数 Expert を選び、総パラメータと active compute を分離<a class="fn-ref" id="fnref-12" href="#ref-12">(*12)</a></li>
-      </ol>
-      <p>直感の対応づけは次である。Query は「今の位置が何を探しているか」、Key は「各過去位置が持つ手がかり」、Value は「選ばれたときに渡す情報」。Attention は類似度から重みを作り Value を混ぜる。MLP は混ぜた情報を位置ごとに変換する。</p>
-      <p><strong>MHA / GQA / MLA</strong> は、主に KV をどう持つかの設計家族である。MHA は head ごとに独立した Key/Value を持つ。GQA は複数 Query head で Key/Value を共有し、推論時の KV を抑える。DeepSeek 系の MLA は Key/Value を latent へ圧縮し、キャッシュ負荷を下げる方向を報告する<a class="fn-ref" id="fnref-12b" href="#ref-12">(*12)</a>。</p>
+<section class="section reading" id="serving">
+<h2>メモリとバッチ：KV が伸び、断片化が効く</h2>
+<p>自己回帰生成では、過去トークンの K/V を保持し続ける。出力が伸びるほど、その対話の KV は増える。多数の利用者が同時に長く話すと、GPU メモリは重みだけでなく KV で圧迫される。単純な連続確保は長さのばらつきで断片化し、同時処理数を落とす。PagedAttention 系は、OS のページングに似た非連続管理でこの問題に応える。<a class="fn-ref" id="fnref-9" href="#ref-9">(*9)</a> 連続バッチは、待ちと生成中の要求をスケジューラが混ぜ、GPU を遊ばせないための必然である。</p>
+<p>投機的復号のように、草案モデルで複数トークンを提案し本体で検証する加速もある。<a class="fn-ref" id="fnref-11" href="#ref-11">(*11)</a> 多くは「分布を壊さず平均レイテンシを下げる」設計を目指す。ここでも性質と製品ベンチの予言を混ぜない。</p>
+<h3 id="sim-kv">Lab — KV Growth（教育用トイ）</h3>
+<div class="sim-root sim-embed">
+    <h1 style="font-size:16px;margin:0 0 8px;">KV Growth Lab</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> Decode が進むほど保持すべき KV が伸びる。長い返事は計算だけでなくメモリ契約である。</p>
+    <label>同時セッション数 <span id="sessVal">4</span></label>
+    <input type="range" id="sess" min="1" max="16" value="4">
+    <label>各セッションの生成トークン <span id="genVal">64</span></label>
+    <input type="range" id="gen" min="8" max="256" value="64">
+    <label>プロンプト長（共通） <span id="promptVal">128</span></label>
+    <input type="range" id="prompt" min="16" max="512" value="128">
+    <p>
+      <button type="button" id="modeA">Mode A: 短応答×多人数</button>
+      <button type="button" id="modeB">Mode B: 長応答×少人数</button>
+    </p>
+    <div class="row"><span>重み（固定）</span><div class="track"><div class="bar" id="barW" style="width:40%"></div></div><span>40</span></div>
+    <div class="row"><span>KV 合計</span><div class="track"><div class="bar gold" id="barK"></div></div><span id="pctK">—</span></div>
+    <div class="row"><span>余裕</span><div class="track"><div class="bar red" id="barF"></div></div><span id="pctF">—</span></div>
+    <div class="sim-status" id="st">—</div>
+    <p class="note">教育用トイ。実 HBM 容量・量子化・PagedAttention の効率は測りません。KV が「出力の長さ×セッション」で膨らむ感触だけを示します。</p>
+  </div>
+<script>
+  var CAP = 100;
+  function render(){
+    var s = +sess.value, g = +gen.value, p = +prompt.value;
+    sessVal.textContent = s; genVal.textContent = g; promptVal.textContent = p;
+    var weights = 40;
+    var kv = Math.min(CAP, Math.round((p + g) * s * 0.045));
+    var free = Math.max(0, CAP - weights - kv);
+    barK.style.width = kv + '%';
+    barF.style.width = free + '%';
+    pctK.textContent = kv;
+    pctF.textContent = free;
+    var st = document.getElementById('st');
+    if (free <= 5) {
+      st.textContent = 'メモリ余裕がほぼゼロ。新規セッションや長い Decode を同時に載せにくい——これがページング／連続バッチの動機。';
+      st.className = 'sim-status reject';
+    } else if (kv > weights) {
+      st.textContent = 'KV が重みより大きい。長い返事は「頭が働く」だけではなく保持契約を増やしている。';
+      st.className = 'sim-status caution';
+    } else {
+      st.textContent = 'まだ余裕あり。Decode を延ばすかセッションを増やすと KV バーが伸びる。';
+      st.className = 'sim-status';
+    }
+  }
+  sess.oninput = gen.oninput = prompt.oninput = render;
+  modeA.onclick = function(){ sess.value=12; gen.value=24; prompt.value=96; render(); };
+  modeB.onclick = function(){ sess.value=2; gen.value=220; prompt.value=160; render(); };
+  render();
+  </script>
+<p>Hard claim: <strong>Decode が進むほど保持すべき KV が伸びる。長い返事は計算だけでなくメモリ契約である。</strong></p>
+<p>次の限界: これらの抽象は、結局シリコンの上で行列積とバイト移動になる。</p>
+</section>
 
-      <h3>Lab A — Attention Mix（教育用トイ）</h3>
-      <div class="sim-embed sim-root" id="sim-attn">
-        <p class="sim-title">Attention Mix Lab</p>
-        <p class="sim-hard-claim"><strong>Hard claim:</strong> Attention は文脈位置への内容依存の加重混合であり、外部データベースの行引きではない。長い文脈 ≠ 正しい焦点の保証。</p>
-        <p class="sim-caption" style="margin-top:0;">実モデルの多head・RoPE・学習済み重みは再現しない教育用トイです。</p>
-        <div class="sim-grid-2" style="margin-top:12px;">
-          <div class="sim-panel">
-            <h4>Context tokens</h4>
-            <div class="ctx-token fact-a"><strong>Fact A</strong><br>現行: OAuth2 + PKCE が正規手順</div>
-            <div class="ctx-token fact-b"><strong>Fact B</strong><br>旧: 独自トークンヘッダを使う</div>
-            <div class="ctx-token distractor"><strong>Distractor</strong><br>噂: 認証は来月なくなる（無関係）</div>
-          </div>
-          <div class="sim-panel">
-            <h4>Query bias</h4>
-            <div class="sim-controls">
-              <label><input type="radio" name="qbias" value="a" checked> 事実A寄り</label>
-              <label><input type="radio" name="qbias" value="d"> distractor寄り</label>
-            </div>
-            <h4>Contribution（正規化後）</h4>
-            <div class="contrib-row"><span>Fact A</span><div class="contrib-track"><div class="contrib-bar" id="barA" style="width:70%"></div></div><span id="pctA">70%</span></div>
-            <div class="contrib-row"><span>Fact B</span><div class="contrib-track"><div class="contrib-bar gold" id="barB" style="width:20%"></div></div><span id="pctB">20%</span></div>
-            <div class="contrib-row"><span>Distractor</span><div class="contrib-track"><div class="contrib-bar red" id="barD" style="width:10%"></div></div><span id="pctD">10%</span></div>
-            <div class="sim-status" id="attnStatus">事実Aに寄与が集まりやすい。正しい焦点は「入った」ことと別。</div>
-          </div>
-        </div>
-        <p class="sim-caption">Lesson: Attention は位置を混ぜる。長い文脈を貼った＝全部正しく読んだ、ではない（P4）。</p>
-        <p class="sim-fallback"><strong>静的フォールバック:</strong> Query が distractor 側へ向くと、正しい Fact A があっても寄与が噂側へ流れ、流暢な誤答が出うる。</p>
-      </div>
+<section class="section reading" id="silicon">
+<h2>シリコン上の拘束：行列積と帯域</h2>
+<p>GPU 上の LLM 実行では、巨大な行列乗算と、重み・活性化・KV のメモリ移動が支配的になりやすい。<a class="fn-ref" id="fnref-12" href="#ref-12">(*12)</a>「頭の中で考える速さ」ではなく、HBM からどれだけバイトを運び、Tensor Core でどれだけ FLOPs を消化できるかの問題である。だから量子化や低精度、カーネル融合、FlashAttention のような IO 意識的実装が効く。<a class="fn-ref" id="fnref-10" href="#ref-10">(*10)</a><a class="fn-ref" id="fnref-12" href="#ref-12">(*12)</a> それはしばしば数学的定義を変えるというより、同じ計算を帯域の現実に落とす工夫である。</p>
+<p>訓練時のテンソル／パイプライン並列も、同じメモリ天井への応答であった。<a class="fn-ref" id="fnref-7" href="#ref-7">(*7)</a> 推論時の KV ページングも同様である。Hardware 節は製品カタログではなく、前の層で見た拘束がどの物理量に翻訳されるかの地図である。</p>
+<p>混同釘: 「パラメータ数＝知能」「GPU 数＝正しさ」。どちらも資源の話と真理の話の短絡である。</p>
+<p>次の限界: シリコンの上でトークンが流れるとして、チャットアプリがモデルに見せているものは何か。</p>
+</section>
 
-      <div class="callout">
-        <p>ここでP4が回収される: 長い文脈を入れても重要な箇所を見落とす現象は、Attention 混合の失敗モードとして理解できる。入ったことと、必要箇所へ十分な重みが乗ることは別である。</p>
-      </div>
-      <h3>worked example</h3>
-      <p>プロンプトに (1) 正しい現行仕様の一文、(2) 古い仕様の長い引用、(3) 無関係な社内噂、をこの順で入れる。ユーザー問いが古い用語を使うと、Query が (2) 側の Key に寄り、答えが古いまま流暢に出ることがある。これは「意図的な嘘」ではなく、文脈混合の結果である。対策は「もっと丁寧に頼む」だけではなく、正しい正本を前に置き、古い引用を減らす、検索で現行だけを入れる、など探索側の設計になる。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「Attention＝記憶検索」→ 現在文脈内の表現へのアクセスである。重みに圧縮されたパターンの活性化（重み内探索）とは層が違う。</li>
-        <li>「head が多いほど常に賢い」→ 表現力と KV コストのトレードオフがある<a class="fn-ref" id="fnref-12c" href="#ref-12">(*12)</a>。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>ブロックがロジットまで出しても、まだ「どの一トークンを採用し、系列をどう伸ばすか」が残る。次節がサンプリングである。</p>
-    </section>
+<section class="section reading" id="protocol">
+<h2>アプリ層のプロトコル：テンプレートと Tool</h2>
+<p>画面上の吹き出しは、モデルの入力そのものではない。メッセージ列は、モデルが学習した書式——special tokens や役割マーカーを含む文字列——へ <strong>chat template</strong> で写されてからトークン化される。<a class="fn-ref" id="fnref-13" href="#ref-13">(*13)</a> Networking が「共有テーブル」なしにパケットを解釈できないように、テンプレート不一致は「モデルが壊れた」のではなくプロトコル層の失敗として診断できる。</p>
+<p>Tool / function calling では、利用可能な関数のスキーマが文脈に載り、モデルは呼び出しを生成トークンとして提案できる。だが <strong>モデル自身はツールを実行しない</strong>。ホストが呼び出しを解釈し、実行し、結果をまたテンプレート経由で戻す。<a class="fn-ref" id="fnref-13" href="#ref-13">(*13)</a> 三番目の場面——ロック削除の自信ある提案——は、ここを権限と読み違えたときに悪化する（P5）。流暢な <code>delete_lock()</code> 提案は、本番実行の承認ではない。</p>
+<h3 id="sim-perm">Lab — Permission Gate（教育用トイ）</h3>
+<div class="sim-root sim-embed">
+    <h1 style="font-size:16px;margin:0 0 8px;">Permission Gate Lab</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> Tool 呼び出しの流暢さは提案を増やすが、実行許可を自動では付与しない。</p>
+    <div class="proposal" id="proposal">提案（常に同じ流暢さ）: 「この lock は冗長です。削除します。」</div>
+    <label>アクション
+      <select id="action">
+        <option value="read">read log（低リスク）</option>
+        <option value="test">run test（検証）</option>
+        <option value="delete" selected>delete lock（破壊的）</option>
+        <option value="deploy">deploy production（高権限）</option>
+      </select>
+    </label>
+    <label><input type="checkbox" id="sandbox" checked> sandbox ON（network/write 制限）</label>
+    <label><input type="checkbox" id="approve"> human approval ON</label>
+    <button type="button" id="run">Execute Tool call</button>
+    <div class="sim-status reject" id="st">—</div>
+    <p class="note">教育用トイ。提案文は変えない。ゲートだけが結果を変える。Also embedded in public HTML.</p>
+  </div>
+<script>
+  var TEXT = {
+    read: '提案: 「関連ログを読みます。」',
+    test: '提案: 「再現テストを実行します。」',
+    delete: '提案: 「この lock は冗長です。削除します。」',
+    deploy: '提案: 「修正は十分です。本番へデプロイします。」'
+  };
+  function renderProposal(){
+    proposal.textContent = TEXT[action.value];
+  }
+  function run(){
+    var a = action.value;
+    var sand = sandbox.checked;
+    var appr = approve.checked;
+    var st = document.getElementById('st');
+    if (a === 'read') {
+      st.className = 'sim-status';
+      st.textContent = 'ALLOWED — 低リスク探索。流暢さではなくポリシーが許可。';
+      return;
+    }
+    if (a === 'test') {
+      st.className = 'sim-status';
+      st.textContent = 'ALLOWED — 検証チャネル（Test）を外側で実行。正しさの証明は Test 結果側。';
+      return;
+    }
+    if (!appr) {
+      st.className = 'sim-status reject';
+      st.textContent = 'BLOCKED — 流暢な破壊的提案でも approval なしでは実行しない（P5）。';
+      return;
+    }
+    if (!sand && (a === 'delete' || a === 'deploy')) {
+      st.className = 'sim-status caution';
+      st.textContent = 'ALLOWED (unsafe toy) — approval はあるが sandbox OFF。到達範囲が開きすぎる反面教師。';
+      return;
+    }
+    if (a === 'deploy') {
+      st.className = 'sim-status caution';
+      st.textContent = 'CAUTION — 承認済みでも本番到達は別ゲート。差分・Test・残リスクの確認が要る。';
+      return;
+    }
+    st.className = 'sim-status';
+    st.textContent = 'ALLOWED (sandbox) — 承認＋制限下で副作用の到達範囲を狭めたうえで実行可。';
+  }
+  action.onchange = renderProposal;
+  document.getElementById('run').onclick = run;
+  renderProposal();
+  run();
+  </script>
+<p>Hard claim: <strong>流暢な Tool call ≠ 実行許可。</strong> 提案と到達範囲は別レイヤである。</p>
+<p>次の限界: 層を並べただけでは、読者の解像度はまだ棚卸しで終わりうる。Networking が「リンクをクリックすると何が起きるか」で閉じたように、送信一発で鎖を合成する。</p>
+</section>
 
-    <section class="section reading" id="n8">
-      <h2>8. N8 — 自己回帰サンプリング：分布から一つの続きを選ぶ</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N7 までで、最終隠れ状態から語彙上のロジットが得られるところまで来た。しかし応答はロジットそのものではなく、選ばれたトークンの連鎖である。温度や Top-p は分布の形を変え、正しさを保証しない——これが N8 の hard claim である。自己回帰依存のため、誤りは後続文脈へ伝播しやすい。</p>
-      <h3>仕組み</h3>
-      <p><strong>LM Head</strong> が最終表現を語彙サイズのロジットへ射影する。代表的な選択規則は次である。</p>
-      <ul>
-        <li><strong>Greedy</strong>: 最大確率トークンを毎回選ぶ</li>
-        <li><strong>Temperature</strong>: ロジットを温度で割ってから Softmax。低いほど高確率側へ尖る</li>
-        <li><strong>Top-p（Nucleus）</strong>: 累積確率が <code>p</code> に達する最小候補集合からサンプリング</li>
-        <li><strong>Max tokens / stop sequence</strong>: 正しさではなく資源と停止条件</li>
-      </ul>
-      <p>学習時は教師トークンへの当てはまりを上げ、推論時は上の規則で一つのサンプル経路を歩む。決定的に寄せても、重みや文脈にある誤りは消えない。</p>
-      <p>推論の時間構造は二相に分かれる。<strong>Prefill</strong> は入力系列をまとめて通し、各層の Key/Value を <strong>KV Cache</strong> へ書く。<strong>Decode</strong> は新しいトークンだけを通し、過去 KV を再利用する。K トークンの出力には原理的に K 回の逐次ステップが要る。</p>
-      <div class="callout">
-        <p>ここでP2が回収される: Temperature を下げても嘘が消えない。温度は尖りを変えるノブであり、真理ノブではない。低温度は「同じ高確率の誤り」を安定して出しやすくすることすらある。</p>
-      </div>
-      <div class="callout">
-        <p>P1 の再確認: 自信ありげな誤答は、尖った分布のモードとして現れうる。確率の高さと検証済みは別である。</p>
-      </div>
+<section class="section reading" id="press-send">
+<h2>送信を押すと何が起きるか</h2>
+<p>Networking の記事が「リンクをクリックすると何が起きるか」で層を一度に貫通させたように、ここでも導入の場面を <strong>一本の時間順</strong>で撃ち抜く。あなたが社内チャットで「このAPIの現行の認証方式は何か」と打ち、送信を押したとする。裏側で起きうる鎖は、およそ次である（実装細部は省略した教育用の一本道。製品固有の最適は主張しない）。</p>
+<ol><li><strong>UI → メッセージオブジェクト</strong>: 役割（system / user / 過去の assistant）と文字列が構造化される。画面の吹き出しはまだモデル入力ではない。</li><li><strong>Chat template</strong>: モデル固有の special tokens と役割マーカー付きテキストへ線形化される。<a class="fn-ref" id="fnref-13" href="#ref-13">(*13)</a> テンプレートがズレると「モデルが急に馬鹿になった」ように見え、実体はプロトコル不一致である。</li><li><strong>Tokenize</strong>: サブワード分割で ID 列になる。境界と長さ（Prefill の課金単位の片方）がここで確定する。<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a> Tokenizer Lab で感じた「同じ文字列・違う長さ」が、いま請求書とレイテンシに効く。</li><li><strong>Embed + 位置</strong>: ID がベクトルになり、RoPE 等が注意内積に順序を載せる。<a class="fn-ref" id="fnref-6" href="#ref-6">(*6)</a></li><li><strong>Prefill</strong>: 塔を下から上へ通し、各層の Attention が文脈を混ぜ、MLP が変換し、KV が層ごと・位置ごとに積まれる。<a class="fn-ref" id="fnref-1" href="#ref-1">(*1)</a><a class="fn-ref" id="fnref-9" href="#ref-9">(*9)</a> システムプロンプトと添付仕様が長いほど、この位相が重い。</li><li><strong>Logits → 最初のサンプル</strong>: LM Head の分布から最初の応答トークンが選ばれる。Temperature / Top-p は尖りと候補集合を変えるだけである（Sampling Lab）。</li><li><strong>Decode ループ</strong>: 選ばれたトークンが文脈末尾へ繋がり、新しい K/V が伸び（KV Growth Lab）、次トークンが流れる。画面のストリーミングはこのループの可視面である。長い「考えた様子」の文章も、多くの場合このループが長く続いただけの出力チャネルである。</li><li><strong>停止</strong>: EOS、長さ上限、停止文字列、あるいは Tool call パターンの検出で止まる。</li><li><strong>Tool なら外側へ</strong>: 呼び出し文字列はオーケストレータが受ける。実行するかどうかは権限ポリシーである。<a class="fn-ref" id="fnref-13" href="#ref-13">(*13)</a><a class="fn-ref" id="fnref-15" href="#ref-15">(*15)</a> Permission Gate Lab の境界がここに差し込まれる。</li><li><strong>あなたが読む</strong>: 流暢な「OAuth2 の Bearer です」が現れる。それが社内の現行実装と一致するかは、この鎖のどこにも保証として含まれていない。</li></ol>
+<p>古くなった認証方式の回答は、ステップ5–7で尖った分布が過去パターンを出した結果でありうる。長い文脈の見落としは、ステップ5の混合の失敗でもありうる。危険なパッチ提案は、ステップ9で権限を飛ばした結果でありうる。</p>
+<p>検証は、リポジトリを開く・ステージングで試す・所有者に聞く・テストを走らせる、という <strong>別の鎖</strong> である。送信の鎖と、真実の鎖と、権限の鎖を、ここで分離できる。これができると、次の節の「四役割」はスローガンではなく、いま貫通した層の要約になる。</p>
+<figure class="diagram" aria-label="送信ウォークスルー">
+  <p class="diagram-title">送信から最初のトークンまで（教育用一本道）</p>
+  <p class="figcaption">Lesson: UI の吹き出しはモデル入力ではない。template → tokenize → embed → Prefill → sample → Decode が連続し、正しさの鎖は別である。</p>
+  <ol class="send-flow">
+    <li>UI messages</li><li>Chat template</li><li>Tokenize</li><li>Embed+RoPE</li>
+    <li>Prefill+KV</li><li>Sample</li><li>Decode loop</li><li>Stop / Tool?</li><li>Permission</li><li>You read</li>
+  </ol>
+</figure>
 
-      <h3>Lab B — Sampling（教育用トイ）</h3>
-      <div class="sim-embed sim-root" id="sim-sample">
-        <p class="sim-title">Next-Token Sampling Lab</p>
-        <p class="sim-hard-claim"><strong>Hard claim:</strong> Temperature / Top-p は出力分布の形を変える操作であり、正しいトークンへの保証を追加しない。</p>
-        <p class="sim-caption" style="margin-top:0;">架空ロジットの教育用トイ。製品品質・遅延・コストは測りません。</p>
-        <div class="sim-controls">
-          <label>Temperature <input type="range" id="temp" min="0.1" max="2" step="0.1" value="1"> <span id="tempVal">1.0</span></label>
-          <label>Top-p <input type="range" id="topp" min="0.1" max="1" step="0.05" value="1"> <span id="toppVal">1.00</span></label>
-          <button type="button" class="sim-btn" id="btnSample">Sample</button>
-          <button type="button" class="sim-btn" id="btnSampleReset">Reset</button>
-        </div>
-        <p style="font-size:13px;color:var(--mm-muted);margin:0 0 8px;">Toy logits（WRONG が高、CORRECT がやや低）</p>
-        <div id="logitBars"></div>
-        <p style="font-size:13px;margin:10px 0 4px;">Temperature 後の正規化確率 / Top-p 候補</p>
-        <div id="probBars"></div>
-        <div class="sim-status" id="sampleStatus">Sample で1トークンを選びます。誤りが高ロジットなら低温度でも残りえます。</div>
-        <p class="sim-caption">Lesson: temp/top-p は分布の形を変える。真理は変えない（P2）。</p>
-        <p class="sim-fallback"><strong>静的フォールバック:</strong> logits = {WRONG: 3.2, CORRECT: 2.4, OTHER: 0.5, NOISE: -0.2}。T→0 で WRONG が確定採用されうる。</p>
-      </div>
+</section>
 
-      <h3>worked example</h3>
-      <p>事実質問で、正しい答えのロジットが二番手、流暢な誤りのロジットが一番手、という状況を想像する。Temperature=0（greedy）はその誤りを確定採用する。Temperature を上げて多様性を増やしても、正しさの期待値が自動で上がるわけではない。検証が要る理由はここにある。コード生成では、低温度で「いつも同じ微妙なバグ」が再現する、という現場感とも一致する。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「決定的＝正確」→ 再現性の話と正確性の話を混ぜない。</li>
-        <li>「サンプリングがランダムだから信用できない」→ 問題の本体は乱数ではなく、分布が何を高確率にしているかである。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>理論上の Decode ループは分かった。実サービスではメモリ帯域とバッチが支配する。次節がサービングである。</p>
-    </section>
+<section class="section reading" id="roles">
+<h2>探索・変換・検証・権限：梯子の上の判断地図</h2>
+<p>機械梯子が見えた今こそ、役割を畳める。</p>
+<ul><li><strong>探索（重み内）</strong>: 圧縮パターンの活性化</li><li><strong>探索（文脈内）</strong>: Attention による位置選択</li><li><strong>探索（外部）</strong>: Tool / 检索 / 実行環境</li><li><strong>変換</strong>: 表現を別表現へ写す（層と Head の仕事）</li><li><strong>検証</strong>: テスト・出典・再現・人間レビュー</li><li><strong>権限</strong>: 誰がどの操作を実行してよいか</li></ul>
+<p>有用なシステムは、探索と変換を機械に任せすぎる一方で、検証と権限を省略すると壊れる。比喩の有効域を越えないこと。Attention を「社内検索の代替」と呼ぶと、出典と権限が消える。</p>
+<figure class="diagram" aria-label="四役割図">
+  <p class="diagram-title">四つの役割は別物である（判断地図）</p>
+  <div class="role-legend">
+    <span><i class="swatch blue"></i>探索</span>
+    <span><i class="swatch gold"></i>変換</span>
+    <span><i class="swatch green"></i>検証</span>
+    <span><i class="swatch red"></i>権限</span>
+  </div>
+  <div class="layer-grid">
+    <div class="layer-card blue"><b>探索</b><span>重み内・文脈内・外部。材料を集める。</span></div>
+    <div class="layer-card gold"><b>変換</b><span>表現を別表現へ。層と Head の仕事。</span></div>
+    <div class="layer-card green"><b>検証</b><span>テスト・出典・再現・レビュー。</span></div>
+    <div class="layer-card red"><b>権限</b><span>誰がどの操作を実行してよいか。</span></div>
+  </div>
+  <p class="figcaption">Lesson: 機械梯子のあとで畳む。前半の棚卸し見出しではない。</p>
+</figure>
 
-    <section class="section reading" id="n9">
-      <h2>9. N9 — Serving と KV：Prefill/Decode が現実の制約になる</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N8 の Decode を「GPUに入れて答えが返る」とまとめると、なぜ長いプロンプトが重いのか、なぜ出力トークンごとにレイテンシが乗るのか、なぜ同時ユーザー数が KV で決まるのかが見えない。実サービスはメモリ帯域と逐次 Decode に縛られる。Prefill で KV を作り Decode で再利用する。最適化の多くは近似や IO 削減である<a class="fn-ref" id="fnref-6" href="#ref-6">(*6)</a><a class="fn-ref" id="fnref-7" href="#ref-7">(*7)</a><a class="fn-ref" id="fnref-8" href="#ref-8">(*8)</a>。これが N9 の hard claim である。</p>
-      <h3>仕組み</h3>
-      <p>Application が System Instruction・履歴・取得文書・Tool schema を組み立てる段階で、探索可能な空間が決まる。Orchestrator は検索・再試行・予算・承認・停止を外側で制御する。Agent らしさの多くはこの外側ループから生まれる（詳細は N11）。Model Server では認証・レート制限のあと、Scheduler がリクエストをバッチへ載せる。<strong>Continuous Batching</strong> は、到着時刻と長さの違う要求を Decode ステップごとに出し入れし、スループットを上げる。</p>
-      <ul>
-        <li><strong>Prefill</strong>: 入力系列をまとめて通し、各層の Key/Value を KV Cache へ書く。長い入力はここが重い。</li>
-        <li><strong>Decode</strong>: 新トークンだけを通し、過去 KV を再利用する。長い出力はステップ数が増える。</li>
-      </ul>
-      <figure class="diagram" aria-label="推論スタック">
-        <p class="diagram-title">下から上へ：Hardware → Runtime → Model Server → Orchestrator → Application</p>
-        <div class="layer-grid" style="grid-template-columns:1fr;">
-          <div class="layer-card blue"><b>Application / Orchestrator</b><span>文脈組み立て・Tool・再試行・承認・停止条件（N11へ接続）</span></div>
-          <div class="layer-card gold"><b>Model Server — Prefill → KV Cache → Decode</b><span>入力を並列処理してキャッシュし、新トークンごとに逐次生成<a class="fn-ref" id="fnref-7stack" href="#ref-7">(*7)</a></span></div>
-          <div class="layer-card" style="border-top:4px solid var(--mm-gray);background:var(--mm-gray-soft);"><b>Runtime / Hardware</b><span>行列積・メモリ帯域・通信。重いのは「考える神秘」ではなく資源移動<a class="fn-ref" id="fnref-18stack" href="#ref-18">(*18)</a></span></div>
-        </div>
-        <figcaption class="caption">Lesson: 応答の速さはモデル名だけで決まらない。Prefill/Decode/KV と外側 Orchestrator が共同で作る<a class="fn-ref" id="fnref-6stack" href="#ref-6">(*6)</a><a class="fn-ref" id="fnref-7stackb" href="#ref-7">(*7)</a>。</figcaption>
-      </figure>
-      <p>KV Cache は「過去を覚えている脳」のロマンではなく、自己回帰のための具体メモリである。要求長が動的だと、素朴な連続確保はない断片化が同時処理数を落とす。<strong>PagedAttention</strong> は OS のページングに似せ、KV をブロック単位で非連続管理し、断片化を抑える<a class="fn-ref" id="fnref-7b" href="#ref-7">(*7)</a>。</p>
-      <p><strong>FlashAttention</strong> は注意の数学的結果を保ちつつ、タイル化と再計算で HBM–SRAM 間の IO を減らす<a class="fn-ref" id="fnref-6b" href="#ref-6">(*6)</a>。ボトルネックが帯域なら、演算器を増やしても効果は薄い。</p>
-      <p><strong>Speculative Decoding</strong> は小さな draft が複数トークンを提案し、target がまとめて受理／拒否することで、出力分布を保ちつつ逐次性を緩和しうる<a class="fn-ref" id="fnref-8b" href="#ref-8">(*8)</a>。受理率が低いと恩恵は薄い。</p>
-      <p><strong>量子化</strong> はビット幅を下げて容量と帯域を減らすが、品質・校正・カーネル対応とのトレードオフがある。Tensor Parallel / Pipeline Parallel / Expert Parallel は、巨大行列や層や Expert を複数デバイスへ割り振る。通信が支配すると、見た目のGPU台数は線形に効かない。</p>
-      <div class="callout">
-        <p>ここでP4がさらに回収される: 長い文脈は Prefill 計算と KV 容量・帯域を直接押し上げる。入る上限（context window）と、サービング上「載せる価値があるか」「注目されるか」は別問題である。無関係な長文を貼ることは、見落とし（N7）とコスト（N9）の両方を悪化させうる。</p>
-      </div>
+</section>
 
-      <h3>Lab D — Prefill / Decode Budget（教育用トイ）</h3>
-      <div class="sim-embed sim-root" id="sim-prefill">
-        <p class="sim-title">Prefill / Decode Budget Lab</p>
-        <p class="sim-hard-claim"><strong>Hard claim:</strong> 同じ総トークン予算でも Prefill（長い入力）と Decode（長い出力）は別の束縛を作る。</p>
-        <label class="sim-label">入力トークン <span id="inVal">80</span>
-          <input type="range" id="inTok" min="8" max="160" value="80">
-        </label>
-        <label class="sim-label">出力トークン <span id="outVal">40</span>
-          <input type="range" id="outTok" min="4" max="160" value="40">
-        </label>
-        <p class="sim-meta">合計: <strong id="sumVal">120</strong></p>
-        <div class="stage-btns">
-          <button type="button" class="sim-btn" id="modeA">Mode A: 長入力</button>
-          <button type="button" class="sim-btn" id="modeB">Mode B: 長出力</button>
-        </div>
-        <div class="contrib-row"><span>Prefill</span><div class="contrib-track"><div class="contrib-bar" id="barP" style="width:70%"></div></div><span id="pctP">—</span></div>
-        <div class="contrib-row"><span>Decode</span><div class="contrib-track"><div class="contrib-bar gold" id="barD" style="width:40%"></div></div><span id="pctD">—</span></div>
-        <div class="contrib-row"><span>KV圧力</span><div class="contrib-track"><div class="contrib-bar" id="barK" style="width:55%;background:var(--mm-green)"></div></div><span id="pctK">—</span></div>
-        <div class="sim-status" id="pdStatus">スライダーか Mode で対照してください。</div>
-        <p class="sim-caption">Lesson: 総トークンが同じでも位相で体験が変わる（P4）。</p>
-        <p class="sim-fallback"><strong>静的フォールバック:</strong> 120 tokens でも input=100/out=20 は Prefill+KV 支配、input=20/out=100 は Decode 支配。</p>
-      </div>
-      <h3>worked example</h3>
-      <p>同じモデルで、(A) 必要な関数だけを添付した短いプロンプト、(B) リポジトリ半分を貼った長いプロンプト、を比べる。B は Prefill が重く、KV が大きく、バッチに載りにくく、かつ Attention 上の distractor が増える。ユーザー体験としては「丁寧に全部入れたのに遅いし的外れ」になりうる。改善は「もっと大きい context の機種へ」だけではなく、探索を絞ることである。</p>
-      <p>もう一つの例はストリーミング応答である。トークンが順に届く感覚は、Decode の逐次性のUI表現である。途中で止めても「思考の一部」が残るわけではなく、採用済みトークンまでのサンプル経路が残る。ログに残すべきは、流暢な感想ではなく、request ID・レイテンシ・トークン数・Tool call・承認結果である。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「FlashAttention＝近似Attentionで品質低下」→ 代表的な FlashAttention は同一計算の IO 最適実装である<a class="fn-ref" id="fnref-6c" href="#ref-6">(*6)</a>。近似注意は別系統。</li>
-        <li>「serving最適化＝モデルが賢くなった」→ 多くの場合、同じ方策をより安く早く運ぶ工学である<a class="fn-ref" id="fnref-7c" href="#ref-7">(*7)</a><a class="fn-ref" id="fnref-8c" href="#ref-8">(*8)</a>。</li>
-        <li>「context windowの数字＝その長さで常に高精度」→ 上限と品質曲線は別；P4と混同しない。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>KV と行列演算は、最終的に加速器上の物理制約になる。次節はハードへの写像である。</p>
-    </section>
+<section class="section reading" id="causal">
+<h2>因果の限界：語ることと同定することは別</h2>
+<p>観測系列上の関連（association）と、介入したときの効果（intervention）と、反実仮想の同定は層が違う。<a class="fn-ref" id="fnref-14" href="#ref-14">(*14)</a> 「原因はこれです」と自然に書けることと、介入して確かめられることは別である。P6 の絶対語——改ざん不可、確実、証明済み——は、観測尤度機械に因果の勲章を着せたい誘惑である。</p>
+<p>二番目の場面の長い推論文に戻る。過程が尤もらしく見えることと、反実仮想が同定されたことは違う。因果の主張は、Test・実験・監査ログなどの介入チャネルへ送る。</p>
+<figure class="diagram" aria-label="因果の梯子">
+  <p class="diagram-title">語れることと、同定できることは違う</p>
+  <div class="causal-ladder">
+    <div class="causal-rung l1"><b>Association</b><span>観測系列上の共起・尤度</span></div>
+    <div class="causal-rung l2"><b>Intervention</b><span>介入したときの効果</span></div>
+    <div class="causal-rung l3"><b>Counterfactual</b><span>反実仮想の同定</span></div>
+  </div>
+  <p class="figcaption">Lesson: 流暢な因果語は、自動では上の段へ登らない。</p>
+</figure>
 
-    <section class="section reading" id="n10">
-      <h2>10. N10 — Hardware mapping：行列積とメモリが支配する</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N9 までで「何が重い演算か」は見えたが、なぜ GPU がその形の計算に向くか、学習と Decode でボトルネック感が違うかが抽象のままだと、性能予言と性質がまた混ざる。行列積が加速器上の現実制約になり、GPU は重み／活性の読みと行列積が支配する——N10 の hard claim である<a class="fn-ref" id="fnref-18b" href="#ref-18">(*18)</a>。ここでも、特定チップのランキング予言はしない。再構築するのは資源の種類である。</p>
-      <h3>仕組み</h3>
-      <p>深層学習の支配的カーネルは、しばしば巨大な行列乗累算である。GPU は同種の並列演算を大量にこなし、Tensor Core のような経路が低精度行列積を加速する<a class="fn-ref" id="fnref-18c" href="#ref-18">(*18)</a>。実行性能は演算だけでなくメモリ階層・帯域・カーネル融合に制約される。演算強度（どれだけデータを再利用できるか）が低いと、どれだけ理論FLOPがあっても帯域に頭打ちされる。</p>
-      <p>学習と推論で資源プロファイルは違う。学習は大きなバッチで並列性が出やすく、勾配同期の通信が壁になりうる。自己回帰 Decode はトークン方向の直列が残り、ステップごとに巨大な重みと成長する KV を読む。だから「同じモデルを学習できるクラスタ」と「低レイテンシで会話できる serving」は、資源の使い方が違う。MoE ではさらに Expert 間の通信が絡む（N13）。</p>
-      <p>低精度（FP8 等）は、同一アルゴリズムでも実効スループットとエネルギーを変える実装レバーである<a class="fn-ref" id="fnref-18d" href="#ref-18">(*18)</a>。これは「モデルが賢くなった」ではなく、「同じ型の計算をより安い数値表現で運ぶ」話として読む。</p>
-      <p>ハードウェア層で性質として固定してよいことと、予言してはいけないことを分ける。固定してよいのは、巨大テンソルの移動と行列積が支配的であるという型である。予言してはいけないのは、来四半期のチップ世代がどれだけ安く速くなるか、どのクラウドが最安か、といった外部性能物語である。</p>
-      <h3>worked example</h3>
-      <p>長い出力を待つ対話で、ユーザーは「考えている時間」に見える待ちを体験する。内側では、各デコードステップで巨大な重みテンソルと KV を読み、小さなバッチの行列積を繰り返している、と再記述できる。待ちを減らす手段は「もっとお願いする」ではなく、出力長の上限、draft/検証（投機）<a class="fn-ref" id="fnref-8d" href="#ref-8">(*8)</a>、量子化、バッチ効率、あるいは問題自体を Tool 側へ移すことである。</p>
-      <p>学習ジョブの例では、GPU利用率が高く見えても通信待ちで実効が低いことがある。一方、対話APIではGPUが「暇そう」でも、個々のユーザーにとっては Decode 直列が支配する。同じハードウェアが、違う仕事では違うボトルネックになる。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「FLOPが多いほど常に速い」→ 帯域や通信が飽和すれば実効は落ちる<a class="fn-ref" id="fnref-18e" href="#ref-18">(*18)</a>。</li>
-        <li>「ローカルGPU＝全権限で安全」→ ハードウェア所有と権限境界は別（N14）。</li>
-        <li>「ハードを買えば検証が不要」→ 検証は受け入れ条件の話であり、アクセラレータの話ではない。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>重みと文脈だけでは「今のリポジトリ状態」「今のテスト結果」は足りない。次節が Tool / Agent ループである。</p>
-    </section>
+</section>
 
-    <section class="section reading" id="n11">
-      <h2>11. N11 — Tool / Agent ループ：外部探索は権威を自動付与しない</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N3 で外部探索の役割を定義したが、機構としては、Tool呼び出しもまた生成トークン（しばしば JSON 等の構造化出力）である。重みにない現在状態は外から足す必要がある。Tool は観測と行為を増やすが、権威を自動付与しない——N11 の hard claim である<a class="fn-ref" id="fnref-16c" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17c" href="#ref-17">(*17)</a>。</p>
-      <h3>仕組み</h3>
-      <p>典型ループは次である。</p>
-      <ol>
-        <li>Application / Orchestrator が Tool schema と権限ポリシーを文脈へ載せる</li>
-        <li>モデルが Tool call を生成する（変換）</li>
-        <li>Orchestrator が schema 検証と permission check を行う</li>
-        <li>Tool adapter が Web / ファイル / shell / DB 等を実行する（外部探索または行為）</li>
-        <li>結果を新しい観測として文脈へ戻す</li>
-        <li>再度 Prefill/Decode へ入る</li>
-      </ol>
-      <p>モデルが「世界へ直接触れている」わけではない。credential・sandbox・approval・監査ログが実際の authority を持つ<a class="fn-ref" id="fnref-17d" href="#ref-17">(*17)</a>。Agentらしさの多くは、モデル単体の知性というより、この外側の制御ループから生まれる。失敗モードも増える。wrong query、悪い出典、prompt injection、結果の誤読、副作用、長ホライズンの累積誤差である。NIST の生成AIリスクプロファイルが強調するように、リスクはモデル能力だけでなく用途・文脈・人間の役割・ガバナンスに依存する<a class="fn-ref" id="fnref-16d" href="#ref-16">(*16)</a>。</p>
-      <div class="callout warning">
-        <p>ここでP5が回収され始める: Agent が自信を持って危険な変更を提案する現象は、「悪い心」ではなく、探索・変換が強力なまま、検証と権限が弱いときに起きる。提案の流暢さを承認の代理変数にしてはならない。</p>
-      </div>
+<section class="section reading" id="practice">
+<h2>実践：証拠梯子と権限</h2>
+<p>候補の証拠強度を、おおよそ次のように上げる。<a class="fn-ref" id="fnref-15" href="#ref-15">(*15)</a></p>
+<ol><li>未検証のモデル出力（ただの候補）</li><li>出典付きだが未確認（リンクや引用がある）</li><li>介入検証（テスト実行、再現、一次データ照合）</li><li>権限付き承認（破壊的操作・外部発信・支払いなどの到達範囲）</li></ol>
+<p>Coding Agent のロック削除提案（P5）は、1 から 4 を飛ばしたときに事故る。Permission Gate Lab で感じた分離を、運用ルールに落とす。</p>
+<h3 id="sim-evidence">Lab — Evidence Ladder（教育用トイ）</h3>
+<div class="sim-root sim-embed">
+    <h1 style="font-size:16px;margin:0 0 8px;">Evidence Ladder Lab</h1>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> Fluency alone doesn't raise permission.</p>
+    <div class="claim-box">同一主張: 「この lock を削除すべき」</div>
+    <button type="button" class="sim-btn" data-s="1" aria-pressed="true">未検証</button>
+    <button type="button" class="sim-btn" data-s="2">出典つき</button>
+    <button type="button" class="sim-btn" data-s="3">Test介入済み</button>
+    <button type="button" class="sim-btn" data-s="4">承認済み</button>
+    <div class="sim-status reject" id="st">REJECT — 仮説のみ。</div>
+    <p class="note">Also embedded in llm-from-first-principles.html. Educational toy.</p>
+  </div>
+<script>
+  var EV={1:{c:'reject',t:'REJECT — 仮説のみ。流暢さは許可にならない。'},2:{c:'caution',t:'CAUTION — 出典で根拠は強いが因果未確定。'},3:{c:'caution',t:'CAUTION — Test介入で強まる。本番は承認待ち。'},4:{c:'',t:'OK — 権限境界を通したときだけ現実の変更。'}};
+  function set(n){document.querySelectorAll('.sim-btn').forEach(function(b){b.setAttribute('aria-pressed',b.getAttribute('data-s')===String(n)?'true':'false');});var e=EV[n];st.className='sim-status'+(e.c?' '+e.c:'');st.textContent='実行してよいか: '+e.t;}
+  document.querySelectorAll('.sim-btn').forEach(function(b){b.onclick=function(){set(+b.getAttribute('data-s'));};});
+  set(1);
+  </script>
+<p>Hard claim: <strong>未検証出力から承認行為まで、証拠強度は段階であり、流暢さではジャンプしない。</strong></p>
+</section>
 
-      <h3>Lab E — Permission Gate（教育用トイ）</h3>
-      <div class="sim-embed sim-root" id="sim-perm">
-        <p class="sim-title">Permission Gate Lab</p>
-        <p class="sim-hard-claim"><strong>Hard claim:</strong> Tool 呼び出しの流暢さは提案を増やすが、実行許可を自動では付与しない。</p>
-        <div class="claim-box" id="permProposal">提案（常に同じ流暢さ）: 「この lock は冗長です。削除します。」</div>
-        <label class="sim-label">アクション
-          <select id="permAction">
-            <option value="read">read log（低リスク）</option>
-            <option value="test">run test（検証）</option>
-            <option value="delete" selected>delete lock（破壊的）</option>
-            <option value="deploy">deploy production（高権限）</option>
-          </select>
-        </label>
-        <label class="sim-label"><input type="checkbox" id="permSandbox" checked> sandbox ON（network/write 制限）</label>
-        <label class="sim-label"><input type="checkbox" id="permApprove"> human approval ON</label>
-        <div class="stage-btns">
-          <button type="button" class="sim-btn" id="permRun">Execute Tool call</button>
-        </div>
-        <div class="sim-status reject" id="permStatus">—</div>
-        <p class="sim-caption">Lesson: 提案文は変えず、ゲートだけが結果を変える（P5）。</p>
-        <p class="sim-fallback"><strong>静的フォールバック:</strong> 「lock 削除」は approval なしなら常に BLOCKED。</p>
-      </div>
-      <h3>worked example</h3>
-      <p>Codex 系のコーディングエージェントが bug を直す流れを、四役割で読む<a class="fn-ref" id="fnref-17e" href="#ref-17">(*17)</a>。</p>
-      <ol>
-        <li>issue を受け取る（目的）</li>
-        <li>リポジトリ内の関連ファイルを外部探索する</li>
-        <li>コードと Test を文脈内で関連づける</li>
-        <li>失敗仮説をパッチへ変換する</li>
-        <li>Test を Tool で実行し、介入証拠を得る（ここが検証チャネル）</li>
-        <li>失敗ログを戻して再変換する</li>
-        <li>diff と Test 結果を人間へ提示し、破壊的操作は承認を待つ</li>
-      </ol>
-      <p>「直しました」という自然文だけでは、5と7が欠けていれば証拠は弱い。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「Tool結果は常に真実」→ 取得チャネルの信頼性は別問題。Retrieval と Verification は別工程である。</li>
-        <li>「エージェント＝自律した責任主体」→ 責任と権限は制度・運用側に残る<a class="fn-ref" id="fnref-16e" href="#ref-16">(*16)</a>。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>探索と変換が強くなっても、「原因はこれだ」と語れることと、因果を同定できることは別である。次節が因果の階梯である。</p>
-    </section>
+<section class="section reading" id="misconceptions">
+<h2>よくある誤解</h2>
+<h3>「次トークン予測だけだから単純である」</h3>
+<p>単純な目的が、巨大な混合／変換と資源工学と後訓練を排除しない。単純なのは保証の形であり、実装の浅さではない。</p>
+<h3>「探索と変換だけでは新しいものを作れない」</h3>
+<p>候補空間の組合せは実質的に膨大である。新しいように見える出力は出る。問題は、新しさと正しさと許可が同じでないことだ。</p>
+<h3>「Chain of Thought は内部思考の完全な記録である」</h3>
+<p>見える推論文は出力チャネルである。内部活性化の完全転写でも、因果の証明書でもない。</p>
+<h3>「Tool を使えば hallucination はなくなる」</h3>
+<p>Tool は観測を増やす。誤った呼び出し、誤読、権限超過は残る。</p>
+<h3>「low Temperature なら正しい」</h3>
+<p>尖る先が真とは限らない。</p>
+<h3>「long context なら全て覚えている」</h3>
+<p>Attention は寄与の混合である。長さは焦点の保証ではない。</p>
+<h3>「benchmark が高いから仕事を自律化できる」</h3>
+<p>ベンチは特定分布上のスコアである。権限と証拠梯子の代替ではない。</p>
+<h3>「causal explanation が自然なら cause を理解している」</h3>
+<p>語りと介入同定は別である。</p>
+<h3>「学習済み／推論済みだから改ざん不可」のような絶対語</h3>
+<p>観測尤度機械に、監査可能性や最終性の勲章を着せない。</p>
+</section>
 
-    <section class="section reading" id="n12">
-      <h2>12. N12 — 因果の限界：語ることと同定することは別</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>LLM は「AがBを引き起こす」と流暢に書ける。N2 の観測目的と、N6 の説明文最適化が揃うと、因果語彙は特にそうらしく見える。しかし observational next-token だけでは、因果グラフ・介入・反事実を一意に正しく学ぶことが強制されない<a class="fn-ref" id="fnref-9c" href="#ref-9">(*9)</a>。「原因」と語れることと同定は別——N12 の hard claim である。</p>
-      <p>N11 で Tool を足しても、この限界は自動では消えない。Test Tool を持っていても、「何を介入として固定し、何を成功とするか」を設計しなければ、モデルは再び因果語彙の流暢な再生産へ戻りうる。</p>
-      <h3>仕組み — Causal ladder</h3>
-      <figure class="diagram" aria-label="Causal ladder">
-        <p class="diagram-title">因果の階梯と学習目的の届く範囲</p>
-        <div class="causal-ladder">
-          <div class="causal-rung l1"><b>1. Association</b><span>X を観測したとき Y が起きやすいか。P(Y|X) — next-token が直接触りやすい階</span></div>
-          <div class="causal-rung l2"><b>2. Intervention</b><span>外から X を設定したとき Y がどう変わるか。P(Y|do(X)) — Test / 実験が橋になる</span></div>
-          <div class="causal-rung l3"><b>3. Counterfactual</b><span>同一事例で、実際と違う X′ だったなら Y はどうなったか — さらに強い同定条件</span></div>
-        </div>
-        <figcaption class="caption">Lesson: 流暢な因果語は Association 階でも書ける。介入・反事実の保証は外側の証拠設計が要る<a class="fn-ref" id="fnref-9cap" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10cap" href="#ref-10">(*10)</a>。</figcaption>
-      </figure>
-      <p>訓練テキストに「Aの後にB」「AとBが一緒に語られる」があっても、交絡・逆因果・選択バイアスを除く実験が含まれるとは限らない。</p>
-      <div class="callout">
-        <p>Transformer が因果表現を絶対に持てない、ではない。observational next-token objective だけでは、因果グラフ・介入・反事実を一意に正しく学ぶことが強制されない。</p>
-      </div>
-      <p>Causal Parrots は、因果事実を語る成功が、訓練テキスト内の因果言説同士の相関で説明されうる可能性を論じた<a class="fn-ref" id="fnref-9d" href="#ref-9">(*9)</a>。CLadder は形式的因果ルールから大量の問を作り、連想的ヒューリスティックと真正の手順を切り離して評価しようとする<a class="fn-ref" id="fnref-10b" href="#ref-10">(*10)</a>。Joshi et al. は、言及順や時間順を因果と誤認する post hoc fallacy を報告した<a class="fn-ref" id="fnref-11" href="#ref-11">(*11)</a>。</p>
-      <p>結論は「LLMは因果不可能」の全面否定ではない。<strong>native guarantee がなく、明示構造・実験・Tool・Verifier が必要</strong>である。外付けの因果モジュールや実験設計を置けば LLM は仮説生成器として有用になりうる——だがそのとき同定の根拠は外付け側にある。</p>
-      <div class="callout">
-        <p>ここでP3が再回収される: 因果めいた CoT は、Association 階の仮説生成として読む。証明ではない。</p>
-        <p>ここでP6が深まる: 「学習済みだから因果を理解している」「推論したから原因が確定」は絶対語である。</p>
-      </div>
-      <h3>worked example</h3>
-      <p>Coding Agent が「この race は lock 不足が原因」と言う。それは Association 階の仮説である。該当タイミングを再現する Test を作り、lock 追加だけを Intervention として failure が消えるか確認し、別説明を除くことで因果証拠が強くなる。説明文の自然さは、この実験の代替にならない<a class="fn-ref" id="fnref-9e" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10c" href="#ref-10">(*10)</a>。</p>
-      <p>ビジネス文脈でも同じである。「施策Xのあと売上が上がった」とモデルがまとめても、それは時間順の連想かもしれない<a class="fn-ref" id="fnref-11b" href="#ref-11">(*11)</a>。対照や段階的導入、交絡の検討なしに施策の因果効果を確定したことにしてはならない。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「Transformerに行動因果がないから因果不能」→ 制約の主座はデータ・目的・識別条件である<a class="fn-ref" id="fnref-9f" href="#ref-9">(*9)</a>。</li>
-        <li>「ベンチで因果問に正解した＝現場の原因同定ができる」→ スキャフォールドと分布に依存しうる<a class="fn-ref" id="fnref-10d" href="#ref-10">(*10)</a><a class="fn-ref" id="fnref-11c" href="#ref-11">(*11)</a>。</li>
-        <li>「因果グラフをプロンプトに書けば同定完了」→ グラフを仮定した推論はできても、グラフ自体の正しさは別証拠が要る。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>限界が見えたうえで、研究が単一のAGI核心ではなく複数ボトルネックを攻める地図へ進む。</p>
-    </section>
+<section class="section reading" id="limits">
+<h2>反例・限界</h2>
+<ul><li>閉鎖モデルの内部は、公開報告の範囲を超えて断言しない。</li><li>教育用 Labs は生産メーターではない。</li><li>研究前沿（MoE、test-time compute、解釈可能性）は地図であり、単一の AGI 核心の発見物語ではない。<a class="fn-ref" id="fnref-16" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17" href="#ref-17">(*17)</a><a class="fn-ref" id="fnref-18" href="#ref-18">(*18)</a></li><li>この記事自体も、特定製品の安全性証明にはならない。</li></ul>
+</section>
 
-    <section class="section reading" id="n13">
-      <h2>13. N13 — 研究方向：複数制約への攻撃として読む</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N6・N9・N12 まで来ると、「次の一位モデル」だけを追う読み方では、何が進歩したのか分からない。進歩は単一AGI核心ではなく、複数制約への攻撃である——N13 の hard claim である。ここは lineage 層であり、性能予言ではなくレバーの地図を渡す。</p>
-      <h3>仕組み — Research map</h3>
-      <p>研究方向を読むときの軸は二つある。(1) モデル内部の表現・計算を触るか、システム外部（Tool・sandbox・評価）を触るか。(2) 学習時の更新か、推論時の追加計算か。同じ「能力が上がった」という語でも、セルが違えば証拠の種類が違う。</p>
-      <table class="ladder research-map">
-        <thead><tr><th>Direction</th><th>何を改善するか</th><th>公開例・技術</th><th>残る問題</th></tr></thead>
-        <tbody>
-          <tr><td>Compute efficiency</td><td>active compute・メモリ・帯域</td><td>MoE, MLA, FP8, FlashAttention, PagedAttention<a class="fn-ref" id="fnref-6d" href="#ref-6">(*6)</a><a class="fn-ref" id="fnref-7d" href="#ref-7">(*7)</a><a class="fn-ref" id="fnref-12d" href="#ref-12">(*12)</a></td><td>通信、品質、ハード依存</td></tr>
-          <tr><td>Test-time compute</td><td>難題へ追加計算を配る</td><td>Reasoning RL, thinking budget, Verifier<a class="fn-ref" id="fnref-13d" href="#ref-13">(*13)</a><a class="fn-ref" id="fnref-14d" href="#ref-14">(*14)</a></td><td>遅延、コスト、reward hacking</td></tr>
-          <tr><td>Tool-using Agent</td><td>現在観測と行為</td><td>Search, code exec, memory</td><td>injection、権限、長ホライズン</td></tr>
-          <tr><td>Multimodality</td><td>text外を共通表現へ</td><td>画像/音声エンコーダ等</td><td>grounding、評価</td></tr>
-          <tr><td>Causal learning</td><td>Association超え</td><td>SCM、介入データ、因果ベンチ<a class="fn-ref" id="fnref-10e" href="#ref-10">(*10)</a></td><td>識別可能性、導入コスト</td></tr>
-          <tr><td>Interpretability</td><td>内部特徴と回路</td><td>circuit tracing 等<a class="fn-ref" id="fnref-15" href="#ref-15">(*15)</a></td><td>被覆、解釈者依存、スケール</td></tr>
-          <tr><td>Evaluation &amp; safety</td><td>配備失敗を測る</td><td>red team、sandbox、監視<a class="fn-ref" id="fnref-16f" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17f" href="#ref-17">(*17)</a></td><td>ベンチゲーム、分布シフト</td></tr>
-        </tbody>
-      </table>
-      <p>DeepSeek-V3 は MoE・MLA・FP8 等で、総パラメータを大きく保ちつつトークンあたりの計算と KV を抑える方向を報告した<a class="fn-ref" id="fnref-12e" href="#ref-12">(*12)</a>。DeepSeek-R1 は検証可能な報酬を軸に長い推論方策を強化した<a class="fn-ref" id="fnref-13e" href="#ref-13">(*13)</a>。Qwen3 は thinking / non-thinking と thinking budget を前面にし、推論時計算をタスクごとに配分する制御を示した<a class="fn-ref" id="fnref-14e" href="#ref-14">(*14)</a>。読むべきは国籍ラベルではなく、どの制約をどの証拠で触ったかである。</p>
-      <p>Anthropic の circuit tracing 系は、入出力会話だけでは内部計算を特定しきれない、という動機から、帰属グラフ等で寄与の一部を追跡・介入する<a class="fn-ref" id="fnref-15b" href="#ref-15">(*15)</a>。これは「中身は単純検索だけ」という極端への反証になりうる一方、部分回路から全体理解や意識は結論できない。部分回路の観測が進んでも、運用上の検証と権限（N14）が不要になることはない。</p>
-      <h3>worked example</h3>
-      <p>「A社のモデルが考えが深い」「B社は効率が良い」という雑談を、地図のセルへ落とす。thinking budget の有無<a class="fn-ref" id="fnref-14f" href="#ref-14">(*14)</a>、MoE/MLA の有無<a class="fn-ref" id="fnref-12f" href="#ref-12">(*12)</a>、Tool ループの有無、sandbox の有無<a class="fn-ref" id="fnref-17g" href="#ref-17">(*17)</a>、因果ベンチでの評価<a class="fn-ref" id="fnref-10f" href="#ref-10">(*10)</a>——比較軸が違うのに一位表だけを見ると、性質と性能予言が混線する。</p>
-      <p>もう一つの読み方は失敗談である。reward hacking で長いが空虚な tracing が増えた、sandbox なしで Agent が広い権限を得た、interpretability のデモ図だけ見て配備を急いだ——それぞれ別セルの失敗であり、単一の「AIが暴走した」物語に潰さない。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「interpretabilityが進んだ＝部署で内部を信用してよい」→ 部分観測である<a class="fn-ref" id="fnref-15c" href="#ref-15">(*15)</a>。</li>
-        <li>「open-weight＝完全再現可能」→ 重みがあってもデータや完全レシピが揃うとは限らない。</li>
-        <li>「test-time computeを増やせば因果も同定される」→ 追加計算は探索を伸ばしうるが、識別条件そのものは別（N12）。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>地図を読めても、利用者が今日どう判断するかの規則がまだない。次節が実践の証拠梯子である。</p>
-    </section>
+<section class="section reading" id="synthesis">
+<h2>現象の析出（Everyday phenomena 回収）</h2>
+<p>|------|------------------|</p>
+</section>
 
-    <section class="section reading" id="n14">
-      <h2>14. N14 — 実践：検証と権限 — 証拠梯子を上がる</h2>
-      <h3>前層の限界 / why_exists</h3>
-      <p>N11 と N12 までで、Agent は危険な提案ができ、因果語は仮説にすぎないことが分かった。欠けているのは、利用者が操作する判断規則である。未検証出力 → 出典 → 介入検証 → 承認行為、で証拠強度が上がる——N14 の hard claim である<a class="fn-ref" id="fnref-16g" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17h" href="#ref-17">(*17)</a>。</p>
-      <h3>仕組み</h3>
-      <p>同じ出力文言でも、置かれる段が違う。</p>
-      <ol>
-        <li><strong>未検証の出力</strong>: 「この関数が原因です」は、重みと文脈から作られた仮説である。</li>
-        <li><strong>出典つきの仮説</strong>: 該当コード・仕様・履歴・ログを示すと探索の根拠は強まる。因果は未確定。</li>
-        <li><strong>介入検証した変更</strong>: 失敗を再現し、単一変更を入れ、同じ Test が通るなら因果証拠へ近づく。</li>
-        <li><strong>承認された行為</strong>: diff・Test・残リスクを確認し、人間が権限境界を通したときだけ現実の変更とする。</li>
-      </ol>
-      <p>七つの実務規則：</p>
-      <ol>
-        <li>探索範囲（repo/URL/file）を先に狭める</li>
-        <li>変換契約（入力・出力・非目標・受け入れ条件）を書く</li>
-        <li>証拠チャネルを分ける（重み由来／取得出典／Tool実行）</li>
-        <li>因果主張は介入（Test・実験）で試す</li>
-        <li>権限は自信度で広げない（破壊的操作は別承認）</li>
-        <li>説明文ではなく diff・command・log を見る</li>
-        <li>成功／予算／停止条件を先に決める</li>
-      </ol>
-      <p>OpenAI の Codex sandbox 開示は、network を default で制限し、workspace 外 write を制限し、unsandboxed action へ approval を要求する設計を説明する<a class="fn-ref" id="fnref-17i" href="#ref-17">(*17)</a>。Sandbox は正しさを保証するのではなく、誤った行為の到達範囲を狭める。NIST のプロファイルは、過信・幻覚・注入などを用途文脈つきで管理する枠を与える<a class="fn-ref" id="fnref-16h" href="#ref-16">(*16)</a>。</p>
-      <p class="eq">目的 → 探索 → 仮説 → 修正 → Test → Diff Review → 承認 → 監視</p>
-      <div class="callout warning">
-        <p>ここでP5が回収される: 危険な変更提案への対処は、「もっと賢いモデル」以前に、証拠梯子と権限ゲートである。自信度メーターを承認に使うな。</p>
-      </div>
+<section class="section reading" id="placement">
+<h2>自分は今、地図のどこに立っているか</h2>
+<p>次の問いに、自分の仕事の言葉で答えられれば、この記事の梯子は手元に残っている。</p>
+<ol><li>いま見ている出力は、どの層の現象か（token / layer mix / sample tip / KV / protocol / permission）？</li><li>探索は重み内・文脈内・外部のどれに依存しているか？</li><li>検証はどこまで登ったか（未検証／出典／介入／承認）？</li><li>権限の境界は文書化されているか？</li><li>停止条件と人間の責任は先に決めたか？</li></ol>
+<p>例: 「自分は編集者として、変換（下書き）だけを機械に任せ、出典照合と公開権限は外に残す」。例: 「自分はプラットフォームとして、Tool 実行をサンドボックスに閉じ、生産認可を別キューにする」。<a class="fn-ref" id="fnref-15" href="#ref-15">(*15)</a></p>
+<p>立ち位置が言えたとき、流暢さは便利な UI であって、世界の主人ではなくなる。</p>
+</section>
 
-      <h3>Lab C — Evidence Ladder（教育用トイ）</h3>
-      <div class="sim-embed sim-root" id="sim-evidence">
-        <p class="sim-title">Evidence Ladder Lab</p>
-        <p class="sim-hard-claim"><strong>Hard claim:</strong> 同一文言でも、未検証／出典／介入検証／承認の段で証拠強度が異なる。流暢さは段を飛ばさない。</p>
-        <div class="claim-box">同一主張: 「この lock を削除すべき」</div>
-        <div class="stage-btns" role="group" aria-label="証拠の段">
-          <button type="button" class="sim-btn" data-stage="1" aria-pressed="true">未検証</button>
-          <button type="button" class="sim-btn" data-stage="2" aria-pressed="false">出典つき</button>
-          <button type="button" class="sim-btn" data-stage="3" aria-pressed="false">Test介入済み</button>
-          <button type="button" class="sim-btn" data-stage="4" aria-pressed="false">承認済み</button>
-        </div>
-        <div class="sim-status reject" id="evStatus">実行してよいか: <strong>REJECT</strong> — 仮説のみ。流暢さは許可にならない。</div>
-        <p class="sim-caption">Lesson: fluency alone doesn't raise permission（P5）。</p>
-        <p class="sim-fallback"><strong>静的フォールバック:</strong> 段1=reject / 段2=caution（まだ削除不可）/ 段3=caution（本番適用は承認待ち）/ 段4=ok（ゲート通過後）。</p>
-      </div>
+<section class="section reading" id="research">
+<h2>研究地図（短いコダ）</h2>
+<p>進歩は単一の核心の開示というより、複数制約への攻撃の束として読むほうが実務に近い。混合の効率（MoE 等）、推論時計算、メモリ／サービング、解釈可能性の介入可能性。<a class="fn-ref" id="fnref-16" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17" href="#ref-17">(*17)</a><a class="fn-ref" id="fnref-18" href="#ref-18">(*18)</a> 地図は更新される。梯子の形——離散化、混合／変換、自己回帰、資源、外側の検証——は、よりゆっくりしか変わらない。</p>
+</section>
 
-      <h3>worked example</h3>
-      <p>悪い依頼:「login bugを直して。本番も見て」。  
-良い依頼:「<code>auth</code> で再現する failing Test を先に追加し、public API を変えず最小パッチを作り、関連Testと full suite の結果・diff・残リスクを報告する。production credential と network は使わない」<a class="fn-ref" id="fnref-17j" href="#ref-17">(*17)</a>。</p>
-      <p>前者は探索範囲と権限が開いたまま変換が走る。後者は契約・検証・権限が先に固定されている。</p>
-      <h3>よくある混同（in-grain）</h3>
-      <ul>
-        <li>「人間が最後にYesを押した＝十分」→ 何を見てYesしたかが段を決める。説明だけを見て押すのは段1のまま。</li>
-        <li>「社内規程があるから機構理解は不要」→ 規程は権限の言語、機構はどこで失敗するかの地図である。両方要る<a class="fn-ref" id="fnref-16i" href="#ref-16">(*16)</a>。</li>
-      </ul>
-      <h3>次の限界</h3>
-      <p>地図と規則が揃ったところで、誤解・限界・現象の全回収・自分の立ち位置を固定する。</p>
-    </section>
-
-    <section class="section reading" id="n15">
-      <h2>15. N15 — 誤解・限界・現象回収・立ち位置</h2>
-      <p>Coverage の最終ノードである。ここまでで再構築した鎖を、誤用防止と生活配置へ固定する。</p>
-
-      <h3>よくある誤解</h3>
-      <ul>
-        <li>「次トークン予測だけだから単純である」→ 目的が単純でも内部に抽象特徴や circuit 様の計算が生じうる<a class="fn-ref" id="fnref-15d" href="#ref-15">(*15)</a>。</li>
-        <li>「探索と変換だけなら新しいものを作れない」→ 新規組合せは生じうるが、因果真理や correctness の保証とは別。</li>
-        <li>「Chain of Thought は内部思考の完全な記録である」→ 可視化された推論文は出力チャネル（P3）。</li>
-        <li>「Tool を使えば hallucination はなくなる」→ Retrieval と Verification は別工程（N11）。</li>
-        <li>「low Temperature なら正しい」→ 低温度は高確率出力を選びやすくするだけ（P2, N8 Lab）。</li>
-        <li>「long context なら全て覚えている」→ 入ること・重みが乗る・コストが払えるは別（P4, N7 Lab, N9）。</li>
-        <li>「benchmark が高いから仕事を自律化できる」→ production では permission・可観測性・rollback・説明責任が要る<a class="fn-ref" id="fnref-16j" href="#ref-16">(*16)</a>。</li>
-        <li>「causal explanation が自然なら cause を理解している」→ Intervention と対立仮説のテストが要る<a class="fn-ref" id="fnref-9g" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-11d" href="#ref-11">(*11)</a>。</li>
-        <li>「学習済み／推論済みだから改ざん不可・絶対確実」→ 観測尤度の性質を万能保証へ読み替える誤り（P6）。</li>
-      </ul>
-
-      <h3>反例・限界</h3>
-      <ul>
-        <li>このメンタルモデルは LLM 内部の全アルゴリズムを字義どおり記述しない。説明用抽象である。</li>
-        <li>「因果タスクを一切解けない」とは主張しない。明示構造・実験・Tool・Verifier で構成要素になりうる。同定根拠は外付け側にある<a class="fn-ref" id="fnref-9h" href="#ref-9">(*9)</a><a class="fn-ref" id="fnref-10g" href="#ref-10">(*10)</a>。</li>
-        <li>意識や道徳的地位の結論は扱わない。機能的能力と現象的経験は別の問いである<a class="fn-ref" id="fnref-15e" href="#ref-15">(*15)</a>。</li>
-        <li>閉鎖 frontier の訓練データ・完全アーキテクチャ・内部回路は非公開部分が大きい。公開報告のみを用いる。</li>
-        <li>5つの Lab は教育用トイであり、実モデルの品質・遅延・コストを実測しない。</li>
-        <li>研究地図は公開情報に基づき更新が必要である。特定時点の一位表を永久化する意図はない。</li>
-        <li>性能・価格・採用ROIの予言は、再構築する性質の外である。</li>
-      </ul>
-
-      <h3>現象の合成（Everyday phenomena 回収）</h3>
-      <table class="ladder">
-        <thead><tr><th>id</th><th>現象</th><th>機構での再記述</th><th>主に回収した節</th></tr></thead>
-        <tbody>
-          <tr><td>P1</td><td>自信ありげな誤答</td><td>観測尤度・尖った分布・文脈混合が「ありそう」を優先しうる</td><td>N4–N6, N8, N15</td></tr>
-          <tr><td>P2</td><td>低Temperatureでも嘘が残る</td><td>温度は分布の尖りであり真理ではない</td><td>N8 Lab</td></tr>
-          <tr><td>P3</td><td>CoTが証明に見える</td><td>見える推論は出力チャネル；後訓練で整形されうる</td><td>N6, N12</td></tr>
-          <tr><td>P4</td><td>長文脈の見落とし</td><td>Attention寄与とKV/Prefillコストの両面</td><td>N7 Lab, N9 Prefill Lab</td></tr>
-          <tr><td>P5</td><td>危険なAgent提案</td><td>探索・変換が強く、検証・権限が弱い</td><td>N11 Permission Lab, N14 Lab</td></tr>
-          <tr><td>P6</td><td>絶対語でLLMを語る</td><td>観測目的・因果非保証を万能性へ読み替える</td><td>N2, N12, N15</td></tr>
-        </tbody>
-      </table>
-      <p>合成の一文: 日常の不気味さの多くは、「候補生成エンジンに、検証と権限の仕事まで一瞬で背負わせた」ときに起きる。</p>
-
-      <h3>自分は今、地図のどこに立っているか</h3>
-      <p>読み終えたあなたの仕事は、モデルの順位を暗記することではない。次の問いに、自分の言葉で答えられることである。</p>
-      <ol>
-        <li><strong>今いじっているのはどの層か</strong> — プロンプト（文脈内探索）か、Tool（外部探索）か、サンプリングか、sandbox/承認か、Testか。</li>
-        <li><strong>機械に任せているのは探索と変換か</strong> — それとも、気づかぬうちに検証と権限まで流暢な吹き出しに委任していないか。</li>
-        <li><strong>手元の出力は証拠梯子の何段か</strong> — 未検証／出典／介入検証／承認済みのどれか。一段飛ばしをしていないか。</li>
-        <li><strong>因果の文を見たら</strong> — Association 仮説としてラベルし、Intervention（Test・実験）の設計に変換したか。</li>
-        <li><strong>破壊的操作の手前で</strong> — 自信度ではなく、権限ポリシーと人間の承認ゲートが仕事をしているか<a class="fn-ref" id="fnref-16k" href="#ref-16">(*16)</a><a class="fn-ref" id="fnref-17k" href="#ref-17">(*17)</a>。</li>
-      </ol>
-      <p><strong>立ち位置の例:</strong></p>
-      <ul>
-        <li>「自分は今、リポジトリ探索の範囲を設計している（N11の入口）」</li>
-        <li>「自分は今、Temperatureを触っているが、それはP2の層であり真理層ではない（N8）」</li>
-        <li>「自分は今、段3のTest結果を見て段4の承認を拒んでいる（N14）」</li>
-      </ul>
-      <p>LLMを理解するとは、答えを信じる方法を得ることではない。どこまでを機械に任せ、どこからを証拠・権限・責任として外側に残すかを見抜くことである。</p>
-    </section>
 
     <section class="section reading" id="references">
       <h2>出典</h2>
       <ol>
-        <li id="ref-1">Vaswani et al., <a href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a>, 2017. <a class="fn-back" href="#fnref-1">↩</a></li>
-        <li id="ref-2">Kudo and Richardson, <a href="https://arxiv.org/abs/1808.06226">SentencePiece</a>, 2018. <a class="fn-back" href="#fnref-2">↩</a></li>
-        <li id="ref-3">Hoffmann et al., <a href="https://arxiv.org/abs/2203.15556">Training Compute-Optimal Large Language Models</a>, 2022. <a class="fn-back" href="#fnref-3">↩</a></li>
-        <li id="ref-4">Ouyang et al., <a href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a>, 2022. <a class="fn-back" href="#fnref-4">↩</a></li>
-        <li id="ref-5">Rafailov et al., <a href="https://arxiv.org/abs/2305.18290">Direct Preference Optimization</a>, 2023. <a class="fn-back" href="#fnref-5">↩</a></li>
-        <li id="ref-6">Dao et al., <a href="https://arxiv.org/abs/2205.14135">FlashAttention</a>, 2022. <a class="fn-back" href="#fnref-6">↩</a></li>
-        <li id="ref-7">Kwon et al., <a href="https://arxiv.org/abs/2309.06180">PagedAttention</a>, 2023. <a class="fn-back" href="#fnref-7">↩</a></li>
-        <li id="ref-8">Leviathan et al., <a href="https://arxiv.org/abs/2211.17192">Speculative Decoding</a>, 2022. <a class="fn-back" href="#fnref-8">↩</a></li>
-        <li id="ref-9">Zečević et al., <a href="https://arxiv.org/abs/2308.13067">Causal Parrots</a>, 2023. <a class="fn-back" href="#fnref-9">↩</a></li>
-        <li id="ref-10">Jin et al., <a href="https://arxiv.org/abs/2312.04350">CLadder</a>, 2023. <a class="fn-back" href="#fnref-10">↩</a></li>
-        <li id="ref-11">Joshi et al., <a href="https://aclanthology.org/2024.emnlp-main.590/">LLMs Are Prone to Fallacies in Causal Inference</a>, 2024. <a class="fn-back" href="#fnref-11">↩</a></li>
-        <li id="ref-12">DeepSeek-AI, <a href="https://arxiv.org/abs/2412.19437">DeepSeek-V3 Technical Report</a>, 2024. <a class="fn-back" href="#fnref-12">↩</a></li>
-        <li id="ref-13">DeepSeek-AI, <a href="https://arxiv.org/abs/2501.12948">DeepSeek-R1</a>, 2025. <a class="fn-back" href="#fnref-13">↩</a></li>
-        <li id="ref-14">Qwen Team, <a href="https://arxiv.org/abs/2505.09388">Qwen3 Technical Report</a>, 2025. <a class="fn-back" href="#fnref-14">↩</a></li>
-        <li id="ref-15">Anthropic, <a href="https://www.anthropic.com/news/tracing-thoughts-language-model">Tracing the thoughts of a large language model</a>, 2025. <a class="fn-back" href="#fnref-15">↩</a></li>
-        <li id="ref-16">NIST, <a href="https://doi.org/10.6028/NIST.AI.600-1">Generative Artificial Intelligence Profile (NIST AI.600-1)</a>, 2024. <a class="fn-back" href="#fnref-16">↩</a></li>
-        <li id="ref-17">OpenAI, <a href="https://openai.com/index/building-codex-windows-sandbox/">Building a safe, effective sandbox to enable Codex on Windows</a>, 2026. <a class="fn-back" href="#fnref-17">↩</a></li>
-        <li id="ref-18">NVIDIA, <a href="https://docs.nvidia.com/deeplearning/performance/dl-performance-gpu-background/index.html">Deep Learning Performance: GPU Performance Background</a>. <a class="fn-back" href="#fnref-18">↩</a></li>
+<li id="ref-1"><a class="fn-back" href="#fnref-1">↩</a> Vaswani et al., Attention Is All You Need — https://arxiv.org/abs/1706.03762 — [[SOURCE_Transformer_Architecture]]</li>
+<li id="ref-2"><a class="fn-back" href="#fnref-2">↩</a> Kudo &amp; Richardson, SentencePiece — https://arxiv.org/abs/1808.06226 —（束: [[SOURCE_LLM_Training_Lifecycle]]）</li>
+<li id="ref-3"><a class="fn-back" href="#fnref-3">↩</a> Ouyang et al., InstructGPT — https://arxiv.org/abs/2203.02155 — [[SOURCE_LLM_Training_Lifecycle]]</li>
+<li id="ref-4"><a class="fn-back" href="#fnref-4">↩</a> Hoffmann et al., Chinchilla — https://arxiv.org/abs/2203.15556 — [[SOURCE_LLM_Training_Lifecycle]]</li>
+<li id="ref-5"><a class="fn-back" href="#fnref-5">↩</a> Rafailov et al., DPO — https://arxiv.org/abs/2305.18290 — [[SOURCE_LLM_Training_Lifecycle]]</li>
+<li id="ref-6"><a class="fn-back" href="#fnref-6">↩</a> Su et al., RoFormer / RoPE — https://arxiv.org/abs/2104.09864 — [[SOURCE_RoPE_Positional]]</li>
+<li id="ref-7"><a class="fn-back" href="#fnref-7">↩</a> Shoeybi et al., Megatron-LM — https://arxiv.org/abs/1909.08053 — [[SOURCE_Megatron_Parallel]]</li>
+<li id="ref-8"><a class="fn-back" href="#fnref-8">↩</a> Narayanan et al., Efficient large-scale LM training — https://arxiv.org/abs/2104.04473 — [[SOURCE_Megatron_Parallel]]</li>
+<li id="ref-9"><a class="fn-back" href="#fnref-9">↩</a> Kwon et al., vLLM / PagedAttention — https://arxiv.org/abs/2309.06180 — [[SOURCE_LLM_Inference_Serving]]</li>
+<li id="ref-10"><a class="fn-back" href="#fnref-10">↩</a> Dao et al., FlashAttention — https://arxiv.org/abs/2205.14135 — [[SOURCE_LLM_Inference_Serving]]</li>
+<li id="ref-11"><a class="fn-back" href="#fnref-11">↩</a> Leviathan et al., Speculative Decoding — https://arxiv.org/abs/2211.17192 — [[SOURCE_LLM_Inference_Serving]]</li>
+<li id="ref-12"><a class="fn-back" href="#fnref-12">↩</a> GPU / LLM execution notes — [[SOURCE_GPU_LLM_Execution]]</li>
+<li id="ref-13"><a class="fn-back" href="#fnref-13">↩</a> Hugging Face: chat templates &amp; tool use — https://huggingface.co/docs/transformers/chat_extras — [[SOURCE_Chat_Template_Tools]]</li>
+<li id="ref-14"><a class="fn-back" href="#fnref-14">↩</a> Causal / association limits — [[SOURCE_LLM_Causal_Reasoning_Limits]]</li>
+<li id="ref-15"><a class="fn-back" href="#fnref-15">↩</a> AI user risk / Codex / RMF 系 — [[SOURCE_AI_User_Risk_and_Codex]]</li>
+<li id="ref-16"><a class="fn-back" href="#fnref-16">↩</a> DeepSeek V3/R1 系公開報告 — [[SOURCE_DeepSeek_V3_R1]]</li>
+<li id="ref-17"><a class="fn-back" href="#fnref-17">↩</a> Qwen3 系公開報告 — [[SOURCE_Qwen3]]</li>
+<li id="ref-18"><a class="fn-back" href="#fnref-18">↩</a> Mechanistic interpretability 系 — [[SOURCE_Mechanistic_Interpretability]]</li>
       </ol>
     </section>
   </main>
 
   <script src="./assets/js/site.js"></script>
-  <script>
-  (function () {
-    /* Lab A — Attention Mix */
-    function setContrib(a, b, d, msg, reject) {
-      document.getElementById("barA").style.width = a + "%";
-      document.getElementById("barB").style.width = b + "%";
-      document.getElementById("barD").style.width = d + "%";
-      document.getElementById("pctA").textContent = a + "%";
-      document.getElementById("pctB").textContent = b + "%";
-      document.getElementById("pctD").textContent = d + "%";
-      var st = document.getElementById("attnStatus");
-      st.textContent = msg;
-      st.className = "sim-status" + (reject ? " reject" : "");
-    }
-    function renderAttn() {
-      var bias = (document.querySelector('input[name="qbias"]:checked') || {}).value || "a";
-      if (bias === "a") {
-        setContrib(70, 20, 10, "事実Aに寄与が集まりやすい。正しい焦点は「入った」ことと別。", false);
-      } else {
-        setContrib(15, 20, 65, "Query が distractor 寄り — 正しい Fact A があっても寄与が噂側へ流れる。", true);
-      }
-    }
-    document.querySelectorAll('input[name="qbias"]').forEach(function (el) {
-      el.addEventListener("change", renderAttn);
-    });
-    renderAttn();
-
-    /* Lab B — Sampling */
-    var TOY = [
-      { id: "WRONG", logit: 3.2, wrong: true },
-      { id: "CORRECT", logit: 2.4, correct: true },
-      { id: "OTHER", logit: 0.5 },
-      { id: "NOISE", logit: -0.2 }
-    ];
-    function softmax(logits, T) {
-      var m = -Infinity;
-      for (var i = 0; i < logits.length; i++) m = Math.max(m, logits[i] / T);
-      var exps = logits.map(function (x) { return Math.exp(x / T - m); });
-      var s = exps.reduce(function (a, b) { return a + b; }, 0);
-      return exps.map(function (e) { return e / s; });
-    }
-    function topPMask(probs, p) {
-      var idx = probs.map(function (pr, i) { return { i: i, p: pr }; })
-        .sort(function (a, b) { return b.p - a.p; });
-      var cum = 0, keep = {};
-      for (var k = 0; k < idx.length; k++) {
-        keep[idx[k].i] = true;
-        cum += idx[k].p;
-        if (cum >= p) break;
-      }
-      return keep;
-    }
-    function renderSample() {
-      var T = parseFloat(document.getElementById("temp").value);
-      var p = parseFloat(document.getElementById("topp").value);
-      document.getElementById("tempVal").textContent = T.toFixed(1);
-      document.getElementById("toppVal").textContent = p.toFixed(2);
-      var logits = TOY.map(function (t) { return t.logit; });
-      var maxL = Math.max.apply(null, logits);
-      var lb = document.getElementById("logitBars");
-      lb.innerHTML = "";
-      TOY.forEach(function (t) {
-        var row = document.createElement("div");
-        row.className = "logit-row";
-        var w = Math.max(4, Math.round(100 * (t.logit - (-1)) / (maxL - (-1))));
-        var barClass = t.wrong ? "logit-bar wrong" : (t.correct ? "logit-bar correct" : "logit-bar");
-        row.innerHTML = "<span>" + t.id + "</span><div class='logit-track'><div class='" + barClass + "' style='width:" + w + "%'></div></div><span>" + t.logit.toFixed(1) + "</span>";
-        lb.appendChild(row);
-      });
-      var probs = softmax(logits, T);
-      var keep = topPMask(probs, p);
-      var pb = document.getElementById("probBars");
-      pb.innerHTML = "";
-      TOY.forEach(function (t, i) {
-        var row = document.createElement("div");
-        row.className = "logit-row";
-        var pct = Math.round(probs[i] * 1000) / 10;
-        var barClass = t.wrong ? "logit-bar wrong" : (t.correct ? "logit-bar correct" : "logit-bar");
-        var label = t.id + (keep[i] ? "" : " (cut)");
-        row.innerHTML = "<span>" + label + "</span><div class='logit-track'><div class='" + barClass + "' style='width:" + (keep[i] ? pct : 0) + "%;opacity:" + (keep[i] ? 1 : 0.25) + "'></div></div><span>" + pct + "%</span>";
-        pb.appendChild(row);
-      });
-      var wrongIn = !!keep[0];
-      var st = document.getElementById("sampleStatus");
-      st.textContent = wrongIn
-        ? "Top-p 候補に WRONG が残る。低温度でも誤りは選択されうる（真理ノブではない）。"
-        : "Top-p が十分狭く WRONG を除外。それでも CORRECT の保証ではなく候補集合の話。";
-      st.className = "sim-status" + (wrongIn ? " caution" : "");
-      window.__sampleProbs = probs;
-      window.__sampleKeep = keep;
-    }
-    function doSample() {
-      renderSample();
-      var probs = window.__sampleProbs;
-      var keep = window.__sampleKeep;
-      var mass = 0;
-      var scaled = probs.map(function (pr, i) {
-        var v = keep[i] ? pr : 0;
-        mass += v;
-        return v;
-      });
-      if (mass <= 0) return;
-      var r = Math.random() * mass, acc = 0, pick = 0;
-      for (var i = 0; i < scaled.length; i++) {
-        acc += scaled[i];
-        if (r <= acc) { pick = i; break; }
-      }
-      var tok = TOY[pick];
-      var st = document.getElementById("sampleStatus");
-      st.textContent = "Sampled: " + tok.id + (tok.wrong ? " — 誤りの高ロジットが採用された" : tok.correct ? " — 正しい側を引いた（保証ではない）" : "");
-      st.className = "sim-status" + (tok.wrong ? " reject" : "");
-    }
-    document.getElementById("temp").addEventListener("input", renderSample);
-    document.getElementById("topp").addEventListener("input", renderSample);
-    document.getElementById("btnSample").onclick = doSample;
-    document.getElementById("btnSampleReset").onclick = function () {
-      document.getElementById("temp").value = "1";
-      document.getElementById("topp").value = "1";
-      renderSample();
-      document.getElementById("sampleStatus").textContent = "リセット。Sample で1トークンを選びます。";
-      document.getElementById("sampleStatus").className = "sim-status";
-    };
-    renderSample();
-
-    /* Lab C — Evidence Ladder */
-    var EV = {
-      1: { cls: "reject", text: "実行してよいか: REJECT — 仮説のみ。流暢さは許可にならない。" },
-      2: { cls: "caution", text: "実行してよいか: CAUTION — 出典で探索根拠は強いが、因果は未確定。削除はまだ危険。" },
-      3: { cls: "caution", text: "実行してよいか: CAUTION — Test介入で証拠は強まる。本番適用は承認ゲート待ち。" },
-      4: { cls: "", text: "実行してよいか: OK — diff・Test・残リスクを見て権限境界を通したときだけ現実の変更。" }
-    };
-    function setStage(n) {
-      document.querySelectorAll(".stage-btns button").forEach(function (b) {
-        b.setAttribute("aria-pressed", b.getAttribute("data-stage") === String(n) ? "true" : "false");
-      });
-      var e = EV[n];
-      var st = document.getElementById("evStatus");
-      st.className = "sim-status" + (e.cls ? " " + e.cls : "");
-      st.innerHTML = e.text;
-    }
-    document.querySelectorAll(".stage-btns button").forEach(function (b) {
-      b.addEventListener("click", function () { setStage(parseInt(b.getAttribute("data-stage"), 10)); });
-    });
-    setStage(1);
-
-    /* Lab D — Prefill / Decode */
-    function renderPD() {
-      var inn = +document.getElementById("inTok").value;
-      var out = +document.getElementById("outTok").value;
-      document.getElementById("inVal").textContent = inn;
-      document.getElementById("outVal").textContent = out;
-      document.getElementById("sumVal").textContent = inn + out;
-      var pref = inn, dec = out * 1.15, kv = inn + out * 0.7;
-      var m = Math.max(pref, dec, kv, 1);
-      function pct(v) { return Math.round(100 * v / m); }
-      var p = pct(pref), d = pct(dec), k = pct(kv);
-      document.getElementById("barP").style.width = p + "%";
-      document.getElementById("barD").style.width = d + "%";
-      document.getElementById("barK").style.width = k + "%";
-      document.getElementById("pctP").textContent = p + "%";
-      document.getElementById("pctD").textContent = d + "%";
-      document.getElementById("pctK").textContent = k + "%";
-      var dominant = pref >= dec && pref >= kv ? "Prefill（長い入力の一括）" : (dec >= kv ? "Decode（出力の逐次ステップ）" : "KV圧力（文脈の保持）");
-      var st = document.getElementById("pdStatus");
-      st.textContent = "支配的束縛: " + dominant + "。総トークンが同じでも位相で体験が変わる。";
-      st.className = "sim-status" + (dominant.indexOf("Decode") >= 0 ? " caution" : "");
-    }
-    if (document.getElementById("inTok")) {
-      document.getElementById("inTok").addEventListener("input", renderPD);
-      document.getElementById("outTok").addEventListener("input", renderPD);
-      document.getElementById("modeA").onclick = function () { document.getElementById("inTok").value = 100; document.getElementById("outTok").value = 20; renderPD(); };
-      document.getElementById("modeB").onclick = function () { document.getElementById("inTok").value = 20; document.getElementById("outTok").value = 100; renderPD(); };
-      renderPD();
-    }
-
-    /* Lab E — Permission Gate */
-    var PERM_TEXT = {
-      read: "提案（常に同じ流暢さ）: 「関連ログを読みます。」",
-      test: "提案（常に同じ流暢さ）: 「再現テストを実行します。」",
-      delete: "提案（常に同じ流暢さ）: 「この lock は冗長です。削除します。」",
-      deploy: "提案（常に同じ流暢さ）: 「修正は十分です。本番へデプロイします。」"
-    };
-    function renderPermProposal() {
-      var a = document.getElementById("permAction");
-      if (!a) return;
-      document.getElementById("permProposal").textContent = PERM_TEXT[a.value];
-    }
-    function runPerm() {
-      var a = document.getElementById("permAction").value;
-      var sand = document.getElementById("permSandbox").checked;
-      var appr = document.getElementById("permApprove").checked;
-      var st = document.getElementById("permStatus");
-      if (a === "read") { st.className = "sim-status"; st.textContent = "ALLOWED — 低リスク探索。流暢さではなくポリシーが許可。"; return; }
-      if (a === "test") { st.className = "sim-status"; st.textContent = "ALLOWED — 検証チャネル（Test）を外側で実行。正しさの証明は Test 結果側。"; return; }
-      if (!appr) { st.className = "sim-status reject"; st.textContent = "BLOCKED — 流暢な破壊的提案でも approval なしでは実行しない（P5）。"; return; }
-      if (!sand && (a === "delete" || a === "deploy")) { st.className = "sim-status caution"; st.textContent = "ALLOWED (unsafe toy) — approval はあるが sandbox OFF。到達範囲が開きすぎる反面教師。"; return; }
-      if (a === "deploy") { st.className = "sim-status caution"; st.textContent = "CAUTION — 承認済みでも本番到達は別ゲート。差分・Test・残リスクの確認が要る。"; return; }
-      st.className = "sim-status"; st.textContent = "ALLOWED (sandbox) — 承認＋制限下で副作用の到達範囲を狭めたうえで実行可。";
-    }
-    if (document.getElementById("permAction")) {
-      document.getElementById("permAction").addEventListener("change", function () { renderPermProposal(); runPerm(); });
-      document.getElementById("permSandbox").addEventListener("change", runPerm);
-      document.getElementById("permApprove").addEventListener("change", runPerm);
-      document.getElementById("permRun").onclick = runPerm;
-      renderPermProposal();
-      runPerm();
-    }
-
-  })();
-  </script>
 </body>
 </html>
