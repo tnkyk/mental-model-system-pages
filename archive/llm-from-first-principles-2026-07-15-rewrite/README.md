@@ -1,8 +1,8 @@
-# Archive: LLM from First Principles (studio rewrite)
+# Archive: LLM — Studio rewrite（2026-07-15 公開稿アーカイブ）
 
 - **Archived on:** 2026-07-15
-- **Reason:** Freeze the then-live Mental Model Studio rewrite for further work; do not treat as the active published article.
-- **Live source at archive time:** https://tnkyk.github.io/mental-model-system-pages/llm-from-first-principles.html
+- **Catalog label:** LLM — Studio rewrite（2026-07-15 公開稿アーカイブ）
+- **Reason:** Freeze the then-live Mental Model Studio rewrite; remove from Published.
 - **Artifacts:** `llm-from-first-principles.html` + `assets/sims/llm/` (6 labs)
-- **Prior archive (pre-rewrite):** `archive/llm-from-first-principles/`
+- **Distinct from:** `archive/llm-from-first-principles/` (pre-rewrite / 初回アーカイブ)
 - **Companion vault archive:** `mental-model-system/99_archive/llm-from-first-principles-2026-07-15-rewrite/`
