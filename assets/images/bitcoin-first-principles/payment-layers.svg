@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 220" role="img" aria-labelledby="t d">
+  <title id="t">送金の五層</title>
+  <desc id="d">鍵から確認までの一列</desc>
+  <rect width="920" height="220" fill="#0b0c0c"/>
+
+  <text x="460" y="30" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">送金ボタンの下にある五層</text>
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="30" y="60" width="150" height="70" fill="#161818" stroke="#f0ede6"/><text x="105" y="100" text-anchor="middle" fill="#f0ede6" font-weight="700">鍵</text>
+    <path d="M185 95 H205" stroke="#3d3f3e" stroke-width="2"/>
+    <rect x="210" y="60" width="150" height="70" fill="#161818" stroke="#a8bdd0"/><text x="285" y="100" text-anchor="middle" fill="#a8bdd0" font-weight="700">UTXO選択</text>
+    <path d="M365 95 H385" stroke="#3d3f3e" stroke-width="2"/>
+    <rect x="390" y="60" width="150" height="70" fill="#161818" stroke="#f0ede6"/><text x="465" y="100" text-anchor="middle" fill="#f0ede6" font-weight="700">手数料</text>
+    <path d="M545 95 H565" stroke="#3d3f3e" stroke-width="2"/>
+    <rect x="570" y="60" width="150" height="70" fill="#161818" stroke="#a8bdd0"/><text x="645" y="100" text-anchor="middle" fill="#a8bdd0" font-weight="700">配信</text>
+    <path d="M725 95 H745" stroke="#3d3f3e" stroke-width="2"/>
+    <rect x="750" y="60" width="140" height="70" fill="#161818" stroke="#7ec9a8"/><text x="820" y="100" text-anchor="middle" fill="#7ec9a8" font-weight="700">確認</text>
+  </g>
+  <text x="460" y="180" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: ウォレットは口座アプリではなく、鍵と送金経路の層。</text>
+
+</svg>

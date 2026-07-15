@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 300" role="img" aria-labelledby="t d">
+  <title id="t">三軸比較表</title>
+  <desc id="d">Bitcoin・Eth・Monero・USDC の性質比較</desc>
+  <rect width="940" height="300" fill="#0b0c0c"/>
+
+  <text x="470" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">他系との三軸（銘柄表ではない）</text>
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11">
+    <rect x="20" y="50" width="140" height="40" fill="#161818" stroke="#3d3f3e"/><text x="90" y="75" text-anchor="middle" fill="#b0aea6">系＼軸</text>
+    <rect x="160" y="50" width="240" height="40" fill="#161818" stroke="#a8bdd0"/><text x="280" y="75" text-anchor="middle" fill="#a8bdd0">契約＋合意様式</text>
+    <rect x="400" y="50" width="240" height="40" fill="#161818" stroke="#a8bdd0"/><text x="520" y="75" text-anchor="middle" fill="#a8bdd0">プライバシー既定</text>
+    <rect x="640" y="50" width="280" height="40" fill="#161818" stroke="#a8bdd0"/><text x="780" y="75" text-anchor="middle" fill="#a8bdd0">発行体償還</text>
+    <rect x="20" y="90" width="140" height="45" fill="#161818" stroke="#7ec9a8"/><text x="90" y="118" text-anchor="middle" fill="#7ec9a8">Bitcoin</text>
+    <rect x="160" y="90" width="240" height="45" fill="#161818" stroke="#3d3f3e"/><text x="280" y="118" text-anchor="middle" fill="#b0aea6">電子現金焦点＋PoW</text>
+    <rect x="400" y="90" width="240" height="45" fill="#161818" stroke="#3d3f3e"/><text x="520" y="118" text-anchor="middle" fill="#b0aea6">公開監査（既定）</text>
+    <rect x="640" y="90" width="280" height="45" fill="#161818" stroke="#3d3f3e"/><text x="780" y="118" text-anchor="middle" fill="#b0aea6">発行者なし</text>
+    <rect x="20" y="135" width="140" height="45" fill="#161818" stroke="#f0ede6"/><text x="90" y="163" text-anchor="middle" fill="#f0ede6">Ethereum</text>
+    <rect x="160" y="135" width="240" height="45" fill="#161818" stroke="#3d3f3e"/><text x="280" y="163" text-anchor="middle" fill="#b0aea6">プログラマブル＋PoS</text>
+    <rect x="400" y="135" width="240" height="45" fill="#161818" stroke="#3d3f3e"/><text x="520" y="163" text-anchor="middle" fill="#b0aea6">公開系が一般的</text>
+    <rect x="640" y="135" width="280" height="45" fill="#161818" stroke="#3d3f3e"/><text x="780" y="163" text-anchor="middle" fill="#b0aea6">原生資産に発行体なし</text>
+    <rect x="20" y="180" width="140" height="45" fill="#161818" stroke="#f0ede6"/><text x="90" y="208" text-anchor="middle" fill="#f0ede6">Monero系</text>
+    <rect x="160" y="180" width="240" height="45" fill="#161818" stroke="#3d3f3e"/><text x="280" y="208" text-anchor="middle" fill="#b0aea6">電子現金＋曖昧化</text>
+    <rect x="400" y="180" width="240" height="45" fill="#161818" stroke="#3d3f3e"/><text x="520" y="208" text-anchor="middle" fill="#b0aea6">既定プライバシー志向</text>
+    <rect x="640" y="180" width="280" height="45" fill="#161818" stroke="#3d3f3e"/><text x="780" y="208" text-anchor="middle" fill="#b0aea6">発行者なし</text>
+    <rect x="20" y="225" width="140" height="45" fill="#161818" stroke="#f0ede6" stroke-dasharray="4 3"/><text x="90" y="253" text-anchor="middle" fill="#f0ede6">USDC型</text>
+    <rect x="160" y="225" width="240" height="45" fill="#161818" stroke="#3d3f3e"/><text x="280" y="253" text-anchor="middle" fill="#b0aea6">トークン化されたドル</text>
+    <rect x="400" y="225" width="240" height="45" fill="#161818" stroke="#3d3f3e"/><text x="520" y="253" text-anchor="middle" fill="#b0aea6">発行体方針に依存</text>
+    <rect x="640" y="225" width="280" height="45" fill="#161818" stroke="#3d3f3e"/><text x="780" y="253" text-anchor="middle" fill="#b0aea6">1:1 償還 IOU</text>
+  </g>
+
+</svg>

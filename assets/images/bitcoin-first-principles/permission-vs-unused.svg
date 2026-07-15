@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 260" role="img" aria-labelledby="t d">
+  <title id="t">許可と未使用の分離</title>
+  <desc id="d">署名レイヤと UTXO レイヤの二列対比</desc>
+  <rect width="860" height="260" fill="#0b0c0c"/>
+
+  <text x="430" y="34" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">二つの問い：誰が許可したか／何が未使用か</text>
+  <rect x="40" y="60" width="360" height="150" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+  <text x="220" y="100" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#f0ede6">許可（署名）</text>
+  <text x="220" y="130" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">秘密鍵でハッシュに署名</text>
+  <text x="220" y="152" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">公開鍵で検証可能</text>
+  <text x="220" y="180" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">「誰が動かしてよいか」</text>
+  <rect x="460" y="60" width="360" height="150" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+  <text x="640" y="100" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#7ec9a8">未使用（UTXO）</text>
+  <text x="640" y="130" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">出力は一度だけ入力に使える</text>
+  <text x="640" y="152" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">二重消費は規則で拒否</text>
+  <text x="640" y="180" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">「まだ残っているか」</text>
+  <text x="430" y="240" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: 片方だけでは電子現金にならない。</text>
+
+</svg>

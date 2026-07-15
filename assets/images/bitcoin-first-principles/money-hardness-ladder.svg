@@ -1,41 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" role="img">
-  <rect width="920" height="300" fill="#fff"/>
-  <text x="460" y="34" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="14" font-weight="700" fill="#263d59">価値保存の検証コスト：モノ → 引換証 → 裁量的法定通貨 → 公開供給制約</text>
-
-  <rect x="28" y="70" width="200" height="170" fill="#eaf4fb" stroke="#1677b8"/>
-  <text x="128" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#1677b8">① コレクション／貴金属</text>
-  <text x="128" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">製造・採掘コストが</text>
-  <text x="128" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">供給膨張を抑える</text>
-  <text x="128" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786">検証＝材質・希少性</text>
-
-  <path d="M236 155 H268" stroke="#677786" stroke-width="2" marker-end="url(#arr)"/>
-
-  <rect x="276" y="70" width="200" height="170" fill="#e9f7f3" stroke="#16836f"/>
-  <text x="376" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#16836f">② 兌換紙幣</text>
-  <text x="376" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">持ち運びは紙で</text>
-  <text x="376" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">錨は金などへ残る</text>
-  <text x="376" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786">検証＝発行体＋兌換</text>
-
-  <path d="M484 155 H516" stroke="#677786" stroke-width="2" marker-end="url(#arr)"/>
-
-  <rect x="524" y="70" width="180" height="170" fill="#fceeee" stroke="#b54749"/>
-  <text x="614" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#b54749">③ 裁量的法定通貨</text>
-  <text x="614" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">交換・単位は強力</text>
-  <text x="614" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">供給は政策に依存</text>
-  <text x="614" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786">検証＝制度信頼</text>
-
-  <path d="M712 155 H744" stroke="#677786" stroke-width="2" marker-end="url(#arr)"/>
-
-  <rect x="752" y="70" width="148" height="170" fill="#fff7e8" stroke="#b77912"/>
-  <text x="826" y="105" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="13" font-weight="700" fill="#b77912">④ 公開制約</text>
-  <text x="826" y="138" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">発行と改訂コスト</text>
-  <text x="826" y="158" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#536271">を誰でも検査</text>
-  <text x="826" y="190" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="11" fill="#677786">検証＝規則＋PoW</text>
-
-  <text x="460" y="275" text-anchor="middle" font-family="IBM Plex Sans, Noto Sans JP, sans-serif" font-size="12" fill="#677786">便利さは右へ増えやすい。価値保存の「誰にも改ざんされない希少性」は、検証の置き場が移る。</text>
-
-  <defs>
-    <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#677786"/></marker>
-  </defs>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 300" role="img" aria-labelledby="t d">
+  <title id="t">価値保存の検証コストの梯子</title>
+  <desc id="d">モノから公開供給制約へ。優劣ではなく検証の置き場。</desc>
+  <rect width="920" height="300" fill="#0b0c0c"/>
+  <text x="460" y="34" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#f0ede6">価値保存の検証の置き場（成績ランキングではない）</text>
+  <rect x="28" y="70" width="200" height="160" fill="#161818" stroke="#a8bdd0"/>
+  <text x="128" y="105" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="13" font-weight="700" fill="#a8bdd0">① コレクション／貴金属</text>
+  <text x="128" y="138" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">製造・採掘コストが</text>
+  <text x="128" y="158" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">供給膨張を抑える</text>
+  <text x="128" y="190" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">検証＝材質・希少性</text>
+  <path d="M236 150 H268" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="276" y="70" width="200" height="160" fill="#161818" stroke="#7ec9a8"/>
+  <text x="376" y="105" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="13" font-weight="700" fill="#7ec9a8">② 兌換紙幣</text>
+  <text x="376" y="138" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">持ち運びは紙で</text>
+  <text x="376" y="158" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">錨は金などへ残る</text>
+  <text x="376" y="190" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">検証＝発行体＋兌換</text>
+  <path d="M484 150 H516" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="524" y="70" width="180" height="160" fill="#161818" stroke="#f0ede6" stroke-dasharray="5 4"/>
+  <text x="614" y="105" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="13" font-weight="700" fill="#f0ede6">③ 裁量的法定通貨</text>
+  <text x="614" y="138" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">交換・単位は強力</text>
+  <text x="614" y="158" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">供給は政策に依存</text>
+  <text x="614" y="190" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">検証＝制度信頼</text>
+  <path d="M712 150 H744" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+  <rect x="752" y="70" width="148" height="160" fill="#161818" stroke="#7ec9a8"/>
+  <text x="826" y="105" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="13" font-weight="700" fill="#7ec9a8">④ 公開制約</text>
+  <text x="826" y="138" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">発行と改訂コスト</text>
+  <text x="826" y="158" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">を誰でも検査</text>
+  <text x="826" y="190" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">検証＝規則＋PoW</text>
+  <text x="460" y="265" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">プロトコルが語りうるのは候補性質まで。購買力・相場は別レイヤ。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
 </svg>

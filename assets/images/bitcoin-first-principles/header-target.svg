@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 260" role="img" aria-labelledby="t d">
+  <title id="t">ヘッダハッシュ目標</title>
+  <desc id="d">PoW の探索と検証の非対称</desc>
+  <rect width="880" height="260" fill="#0b0c0c"/>
+
+  <text x="440" y="32" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">ヘッダ目標：追記の検証可能な値段</text>
+  <rect x="60" y="70" width="320" height="120" fill="#161818" stroke="#a8bdd0"/>
+  <text x="220" y="100" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="13" font-weight="700" fill="#a8bdd0">Block header</text>
+  <text x="100" y="130" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">prev hash · merkle · nonce · …</text>
+  <text x="100" y="155" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">nonce を回して探索</text>
+  <path d="M390 130 H450" stroke="#f0ede6" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="460" y="70" width="360" height="120" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+  <text x="640" y="105" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="13" font-weight="700" fill="#7ec9a8">hash(header) ≤ target</text>
+  <text x="640" y="135" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">見つかるまで高いコスト</text>
+  <text x="640" y="158" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">検証はハッシュ1回で足りる</text>
+  <text x="440" y="230" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: 追記には値段があり、検証は安い（Hashcash 系譜）。</text>
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f0ede6"/></marker></defs>
+
+</svg>

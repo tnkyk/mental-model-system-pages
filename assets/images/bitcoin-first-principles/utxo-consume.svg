@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 280" role="img" aria-labelledby="t d">
+  <title id="t">UTXO消費とお釣り</title>
+  <desc id="d">入力消費と新出力の生成</desc>
+  <rect width="900" height="280" fill="#0b0c0c"/>
+
+  <text x="450" y="32" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">UTXO の消費：残高は箱の集まり</text>
+  <rect x="40" y="70" width="100" height="70" fill="#161818" stroke="#a8bdd0"/><text x="90" y="110" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#a8bdd0">0.8</text>
+  <rect x="160" y="70" width="100" height="70" fill="#161818" stroke="#a8bdd0"/><text x="210" y="110" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#a8bdd0">0.5</text>
+  <text x="150" y="170" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">未使用の箱</text>
+  <path d="M280 105 H340" stroke="#f0ede6" stroke-width="2" marker-end="url(#a)"/>
+  <rect x="350" y="60" width="160" height="90" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+  <text x="430" y="95" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="13" font-weight="700" fill="#f0ede6">Tx</text>
+  <text x="430" y="120" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">入力で箱を消費</text>
+  <path d="M520 105 H580" stroke="#7ec9a8" stroke-width="2" marker-end="url(#b)"/>
+  <rect x="590" y="55" width="120" height="55" fill="#161818" stroke="#7ec9a8"/><text x="650" y="88" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#7ec9a8">支払 1.0</text>
+  <rect x="590" y="125" width="120" height="55" fill="#161818" stroke="#a8bdd0"/><text x="650" y="158" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#a8bdd0">お釣り 0.3</text>
+  <text x="450" y="220" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">口座セルを書き換えるのではなく、出力を消費して新しい出力を作る。</text>
+  <text x="450" y="250" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: 「残高」は未使用出力の集計にすぎない。</text>
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#f0ede6"/></marker>
+    <marker id="b" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#7ec9a8"/></marker>
+  </defs>
+
+</svg>

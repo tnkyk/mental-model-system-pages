@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 320" role="img" aria-labelledby="t d">
+  <title id="t">署名だけでは二重支払いを解けない</title>
+  <desc id="d">同じ UTXO への二つの署名付き送金が両立しうる様子</desc>
+  <rect width="920" height="320" fill="#0b0c0c"/>
+
+  <text x="460" y="36" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">署名は許可を示すが、未使用までは示さない</text>
+  <circle cx="120" cy="150" r="40" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+  <text x="120" y="146" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#f0ede6">Alice</text>
+  <text x="120" y="166" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">UTXO C</text>
+  <path d="M170 130 C280 80, 360 80, 450 110" fill="none" stroke="#a8bdd0" stroke-width="3"/>
+  <path d="M170 170 C280 220, 360 220, 450 190" fill="none" stroke="#a8bdd0" stroke-width="3" stroke-dasharray="6 4"/>
+  <text x="300" y="78" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#a8bdd0">Tx1 → Bob（署名あり）</text>
+  <text x="300" y="250" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#a8bdd0">Tx2 → Carol（署名あり）</text>
+  <rect x="450" y="85" width="140" height="50" fill="#161818" stroke="#a8bdd0"/>
+  <text x="520" y="115" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#a8bdd0">Bob</text>
+  <rect x="450" y="175" width="140" height="50" fill="#161818" stroke="#a8bdd0" stroke-dasharray="5 4"/>
+  <text x="520" y="205" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="14" font-weight="700" fill="#a8bdd0">Carol</text>
+  <rect x="640" y="100" width="250" height="120" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+  <text x="765" y="140" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="13" font-weight="700" fill="#7ec9a8">共有履歴が要る</text>
+  <text x="765" y="168" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">どちらの Tx が C を</text>
+  <text x="765" y="188" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">消費したかの一意な順序</text>
+  <text x="40" y="295" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12" fill="#b0aea6">Lesson: 許可（署名）と未使用（状態）は別レイヤ。</text>
+
+</svg>

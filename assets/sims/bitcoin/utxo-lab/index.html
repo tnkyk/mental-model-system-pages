@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>UTXO Lab — Bitcoin educational toy</title>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/tokens.css"/>
+<link rel="stylesheet" href="../../../12_outputs/assets/css/sim-kit.css"/>
+<style>
+  :root {
+    color-scheme: dark;
+    --mm-paper: #0b0c0c;
+    --mm-ink: #f0ede6;
+    --mm-white: #161818;
+    --mm-muted: #b0aea6;
+    --mm-line: #3d3f3e;
+    --mm-green: #7ec9a8;
+    --mm-plus: #a8bdd0;
+    --mm-gray: #b0aea6;
+    --mm-gray-soft: #1c1e1e;
+    --mm-green-soft: rgba(126, 201, 168, 0.18);
+    --mm-plus-soft: rgba(168, 189, 208, 0.22);
+    --mm-gold-soft: rgba(240, 237, 230, 0.10);
+    --mm-blue: var(--mm-plus);
+    --mm-gold: var(--mm-ink);
+    --mm-red: var(--mm-plus);
+    --mm-blue-soft: var(--mm-plus-soft);
+    --mm-red-soft: rgba(168, 189, 208, 0.16);
+    --mm-sans: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+  }
+  body { margin: 0; font: 14px/1.55 var(--mm-sans); color: var(--mm-ink); background: var(--mm-paper); padding: 20px;
+    background-image: radial-gradient(ellipse at 20% 0%, rgba(168,189,208,0.08), transparent 50%),
+      radial-gradient(ellipse at 80% 100%, rgba(126,201,168,0.06), transparent 45%); }
+  .sim-root { border: 1px solid var(--mm-line); background: var(--mm-white); padding: 18px; max-width: 900px; margin: 0 auto; }
+  .sim-title { margin: 0 0 8px; font-size: 16px; font-weight: 700; }
+  .sim-hard-claim { padding: 10px 12px; background: var(--mm-gold-soft); border-left: 3px solid var(--mm-ink); font-size: 13px; margin: 0 0 14px; }
+  .sim-controls { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin: 12px 0; }
+  .sim-controls label { font-size: 13px; color: var(--mm-muted); }
+  .sim-controls input[type="number"] { width: 72px; background: var(--mm-paper); color: var(--mm-ink); border: 1px solid var(--mm-line); padding: 4px 6px; font: inherit; }
+  .sim-btn { border: 1px solid var(--mm-line); background: var(--mm-paper); color: var(--mm-ink); padding: 6px 12px; cursor: pointer; font: inherit; }
+  .sim-btn:hover { background: var(--mm-plus-soft); }
+  .sim-btn.active { border-color: var(--mm-green); background: var(--mm-green-soft); }
+  .sim-status { margin-top: 10px; padding: 10px 12px; background: var(--mm-green-soft); font-size: 13px; }
+  .sim-status.reject { background: var(--mm-plus-soft); }
+  .sim-caption { margin: 12px 0 0; color: var(--mm-muted); font-size: 13px; }
+  .sim-fallback { margin-top: 12px; padding: 10px 12px; background: var(--mm-gray-soft); font-size: 12px; color: var(--mm-muted); }
+  .sim-canvas-wrap { margin: 10px 0; border: 1px solid var(--mm-line); background: var(--mm-paper); }
+  .sim-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 700px) { .sim-grid-2 { grid-template-columns: 1fr; } }
+  .sim-panel h4 { margin: 0 0 8px; font-size: 13px; color: var(--mm-muted); font-weight: 600; }
+  .utxo-pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; margin-bottom: 8px; }
+  .utxo-chip { border: 1px solid var(--mm-line); background: var(--mm-paper); color: var(--mm-ink); padding: 6px 10px; cursor: pointer; font: inherit; font-size: 13px; }
+  .utxo-chip.selected { border-color: var(--mm-plus); background: var(--mm-plus-soft); }
+  .utxo-chip.spent { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+  .hash-out { font: 13px/1.45 ui-monospace, Consolas, monospace; color: var(--mm-plus); word-break: break-all; }
+  .account-fake { margin-top: 8px; padding: 8px 10px; border: 1px dashed var(--mm-line); color: var(--mm-muted); font-size: 12px; }
+</style>
+</head>
+<body>
+  <div class="sim-root">
+    <p class="sim-title">UTXO Lab</p>
+    <p class="sim-hard-claim"><strong>Hard claim:</strong> 各出力（UTXO）は一度だけ入力として使え、同一出力を二度使う試みは規則により二重支払いとして禁止される。残高は口座行ではなく未使用出力の集合の集計である。</p>
+
+    <div class="sim-controls">
+      <button type="button" class="sim-btn active" id="modeA">A — 正当な支払＋お釣り</button>
+      <button type="button" class="sim-btn" id="modeB">B — 二重支払いを試す</button>
+    </div>
+
+    <div class="sim-canvas-wrap"><canvas id="utxoCanvas" width="900" height="180" aria-label="UTXO消費の過程"></canvas></div>
+
+    <div class="sim-grid-2">
+      <div class="sim-panel">
+        <h4>未使用 UTXO（Alice）</h4>
+        <div class="utxo-pool" id="utxoPool"></div>
+        <div class="sim-controls">
+          <label>送金先 Bob: <input type="number" id="payBob" value="0.3" min="0" step="0.001"> BTC</label>
+          <label>手数料: <input type="number" id="payFee" value="0.001" min="0" step="0.001"> BTC</label>
+        </div>
+        <div class="sim-controls">
+          <button type="button" class="sim-btn" id="btnSpend">取引を構築・受理</button>
+          <button type="button" class="sim-btn" id="btnDouble">同じ入力で二重支払い</button>
+          <button type="button" class="sim-btn" id="btnUtxoReset">リセット</button>
+        </div>
+        <div class="account-fake" id="accountFake">口座モデルの錯覚: 「Alice 残高 0.8」という一行は、実際は未使用出力の合計に過ぎない。</div>
+      </div>
+      <div class="sim-panel">
+        <h4>台帳 / mempool</h4>
+        <p id="utxoLedger" class="hash-out">未使用集合を表示</p>
+        <p class="sim-status" id="utxoStatus">入力を選んで取引を構築してください。</p>
+      </div>
+    </div>
+
+    <p class="sim-caption">Lesson: 残高は UTXO の集計。入力は一度消費すると未使用集合から消える。同じ箱を二度使おうとすると拒否される。</p>
+    <p class="sim-fallback"><strong>簡略化の開示：</strong> 教育用の簡易モデルです。本番ノードや実ネットワーク手数料・署名検証を再現しません。固定したいのは「出力は一度きり」「残高＝未使用集合の集計」だけです。</p>
+  </div>
+<script>
+(function () {
+  var C = { paper: "#0b0c0c", ink: "#f0ede6", white: "#161818", muted: "#b0aea6", line: "#3d3f3e", green: "#7ec9a8", plus: "#a8bdd0" };
+  function fitCanvas(c) {
+    if (!c) return null;
+    if (!c.dataset.logicH) c.dataset.logicH = c.getAttribute("height") || "180";
+    var parent = c.parentElement || c;
+    var rect = parent.getBoundingClientRect();
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    var w = Math.max(280, Math.floor(rect.width || 300));
+    var h = parseInt(c.dataset.logicH, 10) || 180;
+    var bw = Math.floor(w * dpr), bh = Math.floor(h * dpr);
+    if (c.width !== bw || c.height !== bh) { c.width = bw; c.height = bh; }
+    c.style.width = "100%"; c.style.height = h + "px";
+    var ctx = c.getContext("2d");
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx: ctx, w: w, h: h };
+  }
+
+  var utxoState = { utxos: [{ id: "u1", amt: 0.8, spent: false }], spentIds: [], selected: null, txCount: 0, lastMsg: "" };
+  var mode = "A";
+
+  function drawUtxoCanvas() {
+    var c = document.getElementById("utxoCanvas"); if (!c) return;
+    var f = fitCanvas(c); if (!f) return;
+    var ctx = f.ctx, w = f.w, h = f.h;
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = C.paper; ctx.fillRect(0, 0, w, h);
+    var unspent = utxoState.utxos.filter(function (u) { return !u.spent; });
+    var sum = unspent.reduce(function (a, u) { return a + u.amt; }, 0);
+    unspent.forEach(function (u, i) {
+      var x = 40 + i * 120;
+      ctx.fillStyle = utxoState.selected === u.id ? C.plus : C.green;
+      ctx.fillRect(x, 50, 100, 70);
+      ctx.fillStyle = C.paper; ctx.font = "12px sans-serif";
+      ctx.fillText(u.id, x + 12, 78); ctx.fillText(u.amt + " BTC", x + 12, 98);
+    });
+    ctx.fillStyle = C.muted; ctx.font = "12px sans-serif";
+    ctx.fillText("未使用集合 → 消費すると消える  |  集計残高 ≈ " + sum.toFixed(3) + " BTC", 40, 30);
+    if (utxoState.lastMsg) {
+      ctx.fillStyle = utxoState.lastMsg.indexOf("REJECT") === 0 ? C.plus : C.green;
+      ctx.fillText(utxoState.lastMsg.slice(0, 90), 40, h - 24);
+    }
+  }
+
+  function renderUtxo() {
+    var pool = document.getElementById("utxoPool");
+    pool.innerHTML = "";
+    utxoState.utxos.forEach(function (u) {
+      var el = document.createElement("button");
+      el.type = "button";
+      el.className = "utxo-chip" + (u.spent ? " spent" : "") + (utxoState.selected === u.id ? " selected" : "");
+      el.textContent = u.id + ": " + u.amt + " BTC";
+      if (!u.spent) el.onclick = function () { utxoState.selected = u.id; renderUtxo(); };
+      pool.appendChild(el);
+    });
+    var unspent = utxoState.utxos.filter(function (u) { return !u.spent; });
+    document.getElementById("utxoLedger").textContent =
+      "未使用: " + (unspent.map(function (u) { return u.id + "(" + u.amt + ")"; }).join(", ") || "（空）") +
+      " ｜ 集計=" + unspent.reduce(function (a, u) { return a + u.amt; }, 0).toFixed(3);
+    document.getElementById("accountFake").textContent =
+      "口座モデルの錯覚: 「Alice 残高 " +
+      unspent.reduce(function (a, u) { return a + u.amt; }, 0).toFixed(3) +
+      "」は一行ではなく、上の未使用チップの合計である。";
+    drawUtxoCanvas();
+  }
+
+  function utxoReject(msg) {
+    var st = document.getElementById("utxoStatus");
+    st.textContent = msg; st.className = "sim-status reject";
+    utxoState.lastMsg = "REJECT: " + msg; drawUtxoCanvas();
+  }
+  function utxoAccept(msg) {
+    var st = document.getElementById("utxoStatus");
+    st.textContent = msg; st.className = "sim-status";
+    utxoState.lastMsg = "ACCEPT: " + msg; drawUtxoCanvas();
+  }
+
+  function buildTx() {
+    if (!utxoState.selected) { utxoReject("入力UTXOを選んでください。"); return; }
+    var u = utxoState.utxos.find(function (x) { return x.id === utxoState.selected; });
+    if (!u) return;
+    if (u.spent || utxoState.spentIds.indexOf(u.id) >= 0) {
+      utxoReject("拒否: 入力 " + u.id + " は既に消費済み。二重支払いは台帳状態と矛盾する。");
+      return;
+    }
+    var bob = parseFloat(document.getElementById("payBob").value) || 0;
+    var fee = parseFloat(document.getElementById("payFee").value) || 0;
+    if (bob + fee > u.amt + 1e-12) { utxoReject("拒否: 出力+手数料が入力を超える。"); return; }
+    u.spent = true;
+    utxoState.spentIds.push(u.id);
+    utxoState.txCount += 1;
+    var change = +(u.amt - bob - fee).toFixed(3);
+    utxoAccept("受理 Tx#" + utxoState.txCount + ": 入力 " + u.id + " → Bob " + bob + ", お釣り " + change + ", 手数料 " + fee);
+    if (change > 0) utxoState.utxos.push({ id: "u" + (utxoState.utxos.length + 1), amt: change, spent: false });
+    utxoState.selected = null;
+    renderUtxo();
+  }
+
+  function setMode(m) {
+    mode = m;
+    document.getElementById("modeA").classList.toggle("active", m === "A");
+    document.getElementById("modeB").classList.toggle("active", m === "B");
+    if (m === "A") {
+      document.getElementById("utxoStatus").className = "sim-status";
+      document.getElementById("utxoStatus").textContent = "Mode A: 未使用出力を選び、正当な支払を構築してください。お釣りが新しい UTXO になります。";
+    } else {
+      document.getElementById("utxoStatus").className = "sim-status";
+      document.getElementById("utxoStatus").textContent = "Mode B: まず Mode A で一度消費し、同じ入力で二重支払いを試してください。";
+    }
+  }
+
+  document.getElementById("modeA").onclick = function () { setMode("A"); };
+  document.getElementById("modeB").onclick = function () { setMode("B"); };
+  document.getElementById("btnSpend").onclick = buildTx;
+  document.getElementById("btnDouble").onclick = function () {
+    setMode("B");
+    if (!utxoState.selected && utxoState.spentIds.length) utxoState.selected = utxoState.spentIds[utxoState.spentIds.length - 1];
+    var u = utxoState.utxos.find(function (x) { return x.id === utxoState.selected; });
+    if (u && u.spent) {
+      utxoReject("拒否: 入力 " + u.id + " は既に消費済み。二重支払いは台帳状態と矛盾する。");
+      renderUtxo();
+      return;
+    }
+    buildTx();
+  };
+  document.getElementById("btnUtxoReset").onclick = function () {
+    utxoState = { utxos: [{ id: "u1", amt: 0.8, spent: false }], spentIds: [], selected: null, txCount: 0, lastMsg: "" };
+    utxoAccept("リセットしました。");
+    setMode("A");
+    renderUtxo();
+  };
+  window.addEventListener("resize", drawUtxoCanvas);
+  setMode("A");
+  renderUtxo();
+})();
+</script>
+</body>
+</html>
