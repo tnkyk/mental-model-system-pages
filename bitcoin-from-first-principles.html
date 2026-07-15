@@ -4,8 +4,8 @@
   <meta charset="utf-8">
   <meta name="theme-color" content="#151716">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Bitcoin v6 — 価値保存と貨幣史から法定通貨との分岐を置き、複製無料の制約を伝播・UTXO・PoW・検証範囲まで再構築する。">
-  <title>Bitcoin from First Principles v6 | コストのかかる共有履歴</title>
+  <meta name="description" content="Bitcoin v7 — 価値保存から伝播・UTXO・PoW・検証範囲・カストディ・プライバシー・スケール・量子まで再構築する。">
+  <title>Bitcoin from First Principles v7 | コストのかかる共有履歴</title>
   <link rel="stylesheet" href="./assets/css/site.css">
   <link rel="stylesheet" href="./assets/css/sim-kit.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -129,7 +129,8 @@
         <a class="toc-only" href="#doublespend">二重支払い</a>
         <a class="toc-only" href="#gossip">伝播</a>
         <a class="toc-only" href="#pow">PoW</a>
-        <a class="toc-only" href="#spv">検証範囲</a>
+        <a class="toc-only" href="#privacy">プライバシー</a>
+        <a class="toc-only" href="#scale">スケール</a>
         <a class="toc-only" href="#agency">実践</a>
         <a class="toc-only" href="#references">出典</a>
       </nav>
@@ -138,10 +139,10 @@
 
   <header class="article-head">
     <div class="wrap">
-      <p class="kicker">Monetary technology · Distributed systems · Essay v6</p>
+      <p class="kicker">Monetary technology · Distributed systems · Essay v7</p>
       <h1>Bitcoin, from First Principles</h1>
-      <p class="dek">価値保存の宿題から法定通貨との分岐を置き、コピーがほぼ無料な世界でなぜ画面上の数字の移動が「現金を渡した」ことになりうるのか——制約が次の発明を強制する鎖として歩く。</p>
-      <p class="meta">Mental Model Studio · 2026-07-14 · v6 store-of-value + Faza dwell · 投資助言ではない</p>
+      <p class="dek">価値保存の宿題から、コピーがほぼ無料な世界の共有状態を伝播・UTXO・PoW・検証範囲まで分解し、カストディ帯・プライバシー・スケール・量子リスクまで同じ地図に載せる。</p>
+      <p class="meta">Mental Model Studio · 2026-07-15 · v7 privacy·scale·custody · 投資助言ではない</p>
     </div>
   </header>
 
@@ -172,7 +173,7 @@
       <p class="dwell">三つ目。高額の支払いを受け取った相手が「6確認待ってから商品を渡す」と言う。あなたは取引所の「反映済み」で安心したが、相手は別の時計を見ている。確定は感覚ではなく、<strong>累積した作業コスト</strong>の話である。</p>
       <p>これらは投資の成否ではない。<strong>主権・委任・確定</strong>という、システム設計の切れ目である。この記事は、その切れ目に長く滞留しながら、再構築可能なメカニズムへ分解する。</p>
 
-      <p class="callout-soft dwell">ここから先は、価値保存の歴史を一度噛み、そのうえで台帳係なしに「同じコインを二度使えない」と言える理由を、制約が次の発明を強制する順で歩く。価格予測や売買助言、Lightning やサイドチェーンの詳細、Script のオペコード一覧には入らない——それらはこの足場の上に後から載る応用である。</p>
+      <p class="callout-soft dwell">ここから先は、価値保存の歴史を一度噛み、そのうえで台帳係なしに「同じコインを二度使えない」と言える理由を、制約が次の発明を強制する順で歩く。公開検証が生むプライバシーの裏面と、スループットの天井も同じ地図に載せる。価格予測や売買助言、Lightning のルーティング詳細、Script のオペコード一覧には入らない——それらはこの足場の上に後から載る応用である。</p>
     </section>
 
     <section class="section reading" id="bank">
@@ -374,11 +375,22 @@
     </section>
 
     <section class="section reading" id="keys">
-      <h2>秘密鍵：名簿のない所有</h2>
+      <h2>秘密鍵：名簿のない所有と、カストディの帯</h2>
       <p class="dwell">Bitcoinは世界共通の氏名台帳を前提にしたくない。それでも「この残高を動かしてよいのは鍵の持ち主だけ」と言いたい。そこで公開鍵暗号の署名が入る。秘密鍵から公開鍵を導き、さらにハッシュしてアドレス（例: <code>bc1...</code>）として流通させる。アドレスは「Alice」という人名ではなく、<strong>支払い条件のハッシュ</strong>である<a class="fn-ref" href="#ref-3">(*3)</a>。ネットワークは人物を知らない。署名を検証するだけである。</p>
-      <p class="dwell">この単純さが、日常の不安を生む。鍵を持つ者が主権を持つ——第三者の許可なく使える。鍵を失う・盗まれると、プロトコル上の救済当局はいない。銀行の「本人確認して復元」は、プロトコル外の社会的手当である。</p>
-      <p class="dwell">取引所に資産を預けているとき、画面の残高はしばしば内部帳簿の IOU である。取引所が破綻・ハッキング・出金停止をしたら、画面の数字は紙切れになりうる。救済がない代わりに、第三者にも止められない——これが主権の両面である。自己保管は「技術オタクの趣味」ではなく、どの委任層に立つかの明示的な選択である。</p>
-      <div class="aside-note">Not your keys, not your coins——標語としては粗いが、メンタルモデルとしては正確に近い。取引所残高はプロトコル上のコインではなく、会社への請求権であることが多い。</div>
+      <p class="dwell">たとえを一つだけ置く。ホテルのルームキーは、フロント係が「あなたが宿泊客である」ことを知っている前提で渡される。Bitcoinの署名は、フロント係を置かないルームキーに近い——ドア（UTXOの支払い条件）は、正しい鍵穴の答えだけを見る。鍵を忘れても、プロトコル上のフロントは鍵を再発行しない（<strong>P4</strong>）。</p>
+      <p class="dwell">この単純さが、日常の不安を生む。鍵を持つ者が主権を持つ——第三者の許可なく使える。鍵を失う・盗まれると、救済当局はいない。銀行の「本人確認して復元」は、プロトコル外の社会的手当である。</p>
+      <p class="dwell">同じ「BTCを持っている」感覚でも、立ち上がっているレイヤは違う。読むときは、画面の数字ではなく<strong>誰がどの秘密を握っているか</strong>を見る。</p>
+      <table class="ladder">
+        <thead><tr><th>立ち位置</th><th>あなたが制御するもの</th><th>壊れたときの姿</th></tr></thead>
+        <tbody>
+          <tr><td>自己保管＋フルノード</td><td>シード／秘密鍵と、規則の検証</td><td>鍵喪失は不可逆。代わりに第三者の出金停止に依存しない</td></tr>
+          <tr><td>自己保管＋軽いウォレット</td><td>鍵。検証の深さは委任されがち</td><td>鍵は自分でも、偽ヘッダを見誤るリスクは検証範囲に依存（後の SPV 節）</td></tr>
+          <tr><td>取引所カストディ</td><td>ログインと会社への請求権</td><td>画面残高は IOU。破綻・凍結・出金停止は社会法の世界</td></tr>
+          <tr><td>ETF・信託など</td><td>金融商品の持ち分</td><td>プロトコル上のコイン所有ではなく、発行体への請求</td></tr>
+        </tbody>
+      </table>
+      <p class="dwell">worked example。Alice が取引所で BTC を買う。まず増えるのは取引所の内部帳簿の行である。Alice が「出金」して自分のアドレスへ受け取ると、はじめてネットワーク上の UTXO が Alice の鍵条件の下に現れる。出金前に取引所が止まったら、Alice が取り戻せるかは裁判所と破産手続きの話であり、ブロック確認数の話ではない。</p>
+      <div class="aside-note">Not your keys, not your coins——標語としては粗いが、メンタルモデルとしては正確に近い。取引所残高はプロトコル上のコインではなく、会社への請求権であることが多い。自己保管は趣味ではなく、どの委任帯に立つかの明示的選択である。</div>
     </section>
 
     <section class="section reading" id="utxo">
@@ -671,27 +683,78 @@
       </div>
     </section>
 
+    <section class="section reading" id="rules">
+      <h2>ルールは誰が変えるのか：提案・執行・社会的協調</h2>
+      <p class="dwell">ここまでで、マイナーは候補を提案し、フルノードは規則を執行すると分けた。では規則そのものは、誰が書き換えられるのか。コードが全てで政治がない、と言うと誤解が残る。</p>
+      <p class="dwell">実務のイメージは三つに分けた方がよい。<strong>提案</strong>（新しいブロックやソフトウェアのパッチを提示する）、<strong>執行</strong>（自分が走らせるノードがどの規則で受理／拒否するか）、<strong>協調</strong>（多くの経済主体が同じ規則集合へ収束する社会過程）。Soft fork は、古いルールの下でも「より厳しい部分集合」として読める更新の型の直感であり、Hard fork は互換を切る分岐である——細部の実装年表より、「書き換えにはネットワーク上の合意コストがある」ことがメンタルモデルだ。</p>
+      <p class="dwell">分散とは「指導者がいない」ことそのものではなく、<strong>退出とフォークの余地</strong>が残っていることに近い。少數のプールがハッシュの多くを集めても、個々のマイナーはプールを切り替えられ、ノードは無効な規則変更を拒否できる——少なくとも、プロトコルが設計している拒否権はそこにある。集中はリスク条件であって、「もう中央集権だから全部嘘」でも「完全に分散だから絶対安全」でもない。</p>
+      <div class="aside-note">ルール改訂の具体 BIP 年表は本稿の外。覚えるのは権力の三角——提案者・審査官・利用者経済——がずれているとき、何が壊れるかである。</div>
+    </section>
+
+    <section class="section reading" id="privacy">
+      <h2>公開台帳の裏面：疑似匿名と追跡可能性</h2>
+      <p class="dwell">二重支払いを誰でも検証できるようにした代償は、履歴が公開であることだ。アドレスは人名を書かない。しかし「名前がない」と「追跡できない」は同じではない。現金の財布は中身の履歴を持ち歩かない。Bitcoinのウォレットは、使い方次第で履歴を鎖の上に残す。</p>
+      <p class="dwell">典型的な働きはこうだ。Alice が同じアドレスへ給与を受け取り、その入力をまとめて家賃とコーヒー代を払う。観測者は人名を知らなくても、「この束ねられた入力は同一主体の可能性が高い」とヒューリスティックで結びうる。取引所の入出金と結合すれば、鎖の上の図が実世界の口座へ繋がることがある（<strong>P7</strong>）。</p>
+      <p class="dwell">プロトコルはすべての satoshi を同等に扱う。だが社会レイヤでは、過去の履歴に「汚れ」ラベルを貼る分析が存在する。これは数学がコインを区別しているのではなく、<strong>監査可能性が生む追跡耐性の圧</strong>である。完全匿名を約束するシステムではない——公開検証を選んだ結果としての疑似匿名である。</p>
+
+      <div class="sim-embed sim-root" id="sim-trace">
+        <p class="sim-title">Address Link Lab</p>
+        <p class="sim-hard-claim"><strong>Hard claim:</strong> アドレス再利用と複数入力の束ねは、人名なしでも「同一主体らしさ」の辺をグラフに生む。</p>
+        <div class="sim-controls">
+          <button type="button" class="sim-btn" id="btnTraceReuse">同一アドレスを再利用して支払う</button>
+          <button type="button" class="sim-btn" id="btnTraceFresh">毎回新しい受取アドレス</button>
+          <button type="button" class="sim-btn" id="btnTraceReset">リセット</button>
+        </div>
+        <div class="sim-canvas-wrap"><canvas id="traceCanvas" width="900" height="220" aria-label="アドレス連鎖の可視化"></canvas></div>
+        <p class="sim-status" id="traceStatus">ボタンで二通りの支払い習慣を比べてください。</p>
+        <p class="sim-caption">Lesson: 公開検証は監査可能性を買う。その裏面がクラスタリング耐性の低下である。匿名通貨ではない。</p>
+      </div>
+      <p class="dwell">ミキシングや共同署名の技法は、リンクを薄める試みとして存在する。ここでは操作マニュアルを書かない。メンタルモデルとして必要なのは、「プライバシーはプロトコルの既定値ではなく、公開台帳という選択の上で争われる性質だ」ということだけだ。</p>
+    </section>
+
+    <section class="section reading" id="scale">
+      <h2>スループットの天井：なぜ全部を本鎖に載せないのか</h2>
+      <p class="dwell">ブロック空間が希少だと分かると、次の疑問が自然に出る——なぜ容量を無限に増やさないのか。答えの骨格は三すくみに近い。誰でも安くフル検証できること、開かれた参加、高い最終性。三者を同時に最大化すると、帯域・ストレージ・検証コストが破れる。</p>
+      <p class="dwell">オンチェーンでコーヒー一杯ごとに世界が最終確定する設計は、可能に見えて高い。手数料市場が「今すぐ載せたい需要」を削ぎ、混雑時には小額決済が割に合わなくなるのはバグというより、希少資源の値段が可視化された姿である（<strong>P8</strong>）。</p>
+      <p class="dwell">だから追加レイヤが語られる。チャネルを開き、往来は鎖の外で更新し、最終的な差額だけを本鎖へ戻す——Lightning 的な発想の必要性はここにある。本稿はそのルーティングや流動性の設計には入らない。足場としては、「本鎖は最終決済と安全の層であり、すべての日常決済の高速レーンである必要はない」と区別できればよい。</p>
+      <table class="ladder">
+        <thead><tr><th>用途の粗い分類</th><th>本鎖に載せたい理由</th><th>別層を考えやすい理由</th></tr></thead>
+        <tbody>
+          <tr><td>高額・低頻度の決済・保全</td><td>最大の累積コストと全文検証</td><td>—</td></tr>
+          <tr><td>小額・高頻度</td><td>都度最終確定は高い</td><td>手数料と確認待ちが体験を壊しやすい</td></tr>
+          <tr><td>取引所内部の振替</td><td>必ずしも本鎖が要らない</td><td>会社台帳（委任）で済むことが多い</td></tr>
+        </tbody>
+      </table>
+      <div class="aside-note">SegWit 以降の容量拡張は、同じトレードオフの中で「検証可能な範囲で枠を広げる」更新であり、無限スケールの宣言ではない。細部の BIP は別Issueへ。</div>
+    </section>
+
     <section class="section reading" id="limits">
       <h2>Bitcoinが解かない問題と、よくある誤解</h2>
       <p class="dwell">良いメンタルモデルは、システムが得意なことと同じくらい、苦手なことを明確にする。Bitcoinは二重支払いを公開コストで抑える電子現金の設計であって、すべての社会問題の万能薬ではない。</p>
       <table class="ladder">
         <thead><tr><th>領域</th><th>限界の根拠</th></tr></thead>
         <tbody>
-          <tr><td>価格</td><td>約2100万枚の供給上限は供給側の制約。需要と為替は市場（プロトコル外）</td></tr>
-          <tr><td>価値保存の成績</td><td>発行・改訂の検証可能性はプロトコル内。購買力の将来結果は需要・制度・競合資産に依存</td></tr>
-          <tr><td>完全匿名</td><td>取引は公開台帳。連鎖分析で追跡されうる</td></tr>
-          <tr><td>無限スループット</td><td>オンチェーン容量は意図的に制約される</td></tr>
+          <tr><td>価格・市場成績</td><td>供給上限は供給側の制約。需要・為替・購買力の結果は市場（プロトコル外）</td></tr>
+          <tr><td>価値保存の成績</td><td>発行・改訂の検証可能性はプロトコル内。将来の購買力は需要・制度・競合資産に依存</td></tr>
+          <tr><td>完全匿名</td><td>公開台帳。疑似匿名であり、連鎖分析とオフチェーンデータで結びうる</td></tr>
+          <tr><td>無限スループット</td><td>オンチェーン容量は意図的に制約。追加レイヤは別の信頼／運用境界を持ちうる</td></tr>
           <tr><td>鍵の社会的回復</td><td>シード喪失の救済はプロトコル外</td></tr>
           <tr><td>消費者保護</td><td>チャージバック前提の決済法制とは設計思想が異なる</td></tr>
-          <tr><td>エネルギーゼロ</td><td>PoWのコストは履歴防衛の対価として設計されている</td></tr>
+          <tr><td>エネルギーゼロ</td><td>PoWコストは履歴防衛の対価。社会的妥当性は規範議論であり、機制の否認ではない</td></tr>
+          <tr><td>耐量子署名</td><td>十分な規模の量子計算機は楕円曲線署名を破りうる経路がある<a class="fn-ref" href="#ref-13">(*13)</a>。標準の移行研究は進むが、Bitcoinが今日それを保証しているわけではない<a class="fn-ref" href="#ref-14">(*14)</a></td></tr>
+          <tr><td>ハッシュの完全分散</td><td>マイニングプールは分散を便利にする一方、集中を観測可能な条件にする。プール＝鍵のカストディではない</td></tr>
         </tbody>
       </table>
+      <p class="dwell">不正利用の議論も、地図の上に置く。公開台帳は現金より追跡しやすい局面が多く、解析と法執行の素材にもなりうる。同時に、プライバシー技法やオフチェーン決済は追跡を難しくしうる。どちらも「Bitcoin＝闇」でも「Bitcoin＝透明で無害」でもない——<strong>監査可能性という設計選択の両面</strong>だ。</p>
+      <p class="dwell">量子については、パニック用のオチにしない。脅威の中身は「十分大きな誤り訂正量子計算機が、露出した公開鍵に対応する秘密鍵を Shor 型の算法で求めうる」という経路である<a class="fn-ref" href="#ref-13">(*13)</a>。PoW の SHA-256 に対する知られている量子加速は、署名破りより穏やかな（Grover 型の）話に寄せて読まれることが多い。対策の方向性は耐量子署名への移行であり、NIST は標準を公開している<a class="fn-ref" href="#ref-14">(*14)</a>。時期・具体 soft fork の中身は未確定——今日のメンタルモデルは「署名アルゴリズムは永遠ではない／移行可能性を残す設計議論がある」まで。</p>
       <ul>
         <li>「ブロックチェーンと書けば改ざん不可能」→ 累積PoWと受理規則に<strong>条件付き</strong></li>
         <li>「マイナーがすべてを決める」→ 無効ブロックはフルノードが拒否する<a class="fn-ref" href="#ref-4">(*4)</a></li>
         <li>「取引所の残高＝自分のBitcoin」→ 鍵制御が本義（多くはIOU）</li>
         <li>「半減期＝必ず稀少性バブル」→ 供給スケジュールの話であって価格の法則ではない</li>
         <li>「法定通貨が滅びるからBitcoinが要る」→ 本稿の主張は交換手段の否定ではなく、検証可能な供給制約という選択肢の追加</li>
+        <li>「匿名だから犯罪に最適」→ 公開台帳はしばしば追跡素材にもなる。匿名保証ではない</li>
+        <li>「量子コンピュータが明日全部盗む」→ 条件付きの将来リスクと移行議論。現行破綻の証拠ではない</li>
       </ul>
     </section>
 
@@ -717,11 +780,13 @@
           <tr><td>半減期が騒ぎになる</td><td>補助金スケジュール≠安全保障そのもの</td></tr>
           <tr><td>インフレ懸念でBitcoinの話になる</td><td>価値保存の性質（検証可能な供給）と相場の成績は別時計</td></tr>
           <tr><td>「改ざん不可能」と聞いても不安が残る</td><td>条件付きの累積コスト＋自分の検証範囲</td></tr>
+          <tr><td>匿名のはずなのに取引所で止められた</td><td>公開台帳の連鎖が KYC と結びつく（疑似匿名）</td></tr>
+          <tr><td>コーヒー代なのに手数料が気になる</td><td>本鎖は希少最終決済層。小額は別層の候補</td></tr>
         </tbody>
       </table>
 
-      <p class="dwell">Faza のソフトウェア論が言うように、理解できるものだけが制御できる。Bitcoinでも同じである。価格アプリの数字を眺めることと、自分がどの委任構造の上に立っているかを説明できることは、別のリテラシーだ。AIが要約や送金手順を提案する時代でも、最終的に検証すべきなのはモデル——署名、UTXO、累積作業量、フルノード——のどれが自分の手元にあるかである。</p>
-      <p class="dwell">この記事が目指したのは、用語辞典ではなく、世界の見え方が一段変わる足場である。価値保存が歴史上なにを要求してきたか、コピーが無料でも希少性を強制できること、伝播遅延があっても最終的に順序を共有できること、作業量が見えるコストであること、検証範囲を自分の言葉で言えること——それができれば、十分に遠くまで歩いたことになる。</p>
+      <p class="dwell">Faza のソフトウェア論が言うように、理解できるものだけが制御できる。Bitcoinでも同じである。価格アプリの数字を眺めることと、自分がどの委任構造の上に立っているかを説明できることは、別のリテラシーだ。AIが要約や送金手順を提案する時代でも、最終的に検証すべきなのはモデル——署名、UTXO、累積作業量、フルノード、そして自分が許したプライバシーとスケールのトレードオフ——のどれが自分の手元にあるかである。</p>
+      <p class="dwell">この記事が目指したのは、用語辞典でも市場百科でもなく、世界の見え方が一段変わる足場である。価値保存が歴史上なにを要求してきたか、コピーが無料でも希少性を強制できること、伝播遅延があっても最終的に順序を共有できること、作業量が見えるコストであること、検証範囲とカストディ帯を自分の言葉で言えること——それができれば、十分に遠くまで歩いたことになる。</p>
     </section>
 
     <section class="section reading" id="references">
@@ -739,8 +804,10 @@
         <li id="ref-10">Michael McLeay, Amar Radia, Ryland Thomas, <em>Money in the modern economy: an introduction</em>, Bank of England Quarterly Bulletin, 2014 Q1. <a href="https://www.bankofengland.co.uk/quarterly-bulletin/2014/q1/money-in-the-modern-economy-an-introduction">bankofengland.co.uk/…/money-in-the-modern-economy-an-introduction</a></li>
         <li id="ref-11">Nick Szabo, <em>Shelling Out: The Origins of Money</em>, 2002. <a href="https://nakamotoinstitute.org/library/shelling-out/">nakamotoinstitute.org/library/shelling-out/</a></li>
         <li id="ref-12">Sandra Kollen Ghizoni, <em>Nixon Ends Convertibility of U.S. Dollars to Gold and Announces Wage/Price Controls</em>, Federal Reserve History, 2013. <a href="https://www.federalreservehistory.org/essays/gold-convertibility-ends">federalreservehistory.org/essays/gold-convertibility-ends</a></li>
+        <li id="ref-13">P. W. Shor, <em>Polynomial-Time Algorithms for Prime Factorization and Discrete Logarithms on a Quantum Computer</em>, SIAM J. Comput., 1997 (arXiv:quant-ph/9508027). <a href="https://arxiv.org/abs/quant-ph/9508027">arxiv.org/abs/quant-ph/9508027</a></li>
+        <li id="ref-14">NIST, <em>NIST Releases First 3 Finalized Post-Quantum Encryption Standards</em>, 2024-08-13. <a href="https://www.nist.gov/news-events/news/2024/08/nist-releases-first-3-finalized-post-quantum-encryption-standards">nist.gov/…/post-quantum-encryption-standards</a></li>
       </ol>
-      <p style="color:var(--mm-muted);font-size:13px;">注: 本稿の Lab は教育用の簡略モデルであり、実ネットワークの暗号・難易度・伝播・手数料市場をシミュレートするものではない。過程の直観を作るための玩具である。</p>
+      <p style="color:var(--mm-muted);font-size:13px;">注: 本稿の Lab は教育用の簡略モデルであり、実ネットワークの暗号・難易度・伝播・手数料市場・連鎖分析をシミュレートするものではない。過程の直観を作るための玩具である。</p>
     </section>
   </main>
 
@@ -1503,6 +1570,73 @@
         };
         window.addEventListener("resize", renderMempool); renderMempool();
       }
+    })();
+
+    /* Address linkage (privacy) */
+    (function () {
+      var mode = "idle";
+      var c = document.getElementById("traceCanvas");
+      var status = document.getElementById("traceStatus");
+      if (!c || !status) return;
+      function draw() {
+        var f = fitCanvas(c); if (!f) return;
+        var ctx = f.ctx, w = f.w, h = f.h;
+        ctx.fillStyle = "#0f1a24"; ctx.fillRect(0, 0, w, h);
+        function node(x, y, label, color) {
+          ctx.beginPath(); ctx.arc(x, y, 22, 0, Math.PI * 2);
+          ctx.fillStyle = color; ctx.fill();
+          ctx.fillStyle = "#0f1a24"; ctx.font = "11px IBM Plex Sans, sans-serif";
+          ctx.textAlign = "center"; ctx.fillText(label, x, y + 4);
+          ctx.textAlign = "left";
+        }
+        function edge(x1, y1, x2, y2, color, thick) {
+          ctx.strokeStyle = color; ctx.lineWidth = thick || 2;
+          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+        }
+        if (mode === "idle") {
+          ctx.fillStyle = "#8fb4c9"; ctx.font = "14px IBM Plex Sans, sans-serif";
+          ctx.fillText("支払い習慣を選ぶと、観測者に見えるリンクが変わります", 36, h / 2);
+          return;
+        }
+        if (mode === "reuse") {
+          node(90, h / 2, "A1", "#b77912");
+          node(260, h / 2 - 40, "家賃", "#1677b8");
+          node(260, h / 2 + 40, "コーヒー", "#1677b8");
+          edge(112, h / 2 - 8, 238, h / 2 - 40, "#b77912", 3);
+          edge(112, h / 2 + 8, 238, h / 2 + 40, "#b77912", 3);
+          node(430, h / 2, "クラスタ", "#b54749");
+          edge(282, h / 2 - 40, 408, h / 2 - 10, "#b54749", 2);
+          edge(282, h / 2 + 40, 408, h / 2 + 10, "#b54749", 2);
+          ctx.fillStyle = "#8fb4c9"; ctx.font = "13px IBM Plex Sans, sans-serif";
+          ctx.fillText("同一アドレス A1 からの複数支払い → 同一主体の辺が太くなる", 36, 28);
+        } else {
+          node(80, h / 2 - 50, "A1", "#16836f");
+          node(80, h / 2 + 50, "A2", "#16836f");
+          node(260, h / 2 - 50, "家賃", "#1677b8");
+          node(260, h / 2 + 50, "コーヒー", "#1677b8");
+          edge(102, h / 2 - 50, 238, h / 2 - 50, "#16836f", 2);
+          edge(102, h / 2 + 50, 238, h / 2 + 50, "#16836f", 2);
+          ctx.fillStyle = "#8fb4c9"; ctx.font = "13px IBM Plex Sans, sans-serif";
+          ctx.fillText("都度新しい受取アドレス → リンクは薄れるが、ゼロにはならない", 36, 28);
+          ctx.fillText("（取引所入金などでまた結ばれうる）", 36, 48);
+        }
+      }
+      document.getElementById("btnTraceReuse").onclick = function () {
+        mode = "reuse";
+        status.textContent = "再利用: 人名なしでも「同じ人らしさ」の辺がグラフに生まれる。";
+        draw();
+      };
+      document.getElementById("btnTraceFresh").onclick = function () {
+        mode = "fresh";
+        status.textContent = "新規アドレス: 辺は減る。それでも交換所KYCや共通入力で結ばれる余地は残る。";
+        draw();
+      };
+      document.getElementById("btnTraceReset").onclick = function () {
+        mode = "idle";
+        status.textContent = "ボタンで二通りの支払い習慣を比べてください。";
+        draw();
+      };
+      window.addEventListener("resize", draw); draw();
     })();
   })();
   </script>
