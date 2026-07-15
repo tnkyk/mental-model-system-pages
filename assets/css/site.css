@@ -21,6 +21,21 @@ code {
 .wrap { width: min(var(--mm-max), calc(100% - 48px)); margin: 0 auto; }
 .reading { width: min(var(--mm-reading), calc(100% - 48px)); margin: 0 auto; }
 
+/* Shared helpers for article shells (TOC rail layout lives in article STYLE when needed) */
+.swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 2px solid currentColor;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.swatch.blue { color: var(--mm-blue); background: var(--mm-blue-soft); }
+.swatch.gold { color: var(--mm-gold); background: var(--mm-gold-soft); }
+.swatch.green { color: var(--mm-green); background: var(--mm-green-soft); }
+.swatch.red { color: var(--mm-red); background: var(--mm-red-soft); }
+.swatch.gray { color: var(--mm-gray); background: var(--mm-gray-soft); }
+
 /* —— Site header (shared) —— */
 .site-header {
   position: sticky;
@@ -147,20 +162,6 @@ ul, ol { margin: 0 0 16px; padding-left: 1.35em; }
   font-size: 12px;
   color: var(--mm-muted);
 }
-.swatch {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border: 2px solid currentColor;
-  margin-right: 6px;
-  vertical-align: -1px;
-}
-.swatch.blue { color: var(--mm-blue); background: var(--mm-blue-soft); }
-.swatch.gold { color: var(--mm-gold); background: var(--mm-gold-soft); }
-.swatch.green { color: var(--mm-green); background: var(--mm-green-soft); }
-.swatch.red { color: var(--mm-red); background: var(--mm-red-soft); }
-.swatch.gray { color: var(--mm-gray); background: var(--mm-gray-soft); }
-
 figure.sourced {
   margin: 28px 0;
 }

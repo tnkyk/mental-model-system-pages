@@ -12,6 +12,412 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   
+<style>
+  /* —— Article shell + TOC rail (Faza-like) —— */
+  .article-shell {
+    display: grid;
+    gap: 2.5rem;
+    width: min(1180px, calc(100% - 48px));
+    margin: 0 auto;
+    padding: 28px 0 96px;
+    align-items: start;
+  }
+  @media (min-width: 1100px) {
+    .article-shell {
+      grid-template-columns: 15.5rem minmax(0, 1fr);
+    }
+    .toc-rail { order: 0; }
+    .article-main { order: 1; }
+  }
+  @media (min-width: 900px) and (max-width: 1099px) {
+    .article-shell {
+      grid-template-columns: minmax(0, 1fr) 14rem;
+    }
+    .toc-rail { order: 2; }
+    .article-main { order: 1; }
+  }
+  .article-main {
+    max-width: 860px;
+    min-width: 0;
+  }
+  .article-main .section {
+    padding: 40px 0;
+    border-bottom: 1px solid var(--mm-line);
+    scroll-margin-top: 76px;
+  }
+  .article-main .section:last-child { border-bottom: 0; }
+
+  /* Sticky TOC */
+  .toc-rail {
+    position: sticky;
+    top: calc(var(--mm-header-h) + 16px);
+    max-height: calc(100vh - var(--mm-header-h) - 32px);
+    overflow: auto;
+    padding: 4px 0 24px;
+    scrollbar-width: thin;
+  }
+  .toc-label {
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--mm-gray);
+  }
+  .toc-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border-left: 1px solid var(--mm-line);
+    padding-left: 12px;
+  }
+  .toc-link {
+    display: block;
+    padding: 5px 8px 5px 10px;
+    margin-left: -13px;
+    border-left: 2px solid transparent;
+    color: var(--mm-muted);
+    text-decoration: none;
+    font-size: 12.5px;
+    line-height: 1.45;
+  }
+  .toc-link:hover { color: var(--mm-ink); }
+  .toc-link.active {
+    color: var(--mm-green);
+    border-left-color: var(--mm-green);
+    font-weight: 650;
+  }
+  .toc-link.toc-group { margin-top: 10px; font-weight: 600; color: var(--mm-ink); }
+  .toc-mobile {
+    display: none;
+    margin: 0 0 28px;
+    border: 1px solid var(--mm-line);
+    background: var(--mm-white);
+  }
+  .toc-mobile > summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--mm-green);
+  }
+  .toc-mobile > summary::-webkit-details-marker { display: none; }
+  .toc-mobile .toc-nav {
+    border-left: 0;
+    padding: 0 12px 14px 16px;
+  }
+  @media (max-width: 899px) {
+    .toc-rail { display: none; }
+    .toc-mobile { display: block; }
+    .article-shell { width: min(100% - 32px, 860px); gap: 0; }
+  }
+
+  /* Soft aim */
+  .soft-aim {
+    margin: 0 0 8px;
+    padding: 22px 24px;
+    border: 1px solid rgba(53, 208, 187, 0.35);
+    border-left: 3px solid var(--mm-green);
+    background: var(--mm-green-soft);
+  }
+  .soft-aim .thesis-label {
+    margin: 0 0 8px;
+    color: var(--mm-green);
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+  }
+  .soft-aim .thesis {
+    margin: 0;
+    color: var(--mm-ink);
+    font-size: 17px;
+    line-height: 1.75;
+    font-weight: 600;
+  }
+
+  /* Scope cards */
+  .scope-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: 1fr 1fr;
+    margin: 18px 0 8px;
+  }
+  @media (max-width: 640px) {
+    .scope-grid { grid-template-columns: 1fr; }
+  }
+  .scope-card {
+    padding: 18px 18px 8px;
+    border: 1px solid var(--mm-line);
+    background: var(--mm-white);
+  }
+  .scope-card h4 {
+    margin: 0 0 10px;
+    font-size: 14px;
+    font-weight: 800;
+  }
+  .scope-card.do h4 { color: var(--mm-green); }
+  .scope-card.dont h4 { color: var(--mm-red); }
+  .scope-card ul { margin: 0 0 8px; padding-left: 1.2em; font-size: 14.5px; }
+
+  /* Roadmap path */
+  .roadmap-path {
+    list-style: none;
+    margin: 20px 0 8px;
+    padding: 0;
+    counter-reset: road;
+  }
+  .roadmap-path li {
+    position: relative;
+    display: grid;
+    grid-template-columns: 2.4rem 1fr;
+    gap: 12px;
+    padding: 0 0 22px;
+    counter-increment: road;
+  }
+  .roadmap-path li:last-child { padding-bottom: 0; }
+  .roadmap-path li::before {
+    content: counter(road);
+    grid-row: 1;
+    width: 2.1rem;
+    height: 2.1rem;
+    border-radius: 50%;
+    border: 1px solid var(--mm-green);
+    background: var(--mm-green-soft);
+    color: var(--mm-green);
+    font-size: 12px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+  }
+  .roadmap-path li::after {
+    content: "";
+    position: absolute;
+    left: 1.05rem;
+    top: 2.2rem;
+    bottom: 0;
+    width: 1px;
+    background: var(--mm-line);
+    transform: translateX(-0.5px);
+  }
+  .roadmap-path li:last-child::after { display: none; }
+  .roadmap-path a {
+    color: var(--mm-ink);
+    text-decoration: none;
+    font-size: 15.5px;
+    line-height: 1.55;
+    padding-top: 4px;
+  }
+  .roadmap-path a:hover { color: var(--mm-green); }
+
+  /* Phenomenon cards */
+  .phenomenon-cards {
+    display: grid;
+    gap: 12px;
+    margin: 18px 0 4px;
+  }
+  .phenomenon-card {
+    display: block;
+    padding: 16px 18px;
+    border: 1px solid var(--mm-line);
+    background: var(--mm-white);
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.15s ease;
+  }
+  .phenomenon-card:hover { border-color: var(--mm-green); }
+  .phenomenon-card .ph-text {
+    margin: 0;
+    font-size: 15.5px;
+    color: var(--mm-ink);
+    line-height: 1.55;
+  }
+  .phenomenon-card .ph-meta {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: var(--mm-muted);
+  }
+
+  /* Callouts */
+  .callout-example, .callout-warn, .callout-next {
+    margin: 22px 0;
+    padding: 16px 18px;
+    border: 1px solid var(--mm-line);
+    background: var(--mm-white);
+  }
+  .callout-example { border-left: 3px solid var(--mm-gold); }
+  .callout-warn { border-left: 3px solid var(--mm-red); }
+  .callout-next { border-left: 3px solid var(--mm-blue); }
+  .cap-label {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mm-gray);
+  }
+  .lead-para.dwell {
+    font-size: 18px;
+    line-height: 1.8;
+    color: var(--mm-ink);
+  }
+  .pull-quote {
+    margin: 22px 0;
+    padding: 14px 18px;
+    border-left: 3px solid var(--mm-gold);
+    background: var(--mm-gold-soft);
+    color: var(--mm-ink);
+    font-size: 16.5px;
+    line-height: 1.7;
+  }
+  .node-num { color: var(--mm-green); font-weight: 800; margin-right: 4px; }
+  table.ladder {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 18px 0;
+    font-size: 14px;
+  }
+  table.ladder th, table.ladder td {
+    border: 1px solid var(--mm-line);
+    padding: 10px 12px;
+    text-align: left;
+    vertical-align: top;
+  }
+  table.ladder th {
+    background: var(--mm-gray-soft);
+    color: var(--mm-muted);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .rules-list li { margin-bottom: 10px; }
+
+  /* Editorial figures */
+  figure.diagram {
+    margin: 28px 0;
+    padding: 20px 18px 16px;
+    border: 1px solid var(--mm-line);
+    background: var(--mm-white);
+  }
+  figure.diagram svg { display: block; width: 100%; height: auto; }
+  figure.diagram figcaption {
+    margin: 14px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--mm-line);
+    color: var(--mm-muted);
+    font-size: 13.5px;
+    line-height: 1.6;
+  }
+  figure.diagram .fig-title {
+    margin: 0 0 14px;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--mm-ink);
+  }
+  .fig-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 16px;
+    margin: 0 0 14px;
+    font-size: 11.5px;
+    color: var(--mm-muted);
+  }
+
+  /* Lab embeds — expand/close */
+  .lab-embed {
+    margin: 28px 0;
+    border: 1px solid var(--mm-line);
+    background: var(--mm-white);
+  }
+  .lab-embed > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    font-size: 14.5px;
+    font-weight: 700;
+    color: var(--mm-ink);
+    user-select: none;
+  }
+  .lab-embed > summary::-webkit-details-marker { display: none; }
+  .lab-embed > summary .lab-toggle {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--mm-green);
+    letter-spacing: 0.02em;
+  }
+  .lab-embed[open] > summary .lab-toggle::before { content: "close"; }
+  .lab-embed:not([open]) > summary .lab-toggle::before { content: "expand"; }
+  .lab-toy-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 7px;
+    border: 1px solid var(--mm-line);
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--mm-gray);
+    vertical-align: 1px;
+  }
+  .lab-body { padding: 0 16px 16px; }
+  .sim-hard-claim {
+    margin: 0 0 12px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--mm-ink);
+  }
+  .lab-frame-wrap {
+    border: 1px solid var(--mm-line);
+    background: #121413;
+    overflow: hidden;
+  }
+  .lab-frame-wrap iframe {
+    display: block;
+    width: 100%;
+    height: 560px;
+    border: 0;
+    background: #121413;
+  }
+  .lab-disclaimer {
+    margin: 12px 0 0;
+    font-size: 12.5px;
+    color: var(--mm-muted);
+    line-height: 1.55;
+  }
+
+  /* Late model band */
+  .model-full {
+    margin: 8px 0 20px;
+    padding: 22px 24px;
+    border: 1px solid rgba(53, 208, 187, 0.4);
+    background: var(--mm-green-soft);
+  }
+  .model-full .thesis {
+    margin: 0;
+    font-size: 18px;
+    line-height: 1.75;
+    font-weight: 650;
+  }
+  .model-full .thesis-label {
+    margin: 0 0 8px;
+    color: var(--mm-green);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  /* Hide chrome TOC clutter in header */
+  .site-nav .toc-only { display: none !important; }
+
+  @media (max-width: 720px) {
+    h1 { font-size: 30px; }
+    .lab-frame-wrap iframe { height: 480px; }
+  }
+</style>
+
 </head>
 <body class="essay-dark">
   <header class="site-header">
@@ -19,15 +425,6 @@
       <a class="site-brand" href="./index.html">Mental Models</a>
       <nav class="site-nav" aria-label="サイトナビ">
         <a class="nav-index" href="./index.html">記事一覧</a>
-        <a class="toc-only" href="#stake">序</a>
-        <a class="toc-only" href="#scope">射程</a>
-        <a class="toc-only" href="#roadmap">道筋</a>
-        <a class="toc-only" href="#model">モデル</a>
-        <a class="toc-only" href="#mechanism">機構</a>
-        <a class="toc-only" href="#stacks">往復</a>
-        <a class="toc-only" href="#context">Context</a>
-        <a class="toc-only" href="#workflow">ワークフロー</a>
-        <a class="toc-only" href="#references">出典</a>
       </nav>
     </div>
   </header>
@@ -41,19 +438,65 @@
     </div>
   </header>
 
-  <section class="thesis-band" id="model-thesis">
-    <div class="reading">
-      <p class="thesis-label">最終メンタルモデル</p>
-      <p class="thesis">LLM を思考主体ではなく、条件付き次トークン予測が支える <strong>検索（材料の関連づけ・取得）と翻訳（材料と条件からの統計的表現変換）の部品</strong> と見なし、信頼と作業は <strong>窓の設計（Context）と外側のワークフロー（検証・停止・権限）</strong> に置く。</p>
-    </div>
-  </section>
+  <div class="article-shell">
+  <aside class="toc-rail" aria-label="このページ">
+    <p class="toc-label">このページ</p>
+    <nav class="toc-nav">      <a class="toc-link toc-group" href="#stake">序</a>
+      <a class="toc-link" href="#scope">射程</a>
+      <a class="toc-link" href="#roadmap">道筋</a>
+      <a class="toc-link" href="#phenomena">日常の裂け目</a>
+      <a class="toc-link toc-group" href="#stakes">1. 問いを立てる</a>
+      <a class="toc-link" href="#frame">2. 検索と翻訳</a>
+      <a class="toc-link" href="#mechanism">3. トークンと注意</a>
+      <a class="toc-link" href="#training">4. 学習と切り出し</a>
+      <a class="toc-link" href="#stacks">5. 学習と推論</a>
+      <a class="toc-link" href="#limits-map">6. できない地図</a>
+      <a class="toc-link" href="#context">7. Context</a>
+      <a class="toc-link" href="#workflow">8. ワークフロー</a>
+      <a class="toc-link" href="#synthesis">9. 層で置く</a>
+      <a class="toc-link toc-group" href="#model">メンタルモデル</a>
+      <a class="toc-link" href="#misconceptions">誤解</a>
+      <a class="toc-link" href="#limits">限界</a>
+      <a class="toc-link" href="#closing">立ち位置</a>
+      <a class="toc-link" href="#references">出典</a>
+    </nav>
+  </aside>
 
-  <main class="article">
-    <section class="section reading" id="stake">
+    <div class="article-main">
+    <details class="toc-mobile">
+      <summary>このページ</summary>
+      <nav class="toc-nav" aria-label="このページ">      <a class="toc-link toc-group" href="#stake">序</a>
+      <a class="toc-link" href="#scope">射程</a>
+      <a class="toc-link" href="#roadmap">道筋</a>
+      <a class="toc-link" href="#phenomena">日常の裂け目</a>
+      <a class="toc-link toc-group" href="#stakes">1. 問いを立てる</a>
+      <a class="toc-link" href="#frame">2. 検索と翻訳</a>
+      <a class="toc-link" href="#mechanism">3. トークンと注意</a>
+      <a class="toc-link" href="#training">4. 学習と切り出し</a>
+      <a class="toc-link" href="#stacks">5. 学習と推論</a>
+      <a class="toc-link" href="#limits-map">6. できない地図</a>
+      <a class="toc-link" href="#context">7. Context</a>
+      <a class="toc-link" href="#workflow">8. ワークフロー</a>
+      <a class="toc-link" href="#synthesis">9. 層で置く</a>
+      <a class="toc-link toc-group" href="#model">メンタルモデル</a>
+      <a class="toc-link" href="#misconceptions">誤解</a>
+      <a class="toc-link" href="#limits">限界</a>
+      <a class="toc-link" href="#closing">立ち位置</a>
+      <a class="toc-link" href="#references">出典</a>
+      </nav>
+    </details>
+
+    <section class="section" id="aim">
+      <div class="soft-aim">
+        <p class="thesis-label">目指す理解</p>
+        <p class="thesis">LLM を思考主体ではなく、条件付き次トークン予測が支える <strong>検索（材料の関連づけ・取得）と翻訳（材料と条件からの統計的表現変換）の部品</strong> と見なし、信頼と作業は <strong>窓の設計（Context）と外側のワークフロー（検証・停止・権限）</strong> に置く。</p>
+      </div>
+    </section>
+    <section class="section" id="stake">
       <h2>すでに触れている裂け目</h2>
       <p class="lead-para dwell">あなたはすでに、流暢な答えに納得して共有し、のちに火傷したことがあるかもしれない。資料を渡したのに論点がすり替わる。要約は上手いのに「決めて」と頼むと危ない。長く話すと遅くなり、同じ質問で答がぶれる。ツールを繋いでも検証は自分に残る。プロンプト個人技に依存し、業務設計が後回しになる。出力量だけ増え、「良い仕事」や「良い生」が見えにくくなる——こうした裂け目は、あなたの個人技不足だけの物語ではない。</p>
     </section>
-    <section class="section reading" id="scope">
+    <section class="section" id="scope">
       <h2>この記事がすること／しないこと</h2>
       <div class="scope-grid">
         <div class="scope-card do">
@@ -76,54 +519,54 @@
         </div>
       </div>
     </section>
-    <section class="section reading" id="roadmap">
+    <section class="section" id="roadmap">
       <h2>理解の道筋</h2>
-      <ol class="rules-list">
-        <li>上手いのに火傷する日常から、「結局何ができて、どう使えばよいか」と問いを立てる。</li>
-        <li>条件付き次トークンという型へ立て直し、利用者向けに検索＋翻訳として圧縮する。</li>
-        <li>トークン化・注意・自己回帰で、その二つが内部でどう実装されるかを見る。</li>
-        <li>学習目的・適応・切り出しで、流暢さ・癖・ぶれの層を分ける。</li>
-        <li>学習と推論でハードとアプリの往復地図と律速の違いを持つ。</li>
-        <li>できないこと（真正性・権限・完了・価値）と代理指標・ガードの限界を外に出す。</li>
-        <li>だから窓（Context）の設計が利用の本丸だと示す。</li>
-        <li>単発ではなくワークフローとして配置し、層で信頼を置き、価値の問いを開く。</li>
+      <ol class="roadmap-path">
+        <li><a href="#stakes">上手いのに火傷する日常から、「結局何ができて、どう使えばよいか」と問いを立てる。</a></li>
+        <li><a href="#frame">条件付き次トークンという型へ立て直し、利用者向けに検索＋翻訳として圧縮する。</a></li>
+        <li><a href="#mechanism">トークン化・注意・自己回帰で、その二つが内部でどう実装されるかを見る。</a></li>
+        <li><a href="#training">学習目的・適応・切り出しで、流暢さ・癖・ぶれの層を分ける。</a></li>
+        <li><a href="#stacks">学習と推論でハードとアプリの往復地図と律速の違いを持つ。</a></li>
+        <li><a href="#limits-map">できないこと（真正性・権限・完了・価値）と代理指標・ガードの限界を外に出す。</a></li>
+        <li><a href="#context">だから窓（Context）の設計が利用の本丸だと示す。</a></li>
+        <li><a href="#workflow">単発ではなくワークフローとして配置し、層で信頼を置き、価値の問いを開く。</a></li>
       </ol>
     </section>
-    <section class="section reading" id="phenomena">
-      <h2>Everyday phenomena</h2>
-      <table class="ladder">
-        <tr><th>id</th><th>あなたが感じる現象</th><th>mid-callback</th><th>回収先</th></tr>
-        <tr><td>P1</td><td>自信満々な誤答を共有してしまった</td><td>第3・6章</td><td>第9章</td></tr>
-        <tr><td>P2</td><td>資料なのに論点落ち・別文</td><td>第3・7章</td><td>第7–9章</td></tr>
-        <tr><td>P3</td><td>要約は上手い／判断で火傷</td><td>第2・6章</td><td>第8–9章</td></tr>
-        <tr><td>P4</td><td>長いと遅い・ぶれる</td><td>第4・5章</td><td>第5・9章</td></tr>
-        <tr><td>P5</td><td>ツール後も検証が残る</td><td>第8章</td><td>第8–9章</td></tr>
-        <tr><td>P6</td><td>一発プロンプト依存</td><td>第8章</td><td>第9章</td></tr>
-        <tr><td>P7</td><td>生産性語の空洞</td><td>第9章</td><td>第9章</td></tr>
-      </table>
+    <section class="section" id="phenomena">
+      <h2>この記事が回収する日常</h2>
+      <p class="lead-para">入口の火傷はバラバラの失敗談ではなく、後半で層として回収する約束の現象だ。</p>
+      <div class="phenomenon-cards">
+        <a class="phenomenon-card" href="#limits-map">
+          <p class="ph-text">自信満々な誤答を共有してしまった</p>
+          <p class="ph-meta">途中で触れる：第3・6章 · 回収：第9章 →</p>
+        </a>
+        <a class="phenomenon-card" href="#context">
+          <p class="ph-text">資料なのに論点落ち・別文</p>
+          <p class="ph-meta">途中で触れる：第3・7章 · 回収：第7–9章 →</p>
+        </a>
+        <a class="phenomenon-card" href="#frame">
+          <p class="ph-text">要約は上手い／判断で火傷</p>
+          <p class="ph-meta">途中で触れる：第2・6章 · 回収：第8–9章 →</p>
+        </a>
+        <a class="phenomenon-card" href="#stacks">
+          <p class="ph-text">長いと遅い・ぶれる</p>
+          <p class="ph-meta">途中で触れる：第4・5章 · 回収：第5・9章 →</p>
+        </a>
+        <a class="phenomenon-card" href="#workflow">
+          <p class="ph-text">ツール後も検証が残る</p>
+          <p class="ph-meta">途中で触れる：第8章 · 回収：第8–9章 →</p>
+        </a>
+        <a class="phenomenon-card" href="#workflow">
+          <p class="ph-text">一発プロンプト依存</p>
+          <p class="ph-meta">途中で触れる：第8章 · 回収：第9章 →</p>
+        </a>
+        <a class="phenomenon-card" href="#synthesis">
+          <p class="ph-text">生産性語の空洞</p>
+          <p class="ph-meta">途中で触れる：第9章 · 回収：第9章 →</p>
+        </a>
+      </div>
     </section>
-    <section class="section reading" id="model">
-      <h2>判断規則</h2>
-      <h3>判断規則</h3>
-      <ol class="rules-list">
-        <li>上手く見えても、まず検索材料は十分か／翻訳依頼は能力内かを点検する。判断・決裁・真偽裁定を翻訳に載せない。</li>
-        <li>失敗したら人格ではなく層を疑う（窓／目的・適応／切り出し／KV・提供／外側検証）。</li>
-        <li>信頼は層ごとに置く。流暢さ≠根拠、ツール≠検証済み、MCP≠権限OK、ガード≠完了、judge≠人間最終。</li>
-        <li>利用設計の既定順は、単純化 → 検索／翻訳段にAI配置 → 完了・検証・停止・権限を外側に残す。</li>
-        <li>Contextを増やす前に削る／移す／先頭・末尾に置く。「入れた＝使える」を仮定しない。</li>
-        <li>遅い・高い・長い壊れは、学習と推論を混同せず、推論ならKV／decode帯域／提供を先に疑う。</li>
-        <li>ベンチやLLM-as-judgeで賢さを一次元化しない。</li>
-        <li>「予測＝理解」を業務判断に使わない（意見として知るだけ）。</li>
-        <li>価値・幸福・何を自動化しないかの選定はモデル外の人間の問い。</li>
-      </ol>
-      <h3>反例（モデルが外れるとき）</h3>
-      <ul>
-        <li>検索＋翻訳は教育用圧縮であり、検索エンジン／機械翻訳製品との同一視で外れる。</li>
-        <li>短い窓・ツールなしでも実用になる場面はある——それでも保証の層構造は消えない。</li>
-        <li>組織の監査制度・法的責任は本モデルの外に残る。</li>
-      </ul>
-    </section>
-    <section class="section reading" id="stakes">
+    <section class="section" id="stakes">
       <h2><span class="node-num">1.</span> 上手いのに信用できない日常から問いを立てる</h2>
       <p>あなたはすでに、チャットAIと会話するたびに「相手が賢い」と感じた瞬間があるはずだ。返事は整っている。語尾は自信に満ちている。読みやすい。だから、そのまま共有してしまう。会議資料に貼る。上司に送る。自分の判断の代わりに、生成された文章を差し出す。</p>
       <p>そして後から、火傷する。</p>
@@ -168,11 +611,36 @@
         <p>問いは立った。しかしまだ、相手を「賢い対話者」と見るか、「機能のカタログ」と見るかのどちらでも語れない。七つの手触りは「ある」と感じただけで、何の型の上に起きているのかがないと、現象は失敗談の束のまま残る。</p>
       </div>
       <p>次の章では、記号列の条件付き予測という型へ立て直し、利用者向けに<strong>検索＋翻訳</strong>へ圧縮する。それがなければ、「上手く見えたから信じない」と「層ごとに信頼を置く」は、操作不能なスローガンのままだ。問いは固定された。型と利用フレームが、まだ空だ——そこから先を埋めに行く。</p>
-      <p>---</p>
-      <p><a class="fn-ref" href="#ref-1">(*1)</a> Emily M. Bender ほか, "On the Dangers of Stochastic Parrots: Can Language Models Be Too Big? 🦜" (FAccT 2021). 形式的に妥当な流暢な文字列と、意味理解・コミュニケーション主体との混同を避けるべきだという規範枠。</p>
     </section>
-    <section class="section reading" id="frame">
+    <section class="section" id="frame">
       <h2><span class="node-num">2.</span> 記号列の予測へ立て直し、検索と翻訳として圧縮する</h2>
+
+      <figure class="diagram" aria-label="検索と翻訳のパイプライン">
+        <p class="fig-title">検索＋翻訳 — 利用者向けの圧縮フレーム</p>
+        <div class="fig-legend">
+          <span><span class="swatch blue"></span>検索（材料）</span>
+          <span><span class="swatch gold"></span>翻訳（変換）</span>
+          <span><span class="swatch green"></span>外側の検証</span>
+        </div>
+        <svg viewBox="0 0 720 160" role="img" xmlns="http://www.w3.org/2000/svg">
+          <rect x="20" y="48" width="150" height="64" rx="4" fill="rgba(22,119,184,0.22)" stroke="var(--mm-blue)" stroke-width="1.5"/>
+          <text x="95" y="78" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">材料・窓</text>
+          <text x="95" y="96" text-anchor="middle" fill="#c2c3bf" font-size="11">提示・取得</text>
+          <path d="M180 80 H230" stroke="var(--mm-gray)" stroke-width="1.5" marker-end="url(#arrow)"/>
+          <rect x="230" y="48" width="150" height="64" rx="4" fill="rgba(22,119,184,0.22)" stroke="var(--mm-blue)" stroke-width="1.5"/>
+          <text x="305" y="78" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">検索</text>
+          <text x="305" y="96" text-anchor="middle" fill="#c2c3bf" font-size="11">関連づけ・拾う</text>
+          <path d="M390 80 H440" stroke="var(--mm-gray)" stroke-width="1.5"/>
+          <rect x="440" y="48" width="150" height="64" rx="4" fill="rgba(183,121,18,0.24)" stroke="var(--mm-gold)" stroke-width="1.5"/>
+          <text x="515" y="78" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">翻訳</text>
+          <text x="515" y="96" text-anchor="middle" fill="#c2c3bf" font-size="11">統計的表現変換</text>
+          <path d="M600 80 H640" stroke="var(--mm-gray)" stroke-width="1.5"/>
+          <rect x="640" y="56" width="60" height="48" rx="4" fill="rgba(53,208,187,0.16)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <text x="670" y="85" text-anchor="middle" fill="var(--mm-green)" font-size="11" font-weight="700">検証</text>
+          <defs><marker id="arrow" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6" fill="var(--mm-gray)"/></marker></defs>
+        </svg>
+        <figcaption>LLM は「考える相手」ではなく、材料を拾い（検索）、続きを形にする（翻訳）部品。信頼は検証側に残る。</figcaption>
+      </figure>
       <p>前章で共有した問い——「結局何ができて、どう使えばいいか」——に答えるには、まず製品カタログや「賢い相手」という見方を置き換える必要がある。本章では、大規模言語モデル（LLM）が<strong>実際に扱っているもの</strong>を一文の型で固定し、利用者向けに<strong>検索＋翻訳</strong>という圧縮フレームへ写す。中身の機構語（注意・自己回帰・トークン化）は次章以降で開く。ここでは、判断のための型と写像先の辞書だけを残す。</p>
       <h3>まず型だけ：モデルが扱うもの</h3>
       <p>モデルが扱うのは、離散記号（トークン）の列 \(x = (x_1, x_2, \ldots)\) 上の<strong>条件付き分布</strong>である。与えられた前文 \(x_{<t} = (x_1, \ldots, x_{t-1})\) に対し、次の記号 \(x_t\) がどれだけありそうかを表す確率 \(P(x_t \mid x_{<t})\) を出力し、選ばれた1トークンを前文に足して、また次を予測する——この左から順への延長が<strong>自己回帰</strong>である<a class="fn-ref" id="fnref-2" href="#ref-2">(*2)</a>。大規模言語モデルの事前学習は、インターネット規模のテキストで、この「次のトークン当て」を繰り返し学習させる方式に帰着する<a class="fn-ref" href="#ref-2">(*2)</a>。</p>
@@ -236,8 +704,37 @@
       </ul>
       <p>前章 P2（論点落ち）は、機構語なしでは説明できない。次章 C3 では、たとえの<strong>内部実装</strong>——トークン化・注意・自己回帰——を開き、「検索／翻訳」ラベルの裏側を触れる状態へ渡す。</p>
     </section>
-    <section class="section reading" id="mechanism">
+    <section class="section" id="mechanism">
       <h2><span class="node-num">3.</span> 中で何が起きているか——トークン、注意、自己回帰</h2>
+
+      <figure class="diagram" aria-label="トークンから次トークンへ">
+        <p class="fig-title">token → attention → next token</p>
+        <div class="fig-legend">
+          <span><span class="swatch blue"></span>入力列</span>
+          <span><span class="swatch gold"></span>注意による混合</span>
+          <span><span class="swatch green"></span>次トークン</span>
+        </div>
+        <svg viewBox="0 0 720 170" role="img" xmlns="http://www.w3.org/2000/svg">
+          <g font-size="12" fill="var(--mm-blue)">
+            <rect x="30" y="70" width="44" height="36" rx="3" fill="rgba(22,119,184,0.22)" stroke="var(--mm-blue)"/>
+            <text x="52" y="93" text-anchor="middle">t₁</text>
+            <rect x="84" y="70" width="44" height="36" rx="3" fill="rgba(22,119,184,0.22)" stroke="var(--mm-blue)"/>
+            <text x="106" y="93" text-anchor="middle">t₂</text>
+            <rect x="138" y="70" width="44" height="36" rx="3" fill="rgba(22,119,184,0.22)" stroke="var(--mm-blue)"/>
+            <text x="160" y="93" text-anchor="middle">t₃</text>
+            <text x="200" y="93" fill="var(--mm-gray)">…</text>
+          </g>
+          <path d="M220 88 H280" stroke="var(--mm-gray)" stroke-width="1.5"/>
+          <rect x="280" y="50" width="160" height="76" rx="4" fill="rgba(183,121,18,0.24)" stroke="var(--mm-gold)" stroke-width="1.5"/>
+          <text x="360" y="82" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">Attention</text>
+          <text x="360" y="102" text-anchor="middle" fill="#c2c3bf" font-size="11">加重関連づけ・混合</text>
+          <path d="M450 88 H510" stroke="var(--mm-gray)" stroke-width="1.5"/>
+          <rect x="510" y="58" width="170" height="60" rx="4" fill="rgba(53,208,187,0.16)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <text x="595" y="84" text-anchor="middle" fill="var(--mm-green)" font-size="13" font-weight="700">P(next | context)</text>
+          <text x="595" y="104" text-anchor="middle" fill="#c2c3bf" font-size="11">1トークンを選ぶ</text>
+        </svg>
+        <figcaption>内部では「検索メタファー」が注意による混合として実装され、自己回帰で1トークンずつ延長される。</figcaption>
+      </figure>
       <p>前章までで、モデルが扱うものは <strong>記号列上の条件付き予測</strong> <code>P(x_t|x_&lt;t)</code> だと型を固定した。利用者向けには <strong>検索</strong>（窓内のソフト関連づけと、外側から材料を取り込む経路）と <strong>翻訳</strong>（拾った材料を別表現のトークン列へ変換する逐次生成）へ圧縮した。ただしその時点では、写像先は宣言にとどまり、中身はまだブラックボックスのたとえのままだった。本章はその箱を開ける。操作可能な部品は三つだけ——<strong>切る</strong>（離散トークン化）、<strong>関連づける</strong>（注意）、<strong>順に出す</strong>（自己回帰）——であり、以後の章で出てくる窓設計・目的関数・切り出し・速度の話は、すべてこの三つが重なった上に載る。</p>
       <h3>まず離散化——テキストを記号列に切る</h3>
       <p>コンピュータが扱えるのは有限の記号列である。連続的なテキストをそのまま渡せないので、最初の段で <strong>離散トークン列</strong> へ落とす。ここが全処理の入口であり、検索も翻訳も、この列の上でしか起きない。</p>
@@ -246,14 +743,19 @@
       <p>だから「単語数」と「トークン数」を同一視してはいけない。社内規程の第4章だけを要約させたつもりが、見出し語が不利な切れ方で列の前半を占有し、実質的な窓の大半を消費する——といった現象は、モデルの気まぐれではなく、<strong>離散化の歪み</strong> から先に説明できる。トークン化は品質に効く設計選択である（<code><a class="fn-ref" id="fnref-5" href="#ref-5">(*5)</a></code>）。</p>
       <blockquote class="pull-quote"><strong>(Lab: tokenization)</strong> — <strong>hard claim:</strong> トークン化は情報を捨てる。単語≠トークン。同じ意味の短文でも、英語と日本語、または稀語・数字を含む文では、境界チップとトークン数が目に見えて変わる。読者が「圧縮は歪みを選ぶ」と言えるまで操作する。</blockquote>
 
-      <div class="lab-embed">
-        <p class="lab-title">Lab — トークン化のトレードオフ<span class="lab-toy-badge">教育用トイ</span></p>
-        <p class="sim-hard-claim"><strong>確かめること：</strong> トークン化は情報を捨てる。単語≠トークン。</p>
-        <div class="lab-frame-wrap">
-          <iframe src="./assets/sims/llm/tokenization/index.html" title="Lab — トークン化のトレードオフ" loading="lazy"></iframe>
+      <details class="lab-embed">
+        <summary>
+          <span>Lab — トークン化のトレードオフ<span class="lab-toy-badge">教育用トイ</span></span>
+          <span class="lab-toggle" aria-hidden="true"></span>
+        </summary>
+        <div class="lab-body">
+          <p class="sim-hard-claim"><strong>確かめること：</strong> トークン化は情報を捨てる。単語≠トークン。</p>
+          <div class="lab-frame-wrap">
+            <iframe src="./assets/sims/llm/tokenization/index.html" title="Lab — トークン化のトレードオフ" loading="lazy"></iframe>
+          </div>
+          <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> 実際に学習された BPE/Unigram ではなく、手作りの最長一致トイ語彙です。固定したいのは「圧縮を優先する語彙ほど、稀語・非英語・数字列を断片化する」という構造だけです。 <a href="./assets/sims/llm/tokenization/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
         </div>
-        <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> 実際に学習された BPE/Unigram ではなく、手作りの最長一致トイ語彙です。固定したいのは「圧縮を優先する語彙ほど、稀語・非英語・数字列を断片化する」という構造だけです。 <a href="./assets/sims/llm/tokenization/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
-      </div>
+      </details>
       <h3>位置が要る理由——注意の前に語順を入れる</h3>
       <p>トークン ID は、まずベクトル（埋め込み）へ写される。ここまでで各位置は「何の記号か」という情報を持つが、<strong>系列の順序</strong> はまだ足りない。注意機構の核心は、位置の集合に対する <strong>ソフトな関連づけ</strong> である。集合の並べ替え（permute）に対して、素朴な注意の出力は変わらない——つまり、順序そのものは注意だけでは系列にならない。だから語順は <strong>別チャネル</strong> で注入する。位置エンコーディング（またはそれに相当する注入）が、各トークンに「何番目か」を載せ、注意が「どの位置同士を混ぜるか」を順序付きで扱えるようにする（<code><a class="fn-ref" id="fnref-6" href="#ref-6">(*6)</a></code>）。この一文が、RNN の隠れ状態が担っていた「これまでの経過」を、並列可能な形で戻すための必然である。</p>
       <h3>注意は窓内のソフト検索——加重関連づけ</h3>
@@ -263,14 +765,19 @@
       <p>ここで C1 の <strong>P2</strong>（資料を渡したのに論点を落ち、別のきれいな文になる）を運ではなく機構で読む。仕様書の短い窓に「目的」「制約」「例外」が並び、生成クエリが末尾のメタ指示や挿入文へ強く引かれると、<strong>中央の論点トークンに低重み・末尾に高重み</strong> という偏りが起きうる。有限窓の中で重みが集中する位置が変わるだけで、出力の流暢さは保たれる。だから材料を渡したのに論点が落ちるのは、プロンプトの一行加減だけの話に還元できない——<strong>どのトークンに注意が乗ったか</strong> の問題として先に置く。</p>
       <blockquote class="pull-quote"><strong>(Lab: attention)</strong> — <strong>hard claim:</strong> 注意は順序不変のソフト関連づけであり、検索メタファーの内部実装である。クエリの向きを変えると、同じ窓でも重み分布が変わる。論点トークンを指すクエリと、挿入／末尾トークンを指すクエリでは支配が入れ替わりうる。読者が「似ているほど混ざる；P2 は重みの偏り」と言えるまで操作する。</blockquote>
 
-      <div class="lab-embed">
-        <p class="lab-title">Lab — 注意は混合である<span class="lab-toy-badge">教育用トイ</span></p>
-        <p class="sim-hard-claim"><strong>確かめること：</strong> 注意は順序不変のソフト関連づけであり、検索メタファーの内部実装である。</p>
-        <div class="lab-frame-wrap">
-          <iframe src="./assets/sims/llm/attention/index.html" title="Lab — 注意は混合である" loading="lazy"></iframe>
+      <details class="lab-embed">
+        <summary>
+          <span>Lab — 注意は混合である<span class="lab-toy-badge">教育用トイ</span></span>
+          <span class="lab-toggle" aria-hidden="true"></span>
+        </summary>
+        <div class="lab-body">
+          <p class="sim-hard-claim"><strong>確かめること：</strong> 注意は順序不変のソフト関連づけであり、検索メタファーの内部実装である。</p>
+          <div class="lab-frame-wrap">
+            <iframe src="./assets/sims/llm/attention/index.html" title="Lab — 注意は混合である" loading="lazy"></iframe>
+          </div>
+          <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> 二次元のトイベクトルで類似度を操作する簡略化です。実モデルのヘッド数・次元・位置表現は再現しません。 <a href="./assets/sims/llm/attention/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
         </div>
-        <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> 二次元のトイベクトルで類似度を操作する簡略化です。実モデルのヘッド数・次元・位置表現は再現しません。 <a href="./assets/sims/llm/attention/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
-      </div>
+      </details>
       <h3>積層——同じ操作の繰り返しが深さを作る</h3>
       <p>注意ブロックは単体で終わらない。注意のあとに位置ごとのフィードフォワードネットワーク（FFN）が非線形変換をかけ、残差接続で勾配と情報の通り道を保ちながら、同型のブロックを何十段も重ねる。深さは「賢さの保証」ではない。<strong>合成段数</strong> である。一段で一度きりの関連づけと変換を行い、次の段でまた別のクエリ表現から関連づけをやり直す。層が増えるほど、窓内の遠い位置同士の情報が、多段の混ぜ合わせを経て届きやすくなる——一方で、何を最適化した重みか、何が保証外かは、まだ別の話だ。</p>
       <h3>翻訳は1トークンずつ——学習並列と推論逐次</h3>
@@ -291,7 +798,7 @@
         <p>部品が三つ見えても、まだ空白がある。<strong>重みは学習済みでも</strong>、(1) 何を損失として最適化したか、(2) 出力分布からどのトークンを選ぶか（貪欲・温度・nucleus など）、(3) 指示追従や人間の好みへどう追加適応したか——がなければ、P1 の「自信満々」は完全には回収できない。積層の深さも、賢さの保証ではない。本章は「切る／関連づける／順に出す」まで開いた。次章では、<strong>次トークン CE が保証することと保証しないこと</strong>、そして <strong>サンプリングの癖</strong> を中心に、型の上に載る目的と切り出しの層へ進む。</p>
       </div>
     </section>
-    <section class="section reading" id="training">
+    <section class="section" id="training">
       <h2><span class="node-num">4.</span> 何を学び、どう癖づき、どう切り出すか</h2>
       <p># 何を学び、どう癖づき、どう切り出すか</p>
       <p>前章までで、テキストはトークン列に切られ、注意で窓内の材料が関連づけられ、自己回帰で次の記号が逐次に選ばれる——という <strong>内部部品</strong> の手触りは得られた。ここから先は、その部品に <strong>何の目的で重みが付けられたか</strong>、<strong>チャットらしい口調や従順さはどの工程で乗ったか</strong>、<strong>同じ質問で答えが変わるのはなぜか</strong> を三つの層に分けて見る。入場のころ残りがちな「大きいほど賢い」「丁寧＝人格」「ぶれ＝気分」は、ここで一度冷ます。流暢さは損失関数の副作用として再配置し、意図への追従は別工程、出力の揺れは切り出し手順——と読めるようになれば、この章の契約は果たせる。</p>
@@ -321,14 +828,19 @@
       <p><strong>温度（temperature）</strong> は softmax の尖りを変えるノブだ。低いと高確率トークンに集中し、高いと尾部も拾いやすくなる。<strong>top-p（nucleus sampling）</strong> は、累積確率が閾値 p に達するまでのトークン集合からサンプルし、低確率の尾部を切り落とす <a class="fn-ref" id="fnref-14" href="#ref-14">(*14)</a>。Holtzman らが指摘した <strong>degeneration</strong>——尤度最大化や貪欲なビーム探索に近い切り出しで、反復・平板な続きが増える——は、手順が出力性質を変えることの古典的な例だ <a class="fn-ref" id="fnref-15" href="#ref-15">(*15)</a>。<strong>hard claim</strong> を明示する。温度・top-p は <strong>同じ分布からの決定手順</strong> であり、モデルの「性格」や「気分」ではない。</p>
       <p>本章の <strong>サンプリング Lab</strong>（<code>sampling_llm</code>）では、固定の小型分布（または固定 logits 列）に対し temperature と top-p をスライダー操作できる。同一分布・同一 seed なら再現も示せる。読者が得る体験は一つ——<strong>分布は同じでも、手順を変えると出力列の多様性・反復度が変わる。</strong> caption の教訓も同じだ。<strong>ぶれは性格ではない。切り出し層のレバー。</strong></p>
 
-      <div class="lab-embed">
-        <p class="lab-title">Lab — 温度と top-p の切り出し<span class="lab-toy-badge">教育用トイ</span></p>
-        <p class="sim-hard-claim"><strong>確かめること：</strong> 温度と top-p は同じ分布からの決定手順であり、性格ではない。</p>
-        <div class="lab-frame-wrap">
-          <iframe src="./assets/sims/llm/sampling/index.html" title="Lab — 温度と top-p の切り出し" loading="lazy"></iframe>
+      <details class="lab-embed">
+        <summary>
+          <span>Lab — 温度と top-p の切り出し<span class="lab-toy-badge">教育用トイ</span></span>
+          <span class="lab-toggle" aria-hidden="true"></span>
+        </summary>
+        <div class="lab-body">
+          <p class="sim-hard-claim"><strong>確かめること：</strong> 温度と top-p は同じ分布からの決定手順であり、性格ではない。</p>
+          <div class="lab-frame-wrap">
+            <iframe src="./assets/sims/llm/sampling/index.html" title="Lab — 温度と top-p の切り出し" loading="lazy"></iframe>
+          </div>
+          <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> 固定トイ多項分布での決定手順の対比です。実モデルの語彙分布や核サンプリング実装の細部は再現しません。 <a href="./assets/sims/llm/sampling/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
         </div>
-        <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> 固定トイ多項分布での決定手順の対比です。実モデルの語彙分布や核サンプリング実装の細部は再現しません。 <a href="./assets/sims/llm/sampling/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
-      </div>
+      </details>
       <p>第一章の P4——同じプロンプトで答えが変わる——はここで初めて機構語に回収できる。固定重み・同条件なら分布の型は同型；違いはサンプリングの乱数経路にある。<strong>「今日は機嫌が悪い」ではなく、切り出しを疑う。</strong> 長文になると遅く壊れやすい、という P4 の残部は、学習目的や切り出しでは説明しきれない——次章で KV と帯域の話へ渡す。</p>
       <p>模式図で足りる流れは次のとおり。softmax 出力 →（温度で尖り変更）→（top-p で尾部切除）→ 1トークン選択 → 自己回帰で次へ。人格アイコンは置かない。</p>
       <h3>適応の経路は一つではない</h3>
@@ -344,8 +856,37 @@
         <p>目的関数（CE）、適応（SFT／選好／DPO 等）、切り出し（温度・top-p）まで分解しても、日常で刺さる <strong>遅い・高い・長いと壊れる</strong> 感覚の全部は説明しきれない。それは「モデルが疲れた」のではなく、<strong>学習時の並列 GEMM／IO</strong> と <strong>推論時の KV キャッシュ・帯域・デコード</strong> といった、別の往復経路に帰属する。理解の道筋の第4項——学習時と推論時で、アプリの目的がランタイムを通ってハードウェアまでどう往復し、律速がどう違うか——の <strong>後半</strong> は、次章「学習と推論でハードとアプリをどう往復するか」で地図化する。ここでは橋だけ渡す。<strong>ぶれの一部は切り出し、遅延と長文劣化はランタイムとハードの層</strong>——と層を増やしておこう。</p>
       </div>
     </section>
-    <section class="section reading" id="stacks">
+    <section class="section" id="stacks">
       <h2><span class="node-num">5.</span> 学習と推論でハードとアプリをどう往復するか</h2>
+
+      <figure class="diagram" aria-label="学習スタックと推論スタック">
+        <p class="fig-title">学習スタック vs 推論スタック</p>
+        <div class="fig-legend">
+          <span><span class="swatch gold"></span>学習（並列）</span>
+          <span><span class="swatch blue"></span>推論（逐次）</span>
+          <span><span class="swatch gray"></span>インフラ</span>
+        </div>
+        <svg viewBox="0 0 720 200" role="img" xmlns="http://www.w3.org/2000/svg">
+          <text x="180" y="28" text-anchor="middle" fill="var(--mm-gold)" font-size="14" font-weight="700">Train</text>
+          <rect x="60" y="44" width="240" height="36" rx="3" fill="rgba(183,121,18,0.24)" stroke="var(--mm-gold)"/>
+          <text x="180" y="67" text-anchor="middle" fill="var(--mm-gold)" font-size="12">目標・データ・勾配</text>
+          <rect x="60" y="88" width="240" height="36" rx="3" fill="rgba(183,121,18,0.18)" stroke="var(--mm-gold)"/>
+          <text x="180" y="111" text-anchor="middle" fill="var(--mm-gold)" font-size="12">並列注意・最適化</text>
+          <rect x="60" y="132" width="240" height="36" rx="3" fill="rgba(169,170,165,0.2)" stroke="var(--mm-gray)"/>
+          <text x="180" y="155" text-anchor="middle" fill="var(--mm-gray)" font-size="12">GPU 計算（FLOPS）</text>
+
+          <text x="540" y="28" text-anchor="middle" fill="var(--mm-blue)" font-size="14" font-weight="700">Infer</text>
+          <rect x="420" y="44" width="240" height="36" rx="3" fill="rgba(22,119,184,0.22)" stroke="var(--mm-blue)"/>
+          <text x="540" y="67" text-anchor="middle" fill="var(--mm-blue)" font-size="12">窓・サンプリング・アプリ</text>
+          <rect x="420" y="88" width="240" height="36" rx="3" fill="rgba(22,119,184,0.18)" stroke="var(--mm-blue)"/>
+          <text x="540" y="111" text-anchor="middle" fill="var(--mm-blue)" font-size="12">Prefill / Decode・KV</text>
+          <rect x="420" y="132" width="240" height="36" rx="3" fill="rgba(169,170,165,0.2)" stroke="var(--mm-gray)"/>
+          <text x="540" y="155" text-anchor="middle" fill="var(--mm-gray)" font-size="12">メモリ帯域・提供</text>
+
+          <text x="360" y="190" text-anchor="middle" fill="#c2c3bf" font-size="11">律速は同じ階層名でも学習と推論で別物</text>
+        </svg>
+        <figcaption>「遅い・高い」は学習失敗ではなく、推論の KV／decode／提供であることが多い。スタックを混同しない。</figcaption>
+      </figure>
       <p>前章までで、モデルは「次トークン分布を学び、適応で癖づき、切り出しでぶれる」ことが分かった。ここから先は、<strong>同じ Transformer を回しても、学習時とチャット推論時では資源の使い方が正反対</strong>だ、という話になる。</p>
       <p>日常で「AI が遅い」「高い」「長いと壊れる」と感じる場面の多くは、<strong>推論（チャット）側</strong>の話だ。一方、事前学習や SFT を想像するときに頭に浮かぶのは、巨大クラスタで何週間も回す <strong>学習</strong> のイメージだ。これらを一枚岩の「GPU が頑張っている」にまとめると、帰属が必ずズレる——アプリのせい、モデルのせい、回線のせい、「考え込んでいるから重い」のせい、と混線する。</p>
       <p>本章では <strong>二枚の地図</strong> を持つ。左が学習スタック、右が推論スタックだ。どちらも「アプリ目的（または条件）→ ランタイム → ハードウェア → 戻り」の往復だが、<strong>律速の場所が違う</strong>。GPU の型番比較やカーネルチューニング手順はここでは扱わない。読者が持ち帰るのは、<strong>どのフェーズで何を疑うか</strong> という会計の型だけだ。</p>
@@ -379,14 +920,19 @@
       <h3>Lab — KV 会計</h3>
       <p><strong>SIM_llm_kv_cache</strong>（<code>10_simulations/llm/kv-cache/index.html</code>）で、次を対照する。</p>
 
-      <div class="lab-embed">
-        <p class="lab-title">Lab — KV メモリの増大<span class="lab-toy-badge">教育用トイ</span></p>
-        <p class="sim-hard-claim"><strong>確かめること：</strong> 推論では KV と逐次デコードがメモリ／帯域律速を生み、アプリ条件と往復する。</p>
-        <div class="lab-frame-wrap">
-          <iframe src="./assets/sims/llm/kv-cache/index.html" title="Lab — KV メモリの増大" loading="lazy"></iframe>
+      <details class="lab-embed">
+        <summary>
+          <span>Lab — KV メモリの増大<span class="lab-toy-badge">教育用トイ</span></span>
+          <span class="lab-toggle" aria-hidden="true"></span>
+        </summary>
+        <div class="lab-body">
+          <p class="sim-hard-claim"><strong>確かめること：</strong> 推論では KV と逐次デコードがメモリ／帯域律速を生み、アプリ条件と往復する。</p>
+          <div class="lab-frame-wrap">
+            <iframe src="./assets/sims/llm/kv-cache/index.html" title="Lab — KV メモリの増大" loading="lazy"></iframe>
+          </div>
+          <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> コンテキスト長×バッチの線形スケールを示す会計トイです。実GPUの断片化やページングは簡略化しています。 <a href="./assets/sims/llm/kv-cache/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
         </div>
-        <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> コンテキスト長×バッチの線形スケールを示す会計トイです。実GPUの断片化やページングは簡略化しています。 <a href="./assets/sims/llm/kv-cache/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
-      </div>
+      </details>
       <ul>
         <li><strong>コンテキスト長</strong> を伸ばす → KV メモリが線形に増える</li>
         <li><strong>同時接続（バッチ）</strong> を増やす → 同じ GPU 容量への圧が上がる</li>
@@ -432,22 +978,33 @@
       </div>
       <p>KV と帯域で説明 <strong>できない</strong> 失敗がある。<strong>真正性</strong>（事実かどうか）、<strong>権限</strong>（してよいか）、<strong>完了</strong>（いつ終わりとみなすか）、<strong>価値の選定</strong>（何を優先するか）は、モデル内の次トークン分布だけでは保証されない。前章の CE も、そこを損失項として直には押さえていなかった。</p>
       <p>次章では <strong>できないことの地図</strong> を描く。遅さの帰属は分かった。では <strong>何をもって「できる」と言うか</strong> —— 測っているものと測れていないものの地図が要る。</p>
-      <p>---</p>
       <h3>脚注（ローカル）</h3>
-      <p><a class="fn-ref" href="#ref-19">(*19)</a> Megatron-LM：大規模学習は単一 GPU を超え、層内モデル並列が必要；配置と通信がスケール律速になりうる。</p>
-      <p><a class="fn-ref" href="#ref-20">(*20)</a> ZeRO：データ並列のみではオプティマイザ等の冗長がメモリ限界；状態分割で学習可能規模を伸ばす。</p>
-      <p><a class="fn-ref" href="#ref-21">(*21)</a> NVIDIA GEMM 性能論：ops:byte と算術強度で math-bound / memory-bound が切り替わる；行列ベクトル積は memory limited になりやすい。</p>
-      <p><a class="fn-ref" href="#ref-22">(*22)</a> FlashAttention：注意の壁時計性能は HBM IO が律速；IO-aware 実装は学習・長文脈の往復例。</p>
-      <p><a class="fn-ref" href="#ref-23">(*23)</a> vLLM / PagedAttention：KV は巨大・動的・断片化がバッチを制限；prefill/decode 非対称；memory-bound な逐次生成。</p>
-      <p><a class="fn-ref" href="#ref-24">(*24)</a> Multi-Query Attention：増分推論は K/V 再ロードが帯域律速；MQA は KV 共有で decode 帯域を削減。</p>
-      <p><a class="fn-ref" href="#ref-25">(*25)</a> GQA：MHA と MQA の中間；速度と品質のトレードオフ。</p>
-      <p><a class="fn-ref" href="#ref-26">(*26)</a> Speculative decoding：出力分布を変えず複数トークンを並列検証するシステム加速。</p>
-      <p><a class="fn-ref" href="#ref-27">(*27)</a> GPTQ 等：PTQ で推論メモリ・提供コストを変える；再学習なしのデプロイ工程。</p>
     </section>
-    <section class="section reading" id="limits-map">
+    <section class="section" id="limits-map">
       <h2><span class="node-num">6.</span> できないことの地図——評価・規範・主体誤認</h2>
+
+      <figure class="diagram" aria-label="モデルの外にあるもの">
+        <p class="fig-title">Outside the model — できないことの四隅</p>
+        <div class="fig-legend">
+          <span><span class="swatch red"></span>モデル外／権限・価値</span>
+          <span><span class="swatch gold"></span>モデルができること</span>
+        </div>
+        <svg viewBox="0 0 720 220" role="img" xmlns="http://www.w3.org/2000/svg">
+          <rect x="210" y="60" width="300" height="100" rx="6" fill="rgba(183,121,18,0.2)" stroke="var(--mm-gold)" stroke-width="1.5"/>
+          <text x="360" y="105" text-anchor="middle" fill="var(--mm-gold)" font-size="14" font-weight="700">検索＋翻訳</text>
+          <text x="360" y="128" text-anchor="middle" fill="#c2c3bf" font-size="11">条件付き次トークン</text>
+          <rect x="40" y="30" width="140" height="50" rx="4" fill="rgba(181,71,73,0.2)" stroke="var(--mm-red)"/>
+          <text x="110" y="60" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">真正性</text>
+          <rect x="540" y="30" width="140" height="50" rx="4" fill="rgba(181,71,73,0.2)" stroke="var(--mm-red)"/>
+          <text x="610" y="60" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">権限</text>
+          <rect x="40" y="150" width="140" height="50" rx="4" fill="rgba(181,71,73,0.2)" stroke="var(--mm-red)"/>
+          <text x="110" y="180" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">完了</text>
+          <rect x="540" y="150" width="140" height="50" rx="4" fill="rgba(181,71,73,0.2)" stroke="var(--mm-red)"/>
+          <text x="610" y="180" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">価値</text>
+        </svg>
+        <figcaption>流暢さは四隅を保証しない。真正性・権限・完了・価値の選定はモデルの外に残る。</figcaption>
+      </figure>
       <p>（マージ前の章本文。読者見出しのみ。<code>Nx</code> 見出し禁止。）</p>
-      <p>---</p>
       <h3>はじめに — できる側のあとに戻る引力</h3>
       <p>前章までで、学習と推論は別スタックで往復し、遅さやコストは KV や提供の会計に帰属することが見えた。同時に C4 では、次トークンの交差エントロピーが押し上げるのは流暢な続きであり、事実の真正性や意図の読み取りを直最適化しないことも固定した。C2 で一度おりた「思考している相手」フレームが、製品体験の滑らかさと数字の並びに触れると、また戻ってくる。</p>
       <p>ベンチマークの順位表を見て「これが一番賢い」と感じる。開発チームが LLM-as-judge のスコアを並べて「品質が上がった」と報告する。製品ページに Safety Guard のバッジが付いている。モデルが丁寧に拒否し、根拠らしい段落を返す——そのとき、C1 で触れた「上手いのに信用できない」が別の形で再燃する。本章は、<strong>できる側の地図のあとに、できない側の地図を一枚足す</strong> 章である。否定は冷笑ではない。検索と翻訳は有効なまま、<strong>載せ方と止め方</strong> が変わる。</p>
@@ -514,7 +1071,6 @@
         <li><strong>その次（ワークフロー）:</strong> 単発の窓最適化だけでは業務は閉じない。<strong>検索／翻訳の段への配置・外側検証・停止</strong> をループに組み込む必要がある。</li>
       </ul>
       <p>禁止リストだけでは仕事が進まない——だから <strong>材料と手順を設計したい</strong> という飢えが残る。それが次の二章への橋である。C6 なしで Context やワークフローへ飛ぶと、「プロンプトを工夫すれば主体性も評価も直る」という Tips 信仰に逆戻りしうる。否定地図は利用設計の <strong>前提</strong> であり、おまけの注意書きではない。</p>
-      <p>---</p>
       <h3>本章脚注</h3>
       <table class="ladder">
         <tr><th>番号</th><th>出典</th><th>本章での役割</th></tr>
@@ -526,8 +1082,30 @@
         <tr><td><a class="fn-ref" href="#ref-33">(*33)</a></td><td>Sutskever, Dwarkesh interview</td><td>「予測＝理解」意見箱（判断規則外）</td></tr>
       </table>
     </section>
-    <section class="section reading" id="context">
+    <section class="section" id="context">
       <h2><span class="node-num">7.</span> だから Context Engineering</h2>
+
+      <figure class="diagram" aria-label="Lost in the Middle のU字">
+        <p class="fig-title">窓内の位置 — Lost in the Middle</p>
+        <div class="fig-legend">
+          <span><span class="swatch blue"></span>利用されやすい位置</span>
+          <span><span class="swatch gray"></span>靄みやすい中間</span>
+        </div>
+        <svg viewBox="0 0 720 200" role="img" xmlns="http://www.w3.org/2000/svg">
+          <line x1="80" y1="160" x2="640" y2="160" stroke="var(--mm-gray)" stroke-width="1"/>
+          <line x1="80" y1="40" x2="80" y2="160" stroke="var(--mm-gray)" stroke-width="1"/>
+          <text x="360" y="188" text-anchor="middle" fill="#c2c3bf" font-size="11">窓内の位置（先頭 → 末尾）</text>
+          <text x="40" y="100" text-anchor="middle" fill="#c2c3bf" font-size="11" transform="rotate(-90 40 100)">利用</text>
+          <path d="M80 50 C 200 55, 280 150, 360 155 S 520 55, 640 48" fill="none" stroke="var(--mm-blue)" stroke-width="2.5"/>
+          <circle cx="80" cy="50" r="5" fill="var(--mm-blue)"/>
+          <circle cx="360" cy="155" r="5" fill="var(--mm-gray)"/>
+          <circle cx="640" cy="48" r="5" fill="var(--mm-blue)"/>
+          <text x="95" y="42" fill="var(--mm-blue)" font-size="11">先頭</text>
+          <text x="340" y="175" fill="var(--mm-gray)" font-size="11">中間</text>
+          <text x="600" y="40" fill="var(--mm-blue)" font-size="11">末尾</text>
+        </svg>
+        <figcaption>「入れた＝使える」は仮定しない。増やす前に削る／移す／先頭・末尾に置く。</figcaption>
+      </figure>
       <p>前章で、できないことの地図——真正性保証、権限裁定、業務完了の定義、価値選定——をモデルの外側に置いた。それは禁欲ではなく、利用を始めるための前提だ。しかし地図だけでは、あなたの手は空のままだ。資料を貼ったのに論点だけ落ち、返ってきたのはきれいな別の文だった——そんな経験（P2）は、人格やプロンプトの丁寧さだけでは説明しきれない。</p>
       <p>第2章で固定した「検索＋翻訳」の型に戻ろう。モデルは窓の中の材料を関連づけて拾い、その分布を文字列に翻訳する。第3章で見た注意は一様な全体走査ではなく、ソフトな検索だった。第5章で有限窓と KV が律速になることも触れた。これらを <strong>利用者が触れるレバー</strong> に落とすのが Context Engineering である。流行のラベルではなく、有限 attention の下で検索材料の効用を設計する必然だ <a class="fn-ref" id="fnref-34" href="#ref-34">(*34)</a><a class="fn-ref" id="fnref-35" href="#ref-35">(*35)</a>。</p>
       <h3>プロンプトは窓の一部である</h3>
@@ -567,7 +1145,6 @@
       </div>
       <p>P5（ツールを繋いでも検証が自分に残る）、P6（一発プロンプト技に業務設計を委ねる）は、まだ回収していない。エージェントループでは毎ターン文脈候補が膨張するため、周期的なキュレーションが要る <a class="fn-ref" href="#ref-39">(*39)</a>——本章の窓点検は、その前提となる <strong>一ターン分の技</strong> である。</p>
       <p>次章では、AI を <strong>検索／翻訳の段に置くワークフロー</strong> として設計する。外側索引、function calling、ReAct 的ループ、MCP の配線——いずれも名前のカタログではなく、<strong>停止・検証・権限が外側に残る</strong> という第6章の地図とセットで見る。本章で窓のレバーを掴んだ読者にとって、それは「おまけの Tips」ではなく、同じ設計思想の延長線上にある。</p>
-      <p>---</p>
       <p><strong>本章脚注（ローカル；ARTICLE マージ時に番号確定）</strong></p>
       <ul>
         <li><a class="fn-ref" href="#ref-34">(*34)</a> Anthropic — Context ＝ サンプリング時に含めるトークン集合全体（指示・履歴・資料・ツール結果等）</li>
@@ -578,8 +1155,34 @@
         <li><a class="fn-ref" href="#ref-39">(*39)</a> Anthropic — エージェントループでの文脈膨張と周期的キュレーション（→ 次章ワークフロー）</li>
       </ul>
     </section>
-    <section class="section reading" id="workflow">
+    <section class="section" id="workflow">
       <h2><span class="node-num">8.</span> 使い方の本丸はワークフロー設計</h2>
+
+      <figure class="diagram" aria-label="検索・翻訳・検証のループ">
+        <p class="fig-title">search → translate → verify（人間は外側）</p>
+        <div class="fig-legend">
+          <span><span class="swatch blue"></span>検索</span>
+          <span><span class="swatch gold"></span>翻訳</span>
+          <span><span class="swatch green"></span>検証・停止</span>
+          <span><span class="swatch red"></span>権限</span>
+        </div>
+        <svg viewBox="0 0 720 200" role="img" xmlns="http://www.w3.org/2000/svg">
+          <rect x="80" y="70" width="120" height="56" rx="4" fill="rgba(22,119,184,0.22)" stroke="var(--mm-blue)" stroke-width="1.5"/>
+          <text x="140" y="103" text-anchor="middle" fill="var(--mm-blue)" font-size="13" font-weight="700">検索</text>
+          <path d="M210 98 H270" stroke="var(--mm-gray)" stroke-width="1.5"/>
+          <rect x="270" y="70" width="120" height="56" rx="4" fill="rgba(183,121,18,0.24)" stroke="var(--mm-gold)" stroke-width="1.5"/>
+          <text x="330" y="103" text-anchor="middle" fill="var(--mm-gold)" font-size="13" font-weight="700">翻訳</text>
+          <path d="M400 98 H460" stroke="var(--mm-gray)" stroke-width="1.5"/>
+          <rect x="460" y="70" width="120" height="56" rx="4" fill="rgba(53,208,187,0.16)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <text x="520" y="103" text-anchor="middle" fill="var(--mm-green)" font-size="13" font-weight="700">検証</text>
+          <path d="M520 70 C 520 30, 140 30, 140 70" fill="none" stroke="var(--mm-gray)" stroke-width="1.2" stroke-dasharray="4 4"/>
+          <text x="330" y="28" text-anchor="middle" fill="#c2c3bf" font-size="11">窓へ戻す（任意）</text>
+          <rect x="600" y="55" width="90" height="86" rx="4" fill="rgba(181,71,73,0.18)" stroke="var(--mm-red)" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <text x="645" y="90" text-anchor="middle" fill="var(--mm-red)" font-size="12" font-weight="700">人間</text>
+          <text x="645" y="110" text-anchor="middle" fill="var(--mm-red)" font-size="10">権限・完了</text>
+        </svg>
+        <figcaption>AI はループ内の部品。止める・検証する・権限を渡すのはワークフロー側の人間だ。</figcaption>
+      </figure>
       <p>（マージ前の章本文。読者見出しのみ。<code>Nx</code> 見出し禁止。）</p>
       <h3>窓だけでは業務は閉じない</h3>
       <p>前章までで、窓に何を・どこに・いつ載せるか——Context Engineering のレバーは手に入った。仕様書の中央に論点を置かない、増やす前に削る、といった点検もできるようになった。それでも、窓を整えた <strong>1回のチャット呼び出し</strong> だけでは、多くの業務は閉じない。</p>
@@ -594,14 +1197,19 @@
       <p>三つを並べると、違いは <strong>配線の仕方</strong> であり、モデルから見れば同型だ。どれも <strong>窓への追加トークン</strong> である。RAG の検索結果も、ツールの JSON 出力も、MCP 経由の resource も、モデルにとっては区別のない文字列として条件に入る。出自の真正性、権限の OK、十分性の検証——これらをモデルが機構的に保証する項はない。C6 で外に置いた制約の延長だ。</p>
       <p>ここで <strong>tool-boundary Lab</strong> の hard claim を言い切る。ツール結果は、検証ラベルのない <strong>ただのトークン</strong> である。信頼文書と攻撃指示文を同じ <code>&lt;search_result&gt;</code> 形式で与えても、モデルは機構的に区別しない。実行と権限はアプリ側だ。外側ゲートを ON にすれば、文脈到達前に遮断できる——遮断主体はモデル外である。この Lab は「繋げば安全」という P5 の誤帰属を、体感で折るための対比装置だ。</p>
 
-      <div class="lab-embed">
-        <p class="lab-title">Lab — ツールと権限の境界<span class="lab-toy-badge">教育用トイ</span></p>
-        <p class="sim-hard-claim"><strong>確かめること：</strong> ツール結果も検証ラベルのないトークンであり、実行と権限はアプリ側。</p>
-        <div class="lab-frame-wrap">
-          <iframe src="./assets/sims/llm/tool-boundary/index.html" title="Lab — ツールと権限の境界" loading="lazy"></iframe>
+      <details class="lab-embed">
+        <summary>
+          <span>Lab — ツールと権限の境界<span class="lab-toy-badge">教育用トイ</span></span>
+          <span class="lab-toggle" aria-hidden="true"></span>
+        </summary>
+        <div class="lab-body">
+          <p class="sim-hard-claim"><strong>確かめること：</strong> ツール結果も検証ラベルのないトークンであり、実行と権限はアプリ側。</p>
+          <div class="lab-frame-wrap">
+            <iframe src="./assets/sims/llm/tool-boundary/index.html" title="Lab — ツールと権限の境界" loading="lazy"></iframe>
+          </div>
+          <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> 信頼文書と攻撃文を同形式で扱う最小対比です。個別サンドボックス／認可実装のレシピではありません。 <a href="./assets/sims/llm/tool-boundary/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
         </div>
-        <p class="lab-disclaimer"><strong>教育用トイの開示：</strong> 信頼文書と攻撃文を同形式で扱う最小対比です。個別サンドボックス／認可実装のレシピではありません。 <a href="./assets/sims/llm/tool-boundary/index.html" target="_blank" rel="noopener">新しいタブで開く ↗</a></p>
-      </div>
+      </details>
       <p>混同を防ぐため、表で一度だけ整理する。</p>
       <table class="ladder">
         <tr><th>混同しがちな言い方</th><th>正しい置き方</th></tr>
@@ -667,10 +1275,28 @@
       </div>
       <p>ワークフローを描けても、層ごとの信頼の置き方——モデル、judge、ガード、人間、組織——を一枚の判断図にまとめる作業は、まだこれからだ。次章では C1 からここまでを <strong>合成</strong> し、Intent の持ち帰りメンタルモデルと、幸福・価値といった技術外の開かれた問いで記事を閉じる。出口の一文を先に置く。<strong>配置はできた。次は層別信頼と life placement の回収へ。</strong></p>
     </section>
-    <section class="section reading" id="synthesis">
+    <section class="section" id="synthesis">
       <h2><span class="node-num">9.</span> 層で置き、単純化し、開かれた問いを残す</h2>
+
+      <figure class="diagram" aria-label="層ごとの信頼">
+        <p class="fig-title">層で置く信頼</p>
+        <div class="fig-legend">
+          <span><span class="swatch gold"></span>見え方</span>
+          <span><span class="swatch green"></span>人間が残す</span>
+        </div>
+        <svg viewBox="0 0 720 180" role="img" xmlns="http://www.w3.org/2000/svg">
+          <rect x="40" y="30" width="200" height="40" rx="3" fill="rgba(183,121,18,0.2)" stroke="var(--mm-gold)"/>
+          <text x="140" y="55" text-anchor="middle" fill="var(--mm-gold)" font-size="12">流暢さ ≠ 根拠</text>
+          <rect x="260" y="30" width="200" height="40" rx="3" fill="rgba(183,121,18,0.2)" stroke="var(--mm-gold)"/>
+          <text x="360" y="55" text-anchor="middle" fill="var(--mm-gold)" font-size="12">ツール ≠ 検証済</text>
+          <rect x="480" y="30" width="200" height="40" rx="3" fill="rgba(183,121,18,0.2)" stroke="var(--mm-gold)"/>
+          <text x="580" y="55" text-anchor="middle" fill="var(--mm-gold)" font-size="12">ガード ≠ 完了</text>
+          <rect x="150" y="100" width="420" height="48" rx="4" fill="rgba(53,208,187,0.16)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <text x="360" y="129" text-anchor="middle" fill="var(--mm-green)" font-size="13" font-weight="700">人間最終・外側検証・価値の選定</text>
+        </svg>
+        <figcaption>一括りに「賢いから OK」としない。保証範囲は層ごとに違う。</figcaption>
+      </figure>
       <p>（マージ前の章本文。読者見出しのみ。<code>Nx</code> 見出し禁止。）</p>
-      <p>---</p>
       <h3>地図は揃った——持ち帰りを一枚に圧縮する</h3>
       <p>ここまでで、型・中身・学習と推論の往復・できないこと・窓・ワークフローまで触れた。手元にはレバーがある。それでも残るのは、別種のもやだ。「結局、自分はどう使えばいいのか」「全部チェックすれば安全か」「外側ばかりだと、結局なにも信じられないのでは」——どちらの極端にも寄りやすい。</p>
       <p>この章は新しい機構を足さない。記事全体の持ち帰りを <strong>一枚の判断地図</strong> に圧縮する。最初に列挙した七つの日常の裂け目を、層の言葉で総回収する。そして、記事が約束したメンタルモデルと三つの判断フックを、自分の言葉で言える状態で閉じる。完璧なチェックリストでも、技術の虚無でもない。<strong>どこまでモデルに任せ、どこから人間が引き受けるか</strong> が言える安心——それだけを渡す。</p>
@@ -740,7 +1366,51 @@
       <p>地図は、層に落とせば持ち帰れる。失敗は人格ではなく層の問題として疑える。信頼は一括りにせず、完了は外側に残せる。それだけで、チェックリスト地獄でも技術虚無でもない。</p>
       <p>自分の言葉で言い直すなら、こうなるはずだ。「LLM は検索と翻訳の部品。信頼と作業は窓とワークフローに置く。生産性の先の価値は、自分が決める。」—— 記事はここで終わる。特定ドメインの窓設計、組織ガバナンス、ワークフロー評価指標などは、別の問いとして残してよい。続編を煽る必要はない。</p>
     </section>
-    <section class="section reading" id="misconceptions">
+    <section class="section" id="model">
+      <h2>持ち帰るメンタルモデル</h2>
+      <div class="model-full">
+        <p class="thesis-label">一文の芯</p>
+        <p class="thesis">LLM を思考主体ではなく、条件付き次トークン予測が支える <strong>検索（材料の関連づけ・取得）と翻訳（材料と条件からの統計的表現変換）の部品</strong> と見なし、信頼と作業は <strong>窓の設計（Context）と外側のワークフロー（検証・停止・権限）</strong> に置く。</p>
+      </div>
+
+      <figure class="diagram" aria-label="層ごとの信頼">
+        <p class="fig-title">層で置く信頼</p>
+        <div class="fig-legend">
+          <span><span class="swatch gold"></span>見え方</span>
+          <span><span class="swatch green"></span>人間が残す</span>
+        </div>
+        <svg viewBox="0 0 720 180" role="img" xmlns="http://www.w3.org/2000/svg">
+          <rect x="40" y="30" width="200" height="40" rx="3" fill="rgba(183,121,18,0.2)" stroke="var(--mm-gold)"/>
+          <text x="140" y="55" text-anchor="middle" fill="var(--mm-gold)" font-size="12">流暢さ ≠ 根拠</text>
+          <rect x="260" y="30" width="200" height="40" rx="3" fill="rgba(183,121,18,0.2)" stroke="var(--mm-gold)"/>
+          <text x="360" y="55" text-anchor="middle" fill="var(--mm-gold)" font-size="12">ツール ≠ 検証済</text>
+          <rect x="480" y="30" width="200" height="40" rx="3" fill="rgba(183,121,18,0.2)" stroke="var(--mm-gold)"/>
+          <text x="580" y="55" text-anchor="middle" fill="var(--mm-gold)" font-size="12">ガード ≠ 完了</text>
+          <rect x="150" y="100" width="420" height="48" rx="4" fill="rgba(53,208,187,0.16)" stroke="var(--mm-green)" stroke-width="1.5"/>
+          <text x="360" y="129" text-anchor="middle" fill="var(--mm-green)" font-size="13" font-weight="700">人間最終・外側検証・価値の選定</text>
+        </svg>
+        <figcaption>一括りに「賢いから OK」としない。保証範囲は層ごとに違う。</figcaption>
+      </figure>
+      <h3>判断規則</h3>
+      <ol class="rules-list">
+        <li>上手く見えても、まず検索材料は十分か／翻訳依頼は能力内かを点検する。判断・決裁・真偽裁定を翻訳に載せない。</li>
+        <li>失敗したら人格ではなく層を疑う（窓／目的・適応／切り出し／KV・提供／外側検証）。</li>
+        <li>信頼は層ごとに置く。流暢さ≠根拠、ツール≠検証済み、MCP≠権限OK、ガード≠完了、judge≠人間最終。</li>
+        <li>利用設計の既定順は、単純化 → 検索／翻訳段にAI配置 → 完了・検証・停止・権限を外側に残す。</li>
+        <li>Contextを増やす前に削る／移す／先頭・末尾に置く。「入れた＝使える」を仮定しない。</li>
+        <li>遅い・高い・長い壊れは、学習と推論を混同せず、推論ならKV／decode帯域／提供を先に疑う。</li>
+        <li>ベンチやLLM-as-judgeで賢さを一次元化しない。</li>
+        <li>「予測＝理解」を業務判断に使わない（意見として知るだけ）。</li>
+        <li>価値・幸福・何を自動化しないかの選定はモデル外の人間の問い。</li>
+      </ol>
+      <h3>モデルが外れるとき</h3>
+      <ul>
+        <li>検索＋翻訳は教育用圧縮であり、検索エンジン／機械翻訳製品との同一視で外れる。</li>
+        <li>短い窓・ツールなしでも実用になる場面はある——それでも保証の層構造は消えない。</li>
+        <li>組織の監査制度・法的責任は本モデルの外に残る。</li>
+      </ul>
+    </section>
+    <section class="section" id="misconceptions">
       <h2>よくある誤解</h2>
       <ul>
         <li>上手い＝理解した主体の結論である。</li>
@@ -749,7 +1419,7 @@
         <li>LLM-as-judgeは人間の無バイアス置換／ガード一枚で完了する。</li>
       </ul>
     </section>
-    <section class="section reading" id="limits">
+    <section class="section" id="limits">
       <h2>反例・限界</h2>
       <ul>
         <li>組織ガバナンス規格の制度解説は本論の中心にしない。</li>
@@ -757,15 +1427,15 @@
         <li>幸福・意味の体系書化はしない（問いを開くに留める）。</li>
       </ul>
     </section>
-    <section class="section reading" id="phenomena-close">
-      <h2>現象の合成（Everyday phenomena 回収）</h2>
+    <section class="section" id="phenomena-close">
+      <h2>日常の裂け目はどこに回収されたか</h2>
       <p>第9章の層タグ表でP1–P7を回収する。入口の火傷は、個人技不足だけの物語ではなく、検索材料・翻訳依頼・窓・切り出し・KV・外側検証・ワークフロー設計のどこかに帰属しうる。</p>
     </section>
-    <section class="section reading" id="closing">
+    <section class="section" id="closing">
       <h2>自分は今、地図のどこに立っているか</h2>
       <p>いま操作しているのは窓の材料か、翻訳の依頼か、提供の律速か、外側の検証か——一言で言えるか。AIを検索／翻訳の部品として配置し、完了と価値の選定を人間側に残せているか。それがこの記事の到達点である。</p>
     </section>
-    <section class="section reading" id="references">
+    <section class="section" id="references">
       <h2>出典</h2>
       <ol>
         <li id="ref-1">Emily M. Bender, Timnit Gebru, et al.. *On the Dangers of Stochastic Parrots*. (2021). <a href="https://dl.acm.org/doi/10.1145/3442188.3445922" target="_blank" rel="noopener">dl.acm.org/doi/10.1145/3442188.3445922</a> <a href="#fnref-1" class="fn-back" aria-label="本文へ戻る">↩</a></li>
@@ -820,7 +1490,8 @@
       </ol>
       <p style="color:var(--mm-muted);font-size:13px;">注: 本稿の Lab（教育用トイ）は簡略化されたシミュレーションであり、実モデルの語彙・アーキテクチャ・提供システムの実測値を再現するものではない。性能予言・投資助言ではない。</p>
     </section>
-  </main>
+    </div>
+  </div>
 
   <script src="./assets/js/site.js"></script>
 </body>
