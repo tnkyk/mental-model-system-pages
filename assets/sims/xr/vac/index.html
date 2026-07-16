@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VAC Lab | Mental Model Studio</title>
+<style>
+:root{color-scheme:dark;--mm-ink:#f0ede6;--mm-muted:#b0aea6;--mm-paper:#0b0c0c;--mm-white:#161818;--mm-line:#3d3f3e;--mm-plus:#a8bdd0;--mm-green:#7ec9a8;--mm-gold:#f0ede6;--mm-gold-soft:rgba(240,237,230,.10);--mm-green-soft:rgba(126,201,168,.18);--mm-red-soft:rgba(168,189,208,.16);--mm-gray-soft:#1c1e1e;}
+body{margin:0;font:14px/1.6 system-ui,"Noto Sans JP",sans-serif;color:var(--mm-ink);background:var(--mm-paper);padding:20px;}
+.sim-root{border:1px solid var(--mm-line);background:var(--mm-white);padding:18px;max-width:760px;margin:0 auto;}
+h1{font-size:17px;margin:0 0 10px;}
+.sim-hard-claim{padding:10px 12px;background:var(--mm-gold-soft);border-left:3px solid var(--mm-gold);font-size:13px;margin:0 0 14px;}
+.scene{position:relative;height:180px;border:1px solid var(--mm-line);background:var(--mm-paper);margin:12px 0;overflow:hidden;}
+.screen{position:absolute;left:50%;top:30px;width:220px;height:120px;margin-left:-110px;border:1px dashed var(--mm-muted);display:flex;align-items:center;justify-content:center;color:var(--mm-muted);font-size:12px;}
+.eye{position:absolute;bottom:16px;width:18px;height:18px;border-radius:50%;background:var(--mm-plus);}
+.eye.l{left:28%;}.eye.r{left:72%;margin-left:-18px;}
+.obj{position:absolute;width:28px;height:28px;border-radius:4px;background:var(--mm-green);left:50%;margin-left:-14px;}
+.line{position:absolute;height:1px;background:var(--mm-plus);transform-origin:0 0;opacity:.7;}
+.sim-controls label{display:block;margin:8px 0 4px;font-size:13px;color:var(--mm-muted);}
+input[type=range]{width:min(420px,90%);}
+.sim-status{margin-top:12px;padding:10px 12px;font-size:13px;}
+.ok{background:var(--mm-green-soft);} .bad{background:var(--mm-red-soft);}
+.sim-fallback{margin-top:10px;padding:10px 12px;background:var(--mm-gray-soft);font-size:12px;color:var(--mm-muted);}
+</style>
+</head>
+<body>
+<div class="sim-root">
+  <h1>Vergence–Accommodation Conflict Lab（教育用トイ）</h1>
+  <p class="sim-hard-claim"><strong>Hard claim:</strong> 多くの立体HMDでは像面（調節）と両眼輻輳が指す距離が乖離し、融合困難と疲労を増やしうる。</p>
+  <div class="sim-controls">
+    <label>仮想オブジェクトの輻輳距離（近い←→遠い） <span id="vd">1.2</span> m</label>
+    <input type="range" id="verg" min="40" max="300" value="120">
+    <label>ディスプレイ像面（調節）距離 <span id="ad">1.5</span> m（固定寄り）</label>
+    <input type="range" id="acc" min="80" max="200" value="150">
+  </div>
+  <div class="scene" id="scene">
+    <div class="screen" id="screen">像面（調節）</div>
+    <div class="obj" id="obj"></div>
+    <div class="eye l" id="el"></div>
+    <div class="eye r" id="er"></div>
+    <div class="line" id="ll"></div>
+    <div class="line" id="lr"></div>
+  </div>
+  <div class="sim-status ok" id="st">—</div>
+  <p class="sim-fallback"><strong>簡略化の開示：</strong> 幾何を2D模式にした教育用トイです。Hoffman et al. の主張（焦点手がかりの正しさが疲労・立体視力に効く）を感じるためのものです。臨床診断ではありません。</p>
+</div>
+<script>
+(function(){
+  var verg=document.getElementById('verg'), acc=document.getElementById('acc');
+  function px(v){return 40 + (300-v)*0.35;} // nearer = lower in scene? use top
+  function update(){
+    var vd=verg.value/100, ad=acc.value/100;
+    document.getElementById('vd').textContent=vd.toFixed(1);
+    document.getElementById('ad').textContent=ad.toFixed(1);
+    var obj=document.getElementById('obj'), screen=document.getElementById('screen');
+    var ot=20+(vd-0.4)*40; var st=20+(ad-0.8)*50;
+    obj.style.top=ot+'px'; screen.style.top=st+'px';
+    // lines from eyes to obj
+    var el=document.getElementById('el').getBoundingClientRect();
+    var sc=document.getElementById('scene').getBoundingClientRect();
+    function setLine(id, eyeId){
+      var e=document.getElementById(eyeId); var er=e.getBoundingClientRect();
+      var o=obj.getBoundingClientRect();
+      var x0=er.left+er.width/2-sc.left, y0=er.top+er.height/2-sc.top;
+      var x1=o.left+o.width/2-sc.left, y1=o.top+o.height/2-sc.top;
+      var len=Math.hypot(x1-x0,y1-y0), ang=Math.atan2(y1-y0,x1-x0)*180/Math.PI;
+      var L=document.getElementById(id); L.style.left=x0+'px'; L.style.top=y0+'px'; L.style.width=len+'px'; L.style.transform='rotate('+ang+'deg)';
+    }
+    requestAnimationFrame(function(){ setLine('ll','el'); setLine('lr','er'); });
+    var conflict=Math.abs(vd-ad);
+    var st=document.getElementById('st');
+    if(conflict<0.25){st.className='sim-status ok'; st.textContent='乖離小：輻輳と調節が近い。融合しやすく疲労も相対的に小さめ（模式）。';}
+    else if(conflict<0.7){st.className='sim-status bad'; st.textContent='乖離中：多くの立体ディスプレイで起きる典型帯。stereoacuity低下・疲労増の方向（Hoffman et al.）。';}
+    else{st.className='sim-status bad'; st.textContent='乖離大：「綺麗な立体」でも身体が拒否しやすい。解像度だけでは解けない請求書。';}
+  }
+  verg.addEventListener('input',update); acc.addEventListener('input',update); update();
+})();
+</script>
+</body>
+</html>
