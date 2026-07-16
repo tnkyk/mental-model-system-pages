@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RV Continuum Lab | Mental Model Studio</title>
+<style>
+:root{color-scheme:dark;--mm-ink:#f0ede6;--mm-muted:#b0aea6;--mm-paper:#0b0c0c;--mm-white:#161818;--mm-line:#3d3f3e;--mm-plus:#a8bdd0;--mm-green:#7ec9a8;--mm-gold:#f0ede6;--mm-gold-soft:rgba(240,237,230,.10);--mm-green-soft:rgba(126,201,168,.18);--mm-blue-soft:rgba(168,189,208,.22);--mm-gray-soft:#1c1e1e;}
+body{margin:0;font:14px/1.6 system-ui,"Noto Sans JP",sans-serif;color:var(--mm-ink);background:var(--mm-paper);padding:20px;}
+.sim-root{border:1px solid var(--mm-line);background:var(--mm-white);padding:18px;max-width:760px;margin:0 auto;}
+h1{font-size:17px;margin:0 0 10px;}
+.sim-hard-claim{padding:10px 12px;background:var(--mm-gold-soft);border-left:3px solid var(--mm-gold);font-size:13px;margin:0 0 14px;}
+.track{position:relative;height:18px;background:linear-gradient(90deg,var(--mm-green-soft),var(--mm-blue-soft));border:1px solid var(--mm-line);margin:18px 0 8px;}
+.knob{position:absolute;top:-6px;width:12px;height:28px;background:var(--mm-ink);border-radius:2px;transform:translateX(-50%);}
+.labels{display:flex;justify-content:space-between;font-size:12px;color:var(--mm-muted);margin-bottom:12px;}
+.sim-controls{margin:10px 0;}
+input[type=range]{width:100%;}
+.panel{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;}
+.card{border:1px solid var(--mm-line);background:var(--mm-paper);padding:10px 12px;font-size:13px;}
+.card strong{display:block;margin-bottom:6px;}
+.sim-status{margin-top:12px;padding:10px 12px;background:var(--mm-green-soft);font-size:13px;}
+.sim-fallback{margin-top:10px;padding:10px 12px;background:var(--mm-gray-soft);font-size:12px;color:var(--mm-muted);}
+</style>
+</head>
+<body>
+<div class="sim-root">
+  <h1>Reality–Virtuality Continuum Lab（教育用トイ）</h1>
+  <p class="sim-hard-claim"><strong>Hard claim:</strong> 結合様式の位置（現実寄り重ね／仮想寄り置換）が、登録・外界依存・センサ要件を変える。違いはブランド名ではない。</p>
+  <div class="sim-controls">
+    <label>位置スライダ（左＝現実寄り / 右＝仮想寄り） <span id="v">35</span></label>
+    <input type="range" id="pos" min="0" max="100" value="35">
+  </div>
+  <div class="track"><div class="knob" id="knob"></div></div>
+  <div class="labels"><span>Real</span><span>AR</span><span>MR</span><span>AV</span><span>VR</span></div>
+  <div class="panel">
+    <div class="card"><strong>結合様式</strong><span id="mode">—</span></div>
+    <div class="card"><strong>主に払うコスト</strong><span id="cost">—</span></div>
+    <div class="card"><strong>登録の相手</strong><span id="reg">—</span></div>
+    <div class="card"><strong>典型ユース</strong><span id="use">—</span></div>
+  </div>
+  <div class="sim-status" id="st">—</div>
+  <p class="sim-fallback"><strong>簡略化の開示：</strong> Milgram の continuum を一次元スライダに畳んだ教育用トイです。光学方式・パススルー遅延・社会摩擦は別章の制約です。</p>
+</div>
+<script>
+(function(){
+  var pos=document.getElementById('pos'), knob=document.getElementById('knob');
+  function update(){
+    var x=+pos.value; document.getElementById('v').textContent=x;
+    knob.style.left=x+'%';
+    var mode,cost,reg,use,st;
+    if(x<20){mode='現実環境＋薄い注釈（スマホAR寄り）';cost='装着摩擦は低いが登録・遮蔽は弱い';reg='粗い平面／画像マーカー';use='ナビ・試着・現場メモ';st='導入摩擦は低い。帯域（没入・両眼立体）は取りにくい。';}
+    else if(x<45){mode='AR寄り（現実を残し仮想を3D登録）';cost='登録精度・輝度・両手が使えること';reg='現実世界の幾何';use='産業指示・空間注釈・協働設計';st='価値は「重ね」。誤差は現実との相対ずれとして露呈する。';}
+    else if(x<60){mode='MR帯（実虚が強く並置）';cost='環境理解＋合成／遮蔽制御';reg='現実＋仮想の共有座標系';use='パススルー作業・空間デスク';st='「全部MR」言説と製品カテゴリを混同しない。要件は位置で変わる。';}
+    else if(x<80){mode='AV寄り（仮想が主で現実要素が混入）';cost='キャプチャ遅延・身体表現';reg='主に仮想世界＋部分的現実';use='遠隔身体・仮想空間への実写挿入';st='置換に近づくほど外界切断コストが上がる。';}
+    else{mode='VR（外界視覚の置換）';cost='快適持続・酔い・社会的隔離';reg='仮想座標系の内部一貫性';use='訓練・ゲーム・没入レビュー';st='登録の相手を仮想に閉じやすいが、外界と前庭の請求書が残る。';}
+    document.getElementById('mode').textContent=mode;
+    document.getElementById('cost').textContent=cost;
+    document.getElementById('reg').textContent=reg;
+    document.getElementById('use').textContent=use;
+    document.getElementById('st').textContent=st;
+  }
+  pos.addEventListener('input',update); update();
+})();
+</script>
+</body>
+</html>
