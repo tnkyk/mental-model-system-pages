@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 240" role="img" aria-labelledby="t d">
+  <title id="t">アプリと XR runtime の契約境界</title>
+  <desc id="d">OpenXR 的な境界</desc>
+  <rect width="860" height="240" fill="#0b0c0c"/>
+  <text x="430" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">アプリと XR runtime の契約境界</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="50" y="55" width="280" height="130" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="190" y="90" text-anchor="middle" fill="#f0ede6" font-weight="700">アプリケーション</text>
+    <text x="190" y="118" text-anchor="middle" fill="#b0aea6">コンテンツ・UI・ロジック</text>
+    <text x="190" y="145" text-anchor="middle" fill="#b0aea6">提出フレーム／入力処理</text>
+    <rect x="400" y="55" width="400" height="130" fill="#161818" stroke="#a8bdd0" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="600" y="90" text-anchor="middle" fill="#a8bdd0" font-weight="700">XR runtime（契約）</text>
+    <text x="600" y="118" text-anchor="middle" fill="#b0aea6">予測ポーズ・入力・スワップチェーン</text>
+    <text x="600" y="145" text-anchor="middle" fill="#b0aea6">空間アンカー／平面…</text>
+    <text x="430" y="210" fill="#b0aea6">境界の外に残る：光学・VAC・光子経路・社会摩擦</text>
+  </g>
+
+  <text x="430" y="226" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: SDK名は能力そのものではなく、契約語彙である。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>

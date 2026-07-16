@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 240" role="img" aria-labelledby="t d">
+  <title id="t">Vergence–Accommodation conflict</title>
+  <desc id="d">輻輳距離と調節距離の乖離</desc>
+  <rect width="720" height="240" fill="#0b0c0c"/>
+  <text x="360" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">Vergence–Accommodation conflict</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <circle cx="120" cy="160" r="10" fill="#a8bdd0"/><text x="120" y="190" text-anchor="middle" fill="#b0aea6">左眼</text>
+    <circle cx="220" cy="160" r="10" fill="#a8bdd0"/><text x="220" y="190" text-anchor="middle" fill="#b0aea6">右眼</text>
+    <rect x="80" y="70" width="180" height="14" fill="none" stroke="#b0aea6" stroke-dasharray="4 3"/>
+    <text x="170" y="60" text-anchor="middle" fill="#b0aea6">像面（調節）</text>
+    <rect x="300" y="95" width="36" height="36" fill="#7ec9a8"/><text x="318" y="155" text-anchor="middle" fill="#7ec9a8">仮想物</text>
+    <line x1="120" y1="160" x2="318" y2="113" stroke="#a8bdd0" stroke-width="1.5"/>
+    <line x1="220" y1="160" x2="318" y2="113" stroke="#a8bdd0" stroke-width="1.5"/>
+    <text x="480" y="90" fill="#f0ede6" font-weight="700">輻輳 → 仮想深度</text>
+    <text x="480" y="115" fill="#b0aea6">両眼の交差が指す距離</text>
+    <text x="480" y="150" fill="#f0ede6" font-weight="700">調節 → 像面深度</text>
+    <text x="480" y="175" fill="#b0aea6">ピントが合う画面の距離</text>
+    <text x="360" y="210" text-anchor="middle" fill="#b0aea6">乖離が大きいほど融合困難・疲労が増えやすい</text>
+  </g>
+
+  <text x="360" y="226" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: 解像度を上げても、この請求書は消えない。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>

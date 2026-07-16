@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 230" role="img" aria-labelledby="t d">
+  <title id="t">主戦場は用途別並走</title>
+  <desc id="d">単一カテゴリ勝者ではない</desc>
+  <rect width="900" height="230" fill="#0b0c0c"/>
+  <text x="450" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">主戦場は用途別並走</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="50" y="55" width="380" height="120" fill="#161818" stroke="#a8bdd0" stroke-width="2"/>
+    <text x="240" y="95" text-anchor="middle" fill="#a8bdd0" font-weight="700">低摩擦の重ね（AR寄り）</text>
+    <text x="240" y="122" text-anchor="middle" fill="#b0aea6">日常・現場・両手が空く</text>
+    <text x="240" y="148" text-anchor="middle" fill="#b0aea6">払うもの: 登録・輝度・社会装着</text>
+    <rect x="470" y="55" width="380" height="120" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="660" y="95" text-anchor="middle" fill="#f0ede6" font-weight="700">高帯域の置換（VR寄り）</text>
+    <text x="660" y="122" text-anchor="middle" fill="#b0aea6">訓練・没入レビュー・遮断</text>
+    <text x="660" y="148" text-anchor="middle" fill="#b0aea6">払うもの: 快適持続・隔離</text>
+    <text x="450" y="205" text-anchor="middle" fill="#b0aea6">ニュースの「勝者」宣言の前に、用途がどの請求書を払えるかを見る</text>
+  </g>
+
+  <text x="450" y="216" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: 主戦場は一つに潰さない。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>

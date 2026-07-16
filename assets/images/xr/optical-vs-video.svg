@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 230" role="img" aria-labelledby="t d">
+  <title id="t">光学シースルー vs ビデオシースルー</title>
+  <desc id="d">光子が眼に届く二つの経路</desc>
+  <rect width="960" height="230" fill="#0b0c0c"/>
+  <text x="480" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">光学シースルー vs ビデオシースルー</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="40" y="48" width="420" height="140" fill="#161818" stroke="#a8bdd0" stroke-width="2"/>
+    <text x="250" y="78" text-anchor="middle" fill="#a8bdd0" font-weight="700">光学シースルー</text>
+    <text x="250" y="105" text-anchor="middle" fill="#b0aea6">現実の光子 → 直接眼へ</text>
+    <text x="250" y="128" text-anchor="middle" fill="#b0aea6">仮想は半透過で重ね</text>
+    <text x="250" y="158" text-anchor="middle" fill="#f0ede6">利点: 低遅延の現実　欠点: 輝度・遮蔽</text>
+    <rect x="500" y="48" width="420" height="140" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="710" y="78" text-anchor="middle" fill="#f0ede6" font-weight="700">ビデオシースルー</text>
+    <text x="710" y="105" text-anchor="middle" fill="#b0aea6">現実 → カメラ → 合成 → 表示</text>
+    <text x="710" y="128" text-anchor="middle" fill="#b0aea6">遮蔽・整合は制御しやすい</text>
+    <text x="710" y="158" text-anchor="middle" fill="#f0ede6">利点: 合成制御　欠点: カメラ遅延・解像度</text>
+  </g>
+
+  <text x="480" y="216" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: パススルー＝光学ARではない。トレードオフが違う。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>

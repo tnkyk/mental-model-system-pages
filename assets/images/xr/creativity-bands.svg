@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 230" role="img" aria-labelledby="t d">
+  <title id="t">創造性に効く三つの帯域</title>
+  <desc id="d">万能創造ではない</desc>
+  <rect width="860" height="230" fill="#0b0c0c"/>
+  <text x="430" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">創造性に効く三つの帯域</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="40" y="55" width="240" height="110" fill="#161818" stroke="#a8bdd0" stroke-width="2"/>
+    <text x="160" y="95" text-anchor="middle" fill="#a8bdd0" font-weight="700">空間帯域</text>
+    <text x="160" y="122" text-anchor="middle" fill="#b0aea6">3Dで置く・回す・測る</text>
+    <rect x="310" y="55" width="240" height="110" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="430" y="95" text-anchor="middle" fill="#f0ede6" font-weight="700">身体スケール</text>
+    <text x="430" y="122" text-anchor="middle" fill="#b0aea6">実寸で歩く・手を伸ばす</text>
+    <rect x="580" y="55" width="240" height="110" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+    <text x="700" y="95" text-anchor="middle" fill="#7ec9a8" font-weight="700">共在編集</text>
+    <text x="700" y="122" text-anchor="middle" fill="#b0aea6">同じ空間を共有して直す</text>
+    <text x="430" y="200" text-anchor="middle" fill="#b0aea6">どの帯域が必要か言えない創造性主張は、過大約束になりやすい</text>
+  </g>
+
+  <text x="430" y="216" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: 「創造性が上がる」ではなく、帯域を指定して読め。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 250" role="img" aria-labelledby="t d">
+  <title id="t">登録誤差は追跡の顔</title>
+  <desc id="d">現実の縁と仮想注釈のずれ</desc>
+  <rect width="720" height="250" fill="#0b0c0c"/>
+  <text x="360" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">登録誤差は追跡の顔</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="120" y="70" width="160" height="100" fill="none" stroke="#7ec9a8" stroke-width="3"/>
+    <text x="200" y="200" text-anchor="middle" fill="#7ec9a8">現実の縁</text>
+    <rect x="150" y="85" width="160" height="100" fill="none" stroke="#a8bdd0" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="230" y="220" text-anchor="middle" fill="#a8bdd0">仮想注釈（ずれ）</text>
+    <path d="M280 120 H360" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <text x="480" y="100" text-anchor="middle" fill="#f0ede6" font-weight="700">見えるもの</text>
+    <text x="480" y="125" text-anchor="middle" fill="#b0aea6">「バグで泳ぐ」</text>
+    <text x="480" y="160" text-anchor="middle" fill="#f0ede6" font-weight="700">機構</text>
+    <text x="480" y="185" text-anchor="middle" fill="#b0aea6">頭部／環境追跡の誤差</text>
+  </g>
+
+  <text x="360" y="236" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: ARのずれは、登録＝追跡誤差の可視化である。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>
