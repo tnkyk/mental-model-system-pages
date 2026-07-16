@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 220" role="img" aria-labelledby="t d">
+  <title id="t">XR の全体地図 — 結合様式 × 制約の積</title>
+  <desc id="d">置換か重ねかに制約が掛かる</desc>
+  <rect width="960" height="220" fill="#0b0c0c"/>
+  <text x="480" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">XR の全体地図 — 結合様式 × 制約の積</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="40" y="50" width="160" height="100" fill="#161818" stroke="#a8bdd0" stroke-width="2"/>
+    <text x="120" y="88" text-anchor="middle" fill="#a8bdd0" font-weight="700">結合様式</text>
+    <text x="120" y="110" text-anchor="middle" fill="#b0aea6">置換 / 重ね</text>
+    <path d="M210 100 H250" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="250" y="50" width="110" height="100" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="305" y="88" text-anchor="middle" fill="#f0ede6" font-weight="700">光学</text>
+    <text x="305" y="110" text-anchor="middle" fill="#b0aea6">光子経路</text>
+    <path d="M370 100 H400" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="400" y="50" width="110" height="100" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="455" y="88" text-anchor="middle" fill="#f0ede6" font-weight="700">追跡</text>
+    <text x="455" y="110" text-anchor="middle" fill="#b0aea6">登録</text>
+    <path d="M520 100 H550" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="550" y="50" width="110" height="100" fill="#161818" stroke="#f0ede6" stroke-width="2"/>
+    <text x="605" y="88" text-anchor="middle" fill="#f0ede6" font-weight="700">遅延</text>
+    <text x="605" y="110" text-anchor="middle" fill="#b0aea6">MTP積</text>
+    <path d="M670 100 H700" stroke="#3d3f3e" stroke-width="2" marker-end="url(#arr)"/>
+    <rect x="700" y="50" width="110" height="100" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+    <text x="755" y="88" text-anchor="middle" fill="#7ec9a8" font-weight="700">VAC・社会</text>
+    <text x="755" y="110" text-anchor="middle" fill="#b0aea6">快適／摩擦</text>
+    <rect x="820" y="50" width="100" height="100" fill="#161818" stroke="#3d3f3e" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="870" y="88" text-anchor="middle" fill="#b0aea6" font-weight="700">使える</text>
+    <text x="870" y="110" text-anchor="middle" fill="#b0aea6">＝積</text>
+  </g>
+
+  <text x="480" y="206" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: デモ完成度ではなく、どの制約を解いた／解いていないかを問う。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>

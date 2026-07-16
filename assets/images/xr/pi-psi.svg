@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 230" role="img" aria-labelledby="t d">
+  <title id="t">Place Illusion と Plausibility</title>
+  <desc id="d">Presence の二成分</desc>
+  <rect width="720" height="230" fill="#0b0c0c"/>
+  <text x="360" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">Place Illusion と Plausibility</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <rect x="60" y="55" width="280" height="120" fill="#161818" stroke="#a8bdd0" stroke-width="2"/>
+    <text x="200" y="95" text-anchor="middle" fill="#a8bdd0" font-weight="700">Place Illusion</text>
+    <text x="200" y="120" text-anchor="middle" fill="#b0aea6">「そこにいる」感じ</text>
+    <text x="200" y="145" text-anchor="middle" fill="#b0aea6">センサリモータ随伴性</text>
+    <rect x="380" y="55" width="280" height="120" fill="#161818" stroke="#7ec9a8" stroke-width="2"/>
+    <text x="520" y="95" text-anchor="middle" fill="#7ec9a8" font-weight="700">Plausibility</text>
+    <text x="520" y="120" text-anchor="middle" fill="#b0aea6">「起きている」感じ</text>
+    <text x="520" y="145" text-anchor="middle" fill="#b0aea6">出来事の妥当性</text>
+    <text x="360" y="205" text-anchor="middle" fill="#b0aea6">解像度だけでは、どちらも保証されない</text>
+  </g>
+
+  <text x="360" y="216" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: 没入感を一語に畳まない。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 230" role="img" aria-labelledby="t d">
+  <title id="t">Reality–Virtuality continuum</title>
+  <desc id="d">現実から仮想への結合様式</desc>
+  <rect width="960" height="230" fill="#0b0c0c"/>
+  <text x="480" y="28" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="15" font-weight="700" fill="#f0ede6">Reality–Virtuality continuum</text>
+
+  <g font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="12">
+    <line x1="60" y1="110" x2="900" y2="110" stroke="#3d3f3e" stroke-width="3"/>
+    <circle cx="80" cy="110" r="8" fill="#7ec9a8"/>
+    <circle cx="280" cy="110" r="8" fill="#a8bdd0"/>
+    <circle cx="480" cy="110" r="8" fill="#f0ede6"/>
+    <circle cx="680" cy="110" r="8" fill="#a8bdd0"/>
+    <circle cx="880" cy="110" r="8" fill="#f0ede6"/>
+    <text x="80" y="70" text-anchor="middle" fill="#7ec9a8" font-weight="700">Real</text>
+    <text x="280" y="70" text-anchor="middle" fill="#a8bdd0" font-weight="700">AR</text>
+    <text x="480" y="70" text-anchor="middle" fill="#f0ede6" font-weight="700">MR</text>
+    <text x="680" y="70" text-anchor="middle" fill="#a8bdd0" font-weight="700">AV</text>
+    <text x="880" y="70" text-anchor="middle" fill="#f0ede6" font-weight="700">VR</text>
+    <text x="80" y="150" text-anchor="middle" fill="#b0aea6">外界そのまま</text>
+    <text x="280" y="150" text-anchor="middle" fill="#b0aea6">重ね＋登録</text>
+    <text x="480" y="150" text-anchor="middle" fill="#b0aea6">実虚並置</text>
+    <text x="680" y="150" text-anchor="middle" fill="#b0aea6">仮想が主</text>
+    <text x="880" y="150" text-anchor="middle" fill="#b0aea6">外界置換</text>
+    <text x="480" y="185" text-anchor="middle" fill="#b0aea6">位置が変わると、登録相手・輝度・社会コストが変わる</text>
+  </g>
+
+  <text x="480" y="216" text-anchor="middle" font-family="'Noto Sans JP','IBM Plex Sans',sans-serif" font-size="11" fill="#b0aea6">Lesson: 違いはブランド名ではなく、置換か重ねか（結合様式）である。</text>
+  <defs><marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#3d3f3e"/></marker></defs>
+</svg>
