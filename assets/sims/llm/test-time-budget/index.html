@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Test-time Budget Lab | Mental Model Studio</title>
+<style>
+  :root{color-scheme:dark;--mm-ink:#f0ede6;--mm-muted:#b0aea6;--mm-paper:#0b0c0c;--mm-white:#161818;--mm-line:#3d3f3e;--mm-plus:#a8bdd0;--mm-green:#7ec9a8;--mm-gold:var(--mm-ink);--mm-gold-soft:rgba(240,237,230,.10);}
+  body{margin:0;font:14px/1.6 system-ui,"Noto Sans JP",sans-serif;color:var(--mm-ink);background:var(--mm-paper);padding:20px;}
+  .sim-root{border:1px solid var(--mm-line);background:var(--mm-white);padding:18px;max-width:760px;margin:0 auto;}
+  h1{font-size:17px;margin:0 0 10px;}
+  .sim-hard-claim{padding:10px 12px;background:var(--mm-gold-soft);border-left:3px solid var(--mm-gold);font-size:13px;margin:0 0 14px;}
+  .mono{font-family:ui-monospace,Consolas,monospace;font-size:13px;}
+  .step{color:var(--mm-muted);margin:0.2rem 0;}
+  .final{color:var(--mm-plus);margin-top:0.6rem;}
+  button{margin-right:8px;padding:6px 12px;cursor:pointer;background:var(--mm-line);color:var(--mm-ink);border:1px solid var(--mm-muted);}
+  button.primary{background:var(--mm-plus);color:#0b0c0c;border-color:var(--mm-plus);}
+  .hint{font-size:12px;color:var(--mm-muted);margin-top:12px;}
+</style>
+</head>
+<body>
+<div class="sim-root">
+  <h1>Lab — 推論時予算</h1>
+  <p class="sim-hard-claim"><strong>hard claim:</strong> 同じ問題でも思考トークン予算を増やすと探索パスが変わりうるが、それは真偽スイッチではなく検証を代替しない。</p>
+  <p class="mono">玩具問題: 15×17+8</p>
+  <label class="mono">思考トークン予算 <input id="b" type="range" min="1" max="6" value="2" /></label>
+  <span class="mono" id="bv">2</span>
+  <div id="trace"></div>
+  <div class="final mono" id="final"></div>
+  <p style="margin-top:12px">
+    <button type="button" class="primary" id="run">考える</button>
+    <button type="button" id="reset">リセット</button>
+  </p>
+  <p class="hint">長いトレースは探索の可視化であり、証明や真偽保証ではありません。考えてます ≠ 正しさ。</p>
+</div>
+<script>
+const paths = {
+  1: { steps: ["直観で 250 くらい"], ans: "250（粗い）" },
+  2: { steps: ["15×17=255", "255+8=263"], ans: "263" },
+  3: { steps: ["15×10=150", "15×7=105", "150+105=255", "255+8=263"], ans: "263" },
+  4: { steps: ["別方針: 15×17=(15×20)-45=300-45=255", "検算: 255+8=263", "もう一度加算確認"], ans: "263" },
+  5: { steps: ["255+8", "下一桁 5+8=13", "繰り上がり", "260+3=263", "別表現でも一致"], ans: "263" },
+  6: { steps: ["長い自己対話…", "途中で 265 と誤る分岐", "検算で却下", "255+8 に戻る", "確定 263", "（長くても誤り分岐は起きうる）"], ans: "263（長いが保証ではない）" },
+};
+function run() {
+  const n = +document.getElementById("b").value;
+  document.getElementById("bv").textContent = n;
+  const p = paths[n];
+  document.getElementById("trace").innerHTML = p.steps.map(s => "<div class='step'>· " + s + "</div>").join("");
+  document.getElementById("final").textContent = "出力: " + p.ans + " / 予算=" + n;
+}
+document.getElementById("run").onclick = run;
+document.getElementById("reset").onclick = () => {
+  document.getElementById("trace").innerHTML = "";
+  document.getElementById("final").textContent = "";
+};
+document.getElementById("b").oninput = run;
+</script>
+</body>
+</html>
